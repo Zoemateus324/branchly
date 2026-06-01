@@ -1,18 +1,18 @@
-import { createClient } from "@/utils/supabase/server"; 
+import { createClient } from "../../../../../utils/supabase/server"; 
 import { FilialList } from "@/components/FilialList";
 import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 
 export default async function Page() {
   const { userId } = await auth();
   
   if (!userId) return <div>Você precisa estar logado.</div>;
 
-  // Variável declarada aqui!
   const empresaLogadaId = userId; 
 
-  const supabase = await createClient();
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
   
-  // Agora o TypeScript sabe quem é empresaLogadaId
   const { data: filiais } = await supabase
     .from('filiais')
     .select('*')
