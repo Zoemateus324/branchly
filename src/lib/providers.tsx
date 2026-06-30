@@ -30,7 +30,6 @@ function detectCurrency(): Currency {
 }
 
 function detectTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
   return (
     (localStorage.getItem("branchly:theme") as Theme | null) ??
     (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
@@ -38,15 +37,18 @@ function detectTheme(): Theme {
 }
 
 export function AppProviders({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === "undefined") return "en";
-    return (localStorage.getItem("branchly:locale") as Locale | null) ?? detectLocale();
-  });
-  const [currency, setCurrencyState] = useState<Currency>(() => {
-    if (typeof window === "undefined") return "USD";
-    return (localStorage.getItem("branchly:currency") as Currency | null) ?? detectCurrency();
-  });
-  const [theme, setThemeState] = useState<Theme>(detectTheme);
+  // Initial state must match the server-rendered defaults (en / USD / dark) so the
+  // first client render doesn't diverge from SSR output and trigger a hydration
+  // mismatch. The real, persisted preferences are applied right after mount below.
+  const [locale, setLocaleState] = useState<Locale>("en");
+  const [currency, setCurrencyState] = useState<Currency>("USD");
+  const [theme, setThemeState] = useState<Theme>("dark");
+
+  useEffect(() => {
+    setLocaleState((localStorage.getItem("branchly:locale") as Locale | null) ?? detectLocale());
+    setCurrencyState((localStorage.getItem("branchly:currency") as Currency | null) ?? detectCurrency());
+    setThemeState(detectTheme());
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");

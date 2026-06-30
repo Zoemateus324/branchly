@@ -18,7 +18,7 @@ export const Route = createFileRoute("/sign-in/$")({
   component: SignInPage,
 });
 
-function SignInPage() {
+export function SignInPage() {
   const { isSignedIn, isLoaded } = useAuth();
   if (isLoaded && isSignedIn) return <Navigate to="/dashboard" replace />;
   return (
