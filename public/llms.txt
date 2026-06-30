@@ -1,0 +1,14 @@
+# Branchly
+
+> Reputation intelligence and competitive benchmarking platform for multi-location businesses. Monitor Google reviews, benchmark every location against local competitors, and turn customer feedback into measurable growth with AI.
+
+Branchly centralizes reviews, ratings, and competitor data across every physical location so chains, franchises, and multi-unit operators can grow their reputation in one place.
+
+## Pages
+
+- [Home](/): Product overview, pricing, simulator, and customer stats.
+
+## Optional
+
+- [Sign up](/sign-up): Create a Branchly account.
+- [Sign in](/sign-in): Log in to the Branchly dashboard.

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://branchly.com.br/sitemap.xml
