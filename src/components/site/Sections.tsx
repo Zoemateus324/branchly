@@ -40,13 +40,13 @@ export function Hero() {
             {t.hero.subtitle}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link
-              to="/sign-up/$"
+            <a
+              href="#simulator"
               className="group inline-flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-medium text-background shadow-lg transition hover:opacity-90"
             >
               {t.hero.ctaPrimary}
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-            </Link>
+            </a>
             <a
               href="#solution"
               className="inline-flex items-center gap-2 rounded-lg border border-border bg-background/50 px-5 py-2.5 text-sm font-medium backdrop-blur transition hover:bg-muted"
@@ -233,6 +233,13 @@ export function Simulator() {
     reviewCount: number | null;
     name: string;
     sourceUrl: string;
+    lossEstimate: {
+      monthlyLossBRL: number;
+      avgTicketBRL: number;
+      avgMonthlyCustomers: number;
+      starGap: number;
+      benchmarkRating: number;
+    } | null;
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -261,6 +268,7 @@ export function Simulator() {
         reviewCount: res.reviewCount,
         name: res.name,
         sourceUrl: res.sourceUrl,
+        lossEstimate: res.lossEstimate,
       });
       setTimeout(
         () =>
@@ -390,6 +398,36 @@ export function Simulator() {
                     </div>
                   </div>
                 </div>
+                {result.lossEstimate &&
+                  result.lossEstimate.monthlyLossBRL > 0 && (
+                    <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-4">
+                      <div className="text-xs uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                        {t.simulator.lossLabel}
+                      </div>
+                      <div className="font-display mt-1 text-3xl font-semibold tabular-nums text-rose-600 dark:text-rose-400">
+                        {result.lossEstimate.monthlyLossBRL.toLocaleString(
+                          "pt-BR",
+                          {
+                            style: "currency",
+                            currency: "BRL",
+                            maximumFractionDigits: 0,
+                          },
+                        )}
+                        <span className="text-sm font-normal text-muted-foreground">
+                          {" "}
+                          {t.simulator.lossPerMonth}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {t.simulator.lossExplain
+                          .replace("{rating}", (result.rating ?? 0).toFixed(1))
+                          .replace(
+                            "{benchmark}",
+                            result.lossEstimate.benchmarkRating.toFixed(1),
+                          )}
+                      </div>
+                    </div>
+                  )}
                 {(result.rating !== null || result.reviewCount !== null) && (
                   <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-muted/30 p-3 text-xs">
                     <div>

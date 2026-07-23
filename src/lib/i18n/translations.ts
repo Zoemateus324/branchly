@@ -9,11 +9,12 @@ export const translations = {
       startFree: "Start free",
     },
     hero: {
-      badge: "Reputation Intelligence Platform",
-      title: "Transform customer reviews into measurable business growth.",
+      badge: "Reputation loss calculator",
+      title:
+        "Find out how much your low Google rating is costing you every month.",
       subtitle:
-        "Monitor reputation, compare locations, outperform competitors and discover growth opportunities with AI.",
-      ctaPrimary: "Start free",
+        "Get a real revenue-loss estimate based on your rating gap vs. category benchmarks — in 30 seconds, no credit card.",
+      ctaPrimary: "Calculate my loss",
       ctaSecondary: "Watch demo",
       trust: "No credit card required · 14-day trial · Cancel anytime",
     },
@@ -119,6 +120,10 @@ export const translations = {
       benchmark: "Category benchmark",
       gap: "Competitive gap",
       claim: "Claim full report",
+      lossLabel: "Estimated money left on the table",
+      lossPerMonth: "/ month",
+      lossExplain:
+        "Based on your {rating}★ vs. the {benchmark}★ category benchmark. Educational estimate, not a guarantee.",
     },
     pricing: {
       eyebrow: "Pricing",
@@ -204,11 +209,12 @@ export const translations = {
       startFree: "Comece grátis",
     },
     hero: {
-      badge: "Plataforma de Inteligência de Reputação",
-      title: "Transforme avaliações de clientes em crescimento mensurável.",
+      badge: "Calculadora de prejuízo por reputação",
+      title:
+        "Descubra quanto sua nota baixa no Google está te custando por mês.",
       subtitle:
-        "Monitore reputação, compare unidades, supere concorrentes e descubra oportunidades de crescimento com IA.",
-      ctaPrimary: "Comece grátis",
+        "Receba uma estimativa real de receita perdida com base na sua distância para o benchmark da categoria — em 30 segundos, sem cartão de crédito.",
+      ctaPrimary: "Calcular meu prejuízo",
       ctaSecondary: "Ver demo",
       trust: "Sem cartão de crédito · 14 dias grátis · Cancele quando quiser",
     },
@@ -314,6 +320,10 @@ export const translations = {
       benchmark: "Benchmark da categoria",
       gap: "Distância competitiva",
       claim: "Receber relatório completo",
+      lossLabel: "Estimativa de dinheiro deixado na mesa",
+      lossPerMonth: "/ mês",
+      lossExplain:
+        "Baseado no seu {rating}★ vs. o benchmark de {benchmark}★ da categoria. Estimativa educacional, não é garantia.",
     },
     pricing: {
       eyebrow: "Planos",
