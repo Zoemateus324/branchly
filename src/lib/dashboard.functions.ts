@@ -4,19 +4,49 @@ import { requireClerkAuth } from "@/integrations/clerk/auth-middleware";
 
 export const getDashboardData = createServerFn({ method: "POST" })
   .middleware([requireClerkAuth])
-  .inputValidator((i) => z.object({ days: z.union([z.literal(7), z.literal(15), z.literal(30)]).default(30) }).parse(i ?? {}))
+  .inputValidator((i) =>
+    z
+      .object({
+        days: z.union([z.literal(7), z.literal(15), z.literal(30)]).default(30),
+      })
+      .parse(i ?? {}),
+  )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const ownerId = context.userId;
     const days = data.days;
     const sinceISO = new Date(Date.now() - days * 86_400_000).toISOString();
 
     const [locsRes, revsRes, compsRes, insRes, repsRes] = await Promise.all([
-      supabaseAdmin.from("locations").select("*").eq("owner_id", ownerId).order("score", { ascending: false }),
-      supabaseAdmin.from("reviews").select("*").eq("owner_id", ownerId).gte("posted_at", sinceISO).order("posted_at", { ascending: false }).limit(200),
-      supabaseAdmin.from("competitors").select("*").eq("owner_id", ownerId).order("rating", { ascending: false }),
-      supabaseAdmin.from("insights").select("*").eq("owner_id", ownerId).gte("created_at", sinceISO).order("created_at", { ascending: false }),
-      supabaseAdmin.from("reports").select("*").eq("owner_id", ownerId).order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("locations")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .order("score", { ascending: false }),
+      supabaseAdmin
+        .from("reviews")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .gte("posted_at", sinceISO)
+        .order("posted_at", { ascending: false })
+        .limit(200),
+      supabaseAdmin
+        .from("competitors")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .order("rating", { ascending: false }),
+      supabaseAdmin
+        .from("insights")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .gte("created_at", sinceISO)
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("reports")
+        .select("*")
+        .eq("owner_id", ownerId)
+        .order("created_at", { ascending: false }),
     ]);
 
     const locations = locsRes.data ?? [];
@@ -26,21 +56,36 @@ export const getDashboardData = createServerFn({ method: "POST" })
     const reports = repsRes.data ?? [];
 
     // KPIs
-    const scores = locations.map((l) => Number(l.score)).filter((n) => Number.isFinite(n));
-    const avgScore = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-    const totalReviews = locations.reduce((s, l) => s + (l.review_count ?? 0), 0);
-    const ratings = locations.map((l) => Number(l.rating)).filter((n) => Number.isFinite(n));
-    const avgRating = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+    const scores = locations
+      .map((l) => Number(l.score))
+      .filter((n) => Number.isFinite(n));
+    const avgScore = scores.length
+      ? scores.reduce((a, b) => a + b, 0) / scores.length
+      : 0;
+    const totalReviews = locations.reduce(
+      (s, l) => s + (l.review_count ?? 0),
+      0,
+    );
+    const ratings = locations
+      .map((l) => Number(l.rating))
+      .filter((n) => Number.isFinite(n));
+    const avgRating = ratings.length
+      ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+      : 0;
     const repliedCount = reviews.filter((r) => !!r.reply).length;
-    const responseRate = reviews.length ? Math.round((repliedCount / reviews.length) * 100) : 0;
+    const responseRate = reviews.length
+      ? Math.round((repliedCount / reviews.length) * 100)
+      : 0;
 
     // Sentiment mix
     const sentCounts = { positive: 0, neutral: 0, negative: 0 };
     for (const r of reviews) {
       const s = (r.sentiment ?? "").toLowerCase();
-      if (s === "positive" || s === "neutral" || s === "negative") sentCounts[s]++;
+      if (s === "positive" || s === "neutral" || s === "negative")
+        sentCounts[s]++;
     }
-    const sentTotal = sentCounts.positive + sentCounts.neutral + sentCounts.negative || 1;
+    const sentTotal =
+      sentCounts.positive + sentCounts.neutral + sentCounts.negative || 1;
     const sentiment = {
       positive: Math.round((sentCounts.positive / sentTotal) * 100),
       neutral: Math.round((sentCounts.neutral / sentTotal) * 100),
@@ -66,7 +111,9 @@ export const getDashboardData = createServerFn({ method: "POST" })
     // Daily trend: average rating per day across the window (0 if no reviews)
     const buckets = new Map<string, { sum: number; n: number }>();
     for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(Date.now() - i * 86_400_000).toISOString().slice(0, 10);
+      const d = new Date(Date.now() - i * 86_400_000)
+        .toISOString()
+        .slice(0, 10);
       buckets.set(d, { sum: 0, n: 0 });
     }
     for (const r of reviews) {

@@ -7,7 +7,12 @@ export interface ScrapedBusiness {
   reviewCount: number | null;
   address: string | null;
   category: string | null;
-  recentReviews: { author?: string; rating?: number; text?: string; timeAgo?: string }[];
+  recentReviews: {
+    author?: string;
+    rating?: number;
+    text?: string;
+    timeAgo?: string;
+  }[];
 }
 
 export async function scrapeGoogleBusiness(input: {
@@ -18,7 +23,9 @@ export async function scrapeGoogleBusiness(input: {
   const apiKey = process.env.FIRECRAWL_API_KEY;
   if (!apiKey) throw new Error("FIRECRAWL_API_KEY is not configured");
 
-  const query = [input.name, input.city, input.category].filter(Boolean).join(" ");
+  const query = [input.name, input.city, input.category]
+    .filter(Boolean)
+    .join(" ");
   const url = `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
 
   const res = await fetch(FIRECRAWL_SCRAPE_URL, {
@@ -43,7 +50,9 @@ export async function scrapeGoogleBusiness(input: {
 
   if (!res.ok) {
     const body = await res.text();
-    throw new Error(`Firecrawl scrape failed (${res.status}): ${body.slice(0, 240)}`);
+    throw new Error(
+      `Firecrawl scrape failed (${res.status}): ${body.slice(0, 240)}`,
+    );
   }
 
   const payload = (await res.json()) as Record<string, unknown>;
@@ -54,16 +63,24 @@ export async function scrapeGoogleBusiness(input: {
     reviewCount?: number;
     address?: string;
     category?: string;
-    recentReviews?: { author?: string; rating?: number; text?: string; timeAgo?: string }[];
+    recentReviews?: {
+      author?: string;
+      rating?: number;
+      text?: string;
+      timeAgo?: string;
+    }[];
   };
 
   return {
     sourceUrl: url,
     name: extracted.name || input.name,
     rating: typeof extracted.rating === "number" ? extracted.rating : null,
-    reviewCount: typeof extracted.reviewCount === "number" ? extracted.reviewCount : null,
+    reviewCount:
+      typeof extracted.reviewCount === "number" ? extracted.reviewCount : null,
     address: extracted.address || null,
     category: extracted.category || input.category || null,
-    recentReviews: Array.isArray(extracted.recentReviews) ? extracted.recentReviews : [],
+    recentReviews: Array.isArray(extracted.recentReviews)
+      ? extracted.recentReviews
+      : [],
   };
 }

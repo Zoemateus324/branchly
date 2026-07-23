@@ -11,19 +11,24 @@ async function getActivePlan(email: string): Promise<PlanKey | null> {
   const stripe = new Stripe(key, { apiVersion: "2025-08-27.basil" as never });
   const customers = await stripe.customers.list({ email, limit: 1 });
   if (customers.data.length === 0) return null;
-  const subs = await stripe.subscriptions.list({ customer: customers.data[0].id, status: "active", limit: 1 });
+  const subs = await stripe.subscriptions.list({
+    customer: customers.data[0].id,
+    status: "active",
+    limit: 1,
+  });
   if (subs.data.length === 0) return null;
   const productId = subs.data[0].items.data[0].price.product as string;
-  const entry = (Object.entries(PLANS) as [PlanKey, (typeof PLANS)[PlanKey]][]).find(
-    ([, p]) => p.productId === productId,
-  );
+  const entry = (
+    Object.entries(PLANS) as [PlanKey, (typeof PLANS)[PlanKey]][]
+  ).find(([, p]) => p.productId === productId);
   return entry ? entry[0] : null;
 }
 
 export const listMembers = createServerFn({ method: "GET" })
   .middleware([requireClerkAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("memberships")
       .select("*")
@@ -34,7 +39,7 @@ export const listMembers = createServerFn({ method: "GET" })
       throw new Error("Não foi possível carregar os membros. Tente novamente.");
     }
     const plan = await getActivePlan(context.email);
-    const limit = plan ? PLAN_MEMBER_LIMITS[plan] ?? 0 : 0;
+    const limit = plan ? (PLAN_MEMBER_LIMITS[plan] ?? 0) : 0;
     return { members: data ?? [], plan, limit };
   });
 
@@ -49,10 +54,13 @@ export const inviteMember = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const plan = await getActivePlan(context.email);
     if (!plan) {
-      throw new Error("Adicionar membros requer um plano pago. Faça upgrade para Starter, Pro ou Premium.");
+      throw new Error(
+        "Adicionar membros requer um plano pago. Faça upgrade para Starter, Pro ou Premium.",
+      );
     }
     const limit = PLAN_MEMBER_LIMITS[plan] ?? 0;
     const { count } = await supabaseAdmin
@@ -61,7 +69,9 @@ export const inviteMember = createServerFn({ method: "POST" })
       .eq("owner_id", context.userId)
       .neq("status", "removed");
     if ((count ?? 0) >= limit) {
-      throw new Error(`Seu plano ${plan} permite até ${limit} membros. Faça upgrade para adicionar mais.`);
+      throw new Error(
+        `Seu plano ${plan} permite até ${limit} membros. Faça upgrade para adicionar mais.`,
+      );
     }
     const { data: row, error } = await supabaseAdmin
       .from("memberships")
@@ -74,7 +84,8 @@ export const inviteMember = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) {
-      if ((error as { code?: string }).code === "23505") throw new Error("Este e-mail já foi convidado.");
+      if ((error as { code?: string }).code === "23505")
+        throw new Error("Este e-mail já foi convidado.");
       console.error("[team.inviteMember]", error);
       throw new Error("Não foi possível convidar o membro. Tente novamente.");
     }
@@ -92,7 +103,8 @@ export const updateMemberRole = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("memberships")
       .update({ role: data.role })
@@ -109,7 +121,8 @@ export const removeMember = createServerFn({ method: "POST" })
   .middleware([requireClerkAuth])
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("memberships")
       .delete()

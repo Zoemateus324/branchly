@@ -1,6 +1,7 @@
 export async function getPlanOverride(email: string): Promise<string | null> {
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("plan_overrides")
       .select("plan")

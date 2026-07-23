@@ -3,7 +3,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getFinancialOverview } from "@/lib/admin/admin.financial.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/admin/financial")({
@@ -12,9 +20,17 @@ export const Route = createFileRoute("/_authenticated/admin/financial")({
 
 function AdminFinancial() {
   const fn = useServerFn(getFinancialOverview);
-  const { data: f, isLoading } = useQuery({ queryKey: ["admin-financial"], queryFn: () => fn() });
+  const { data: f, isLoading } = useQuery({
+    queryKey: ["admin-financial"],
+    queryFn: () => fn(),
+  });
 
-  if (isLoading || !f) return <div className="text-sm text-muted-foreground">Carregando dados Stripe…</div>;
+  if (isLoading || !f)
+    return (
+      <div className="text-sm text-muted-foreground">
+        Carregando dados Stripe…
+      </div>
+    );
 
   const kpis = [
     { label: "MRR", value: `$${f.mrr.toLocaleString()}` },
@@ -31,7 +47,9 @@ function AdminFinancial() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Financeiro</h1>
-        <p className="text-sm text-muted-foreground">Dados ao vivo do Stripe.</p>
+        <p className="text-sm text-muted-foreground">
+          Dados ao vivo do Stripe.
+        </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -46,7 +64,9 @@ function AdminFinancial() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>Receita por mês</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Receita por mês</CardTitle>
+        </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={f.revenueSeries}>
@@ -61,7 +81,9 @@ function AdminFinancial() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Faturas recentes</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Faturas recentes</CardTitle>
+        </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -78,14 +100,27 @@ function AdminFinancial() {
                 {f.recentInvoices.map((inv) => (
                   <tr key={inv.id} className="border-b last:border-0">
                     <td className="p-2">{inv.customer ?? "—"}</td>
-                    <td className="p-2">${inv.amount.toFixed(2)} {inv.currency.toUpperCase()}</td>
                     <td className="p-2">
-                      <Badge variant={inv.status === "paid" ? "default" : "outline"}>{inv.status}</Badge>
+                      ${inv.amount.toFixed(2)} {inv.currency.toUpperCase()}
                     </td>
-                    <td className="p-2">{new Date(inv.created * 1000).toLocaleDateString()}</td>
+                    <td className="p-2">
+                      <Badge
+                        variant={inv.status === "paid" ? "default" : "outline"}
+                      >
+                        {inv.status}
+                      </Badge>
+                    </td>
+                    <td className="p-2">
+                      {new Date(inv.created * 1000).toLocaleDateString()}
+                    </td>
                     <td className="p-2">
                       {inv.hostedUrl && (
-                        <a href={inv.hostedUrl} target="_blank" rel="noreferrer" className="text-primary underline text-xs">
+                        <a
+                          href={inv.hostedUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary underline text-xs"
+                        >
                           Abrir
                         </a>
                       )}
@@ -99,12 +134,19 @@ function AdminFinancial() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Distribuição por produto</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Distribuição por produto</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-2">
           {Object.entries(f.byProduct).map(([pid, p]) => (
-            <div key={pid} className="flex justify-between text-sm border-b pb-2 last:border-0">
+            <div
+              key={pid}
+              className="flex justify-between text-sm border-b pb-2 last:border-0"
+            >
               <span className="font-mono text-xs">{pid}</span>
-              <span>{p.count} assinaturas · ${p.mrr.toFixed(2)} MRR</span>
+              <span>
+                {p.count} assinaturas · ${p.mrr.toFixed(2)} MRR
+              </span>
             </div>
           ))}
         </CardContent>

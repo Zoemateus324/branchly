@@ -19,7 +19,8 @@ export const clerkAppearance = {
     headerTitle: "font-display text-xl tracking-tight",
     socialButtonsBlockButton: "rounded-lg border border-border",
     formFieldInput: "rounded-lg border border-border bg-background",
-    formButtonPrimary: "rounded-lg bg-primary text-primary-foreground hover:bg-primary/90",
+    formButtonPrimary:
+      "rounded-lg bg-primary text-primary-foreground hover:bg-primary/90",
     footerActionLink: "text-primary hover:text-primary/90",
   },
 } as const;

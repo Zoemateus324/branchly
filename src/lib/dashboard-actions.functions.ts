@@ -12,10 +12,13 @@ export function isDeveloperEmail(email: string | null | undefined): boolean {
 async function getActivePlan(email: string): Promise<PlanTier> {
   if (isDeveloperEmail(email)) return "premium";
   try {
-    const { getPlanOverride } = await import("@/lib/admin/plan-override.server");
+    const { getPlanOverride } =
+      await import("@/lib/admin/plan-override.server");
     const override = await getPlanOverride(email);
     if (override) return planFromKey(override);
-  } catch {}
+  } catch (e) {
+    console.error("[getActivePlan] plan override lookup failed", e);
+  }
   try {
     const Stripe = (await import("stripe")).default;
     const key = process.env.STRIPE_SECRET_KEY;
@@ -31,9 +34,9 @@ async function getActivePlan(email: string): Promise<PlanTier> {
     if (!subs.data[0]) return "free";
     const productId = subs.data[0].items.data[0].price.product as string;
     const { PLANS } = await import("./stripe.functions");
-    const entry = (Object.entries(PLANS) as [PlanTier, { productId: string }][]).find(
-      ([, p]) => p.productId === productId,
-    );
+    const entry = (
+      Object.entries(PLANS) as [PlanTier, { productId: string }][]
+    ).find(([, p]) => p.productId === productId);
     return planFromKey(entry?.[0]);
   } catch {
     return "free";
@@ -41,7 +44,10 @@ async function getActivePlan(email: string): Promise<PlanTier> {
 }
 
 class PlanError extends Error {
-  constructor(public feature: string, public plan: PlanTier) {
+  constructor(
+    public feature: string,
+    public plan: PlanTier,
+  ) {
     super(`PLAN_LIMIT:${feature}:${plan}`);
   }
 }
@@ -60,13 +66,15 @@ export const addLocation = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const plan = await getActivePlan(context.email);
     const { count } = await supabaseAdmin
       .from("locations")
       .select("id", { count: "exact", head: true })
       .eq("owner_id", context.userId);
-    if ((count ?? 0) >= PLAN_LIMITS[plan].locations) throw new PlanError("locations", plan);
+    if ((count ?? 0) >= PLAN_LIMITS[plan].locations)
+      throw new PlanError("locations", plan);
     const { refreshMyLocationScore } = await import("./google-score.functions");
     return refreshMyLocationScore({ data });
   });
@@ -86,13 +94,15 @@ export const addCompetitor = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const plan = await getActivePlan(context.email);
     const { count } = await supabaseAdmin
       .from("competitors")
       .select("id", { count: "exact", head: true })
       .eq("owner_id", context.userId);
-    if ((count ?? 0) >= PLAN_LIMITS[plan].competitors) throw new PlanError("competitors", plan);
+    if ((count ?? 0) >= PLAN_LIMITS[plan].competitors)
+      throw new PlanError("competitors", plan);
     const { error, data: row } = await supabaseAdmin
       .from("competitors")
       .insert({
@@ -112,8 +122,13 @@ export const removeCompetitor = createServerFn({ method: "POST" })
   .middleware([requireClerkAuth])
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await supabaseAdmin.from("competitors").delete().eq("id", data.id).eq("owner_id", context.userId);
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("competitors")
+      .delete()
+      .eq("id", data.id)
+      .eq("owner_id", context.userId);
     return { ok: true };
   });
 
@@ -130,15 +145,21 @@ export const createReport = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const plan = await getActivePlan(context.email);
-    const sinceMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+    const sinceMonth = new Date(
+      new Date().getFullYear(),
+      new Date().getMonth(),
+      1,
+    ).toISOString();
     const { count } = await supabaseAdmin
       .from("reports")
       .select("id", { count: "exact", head: true })
       .eq("owner_id", context.userId)
       .gte("created_at", sinceMonth);
-    if ((count ?? 0) >= PLAN_LIMITS[plan].reports) throw new PlanError("reports", plan);
+    if ((count ?? 0) >= PLAN_LIMITS[plan].reports)
+      throw new PlanError("reports", plan);
     const { error, data: row } = await supabaseAdmin
       .from("reports")
       .insert({
@@ -158,7 +179,8 @@ export const createReport = createServerFn({ method: "POST" })
 export const captureReviewsForAll = createServerFn({ method: "POST" })
   .middleware([requireClerkAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const { refreshMyLocationScore } = await import("./google-score.functions");
     const { data: locs } = await supabaseAdmin
       .from("locations")
@@ -169,7 +191,11 @@ export const captureReviewsForAll = createServerFn({ method: "POST" })
     for (const l of locs) {
       try {
         await refreshMyLocationScore({
-          data: { name: l.name, city: l.city ?? "", category: l.category ?? undefined },
+          data: {
+            name: l.name,
+            city: l.city ?? "",
+            category: l.category ?? undefined,
+          },
         });
         captured += 1;
       } catch (e) {
@@ -183,9 +209,11 @@ export const generateReplyForReview = createServerFn({ method: "POST" })
   .middleware([requireClerkAuth])
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const plan = await getActivePlan(context.email);
-    if (PLAN_LIMITS[plan].aiReplies <= 0) throw new PlanError("aiReplies", plan);
+    if (PLAN_LIMITS[plan].aiReplies <= 0)
+      throw new PlanError("aiReplies", plan);
 
     const { data: review, error } = await supabaseAdmin
       .from("reviews")
@@ -202,30 +230,46 @@ export const generateReplyForReview = createServerFn({ method: "POST" })
       review.rating ?? "?"
     }★ por ${review.author ?? "cliente"}: "${review.comment ?? ""}". Escreva uma resposta breve (máx 3 frases), educada, profissional, em português do Brasil. Agradeça quando for positivo; reconheça e ofereça solução quando for negativo. Responda apenas com o texto da resposta.`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: "Você é um gerente cordial e objetivo." },
-          { role: "user", content: prompt },
-        ],
-      }),
-    });
+    const res = await fetch(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: "Você é um gerente cordial e objetivo.",
+            },
+            { role: "user", content: prompt },
+          ],
+        }),
+      },
+    );
     if (!res.ok) throw new Error(`AI gateway ${res.status}`);
-    const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+    const json = (await res.json()) as {
+      choices?: { message?: { content?: string } }[];
+    };
     const reply = (json.choices?.[0]?.message?.content ?? "").trim();
     if (!reply) throw new Error("Resposta vazia");
 
-    await supabaseAdmin.from("reviews").update({ reply }).eq("id", data.id).eq("owner_id", context.userId);
+    await supabaseAdmin
+      .from("reviews")
+      .update({ reply })
+      .eq("id", data.id)
+      .eq("owner_id", context.userId);
     return { id: data.id, reply };
   });
 
 export const generateRepliesForUnreplied = createServerFn({ method: "POST" })
   .middleware([requireClerkAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const plan = await getActivePlan(context.email);
     const budget = PLAN_LIMITS[plan].aiReplies;
     if (budget <= 0) throw new PlanError("aiReplies", plan);

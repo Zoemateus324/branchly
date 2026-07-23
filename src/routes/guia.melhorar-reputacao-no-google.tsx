@@ -37,7 +37,10 @@ export const Route = createFileRoute("/guia/melhorar-reputacao-no-google")({
           publisher: {
             "@type": "Organization",
             name: "Branchly",
-            logo: { "@type": "ImageObject", url: "https://branchly.com.br/favicon.ico" },
+            logo: {
+              "@type": "ImageObject",
+              url: "https://branchly.com.br/favicon.ico",
+            },
           },
           mainEntityOfPage: URL,
         }),
@@ -94,66 +97,92 @@ function GuideMelhorarReputacao() {
     <main className="min-h-screen bg-background text-foreground">
       <article className="mx-auto max-w-3xl px-6 py-16">
         <nav className="mb-8 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Branchly</Link>
+          <Link to="/" className="hover:text-foreground">
+            Branchly
+          </Link>
           <span className="mx-2">/</span>
           <span>Guia</span>
         </nav>
         <header className="mb-10">
-          <p className="mb-3 text-sm font-medium uppercase tracking-wider text-primary">Guia completo</p>
+          <p className="mb-3 text-sm font-medium uppercase tracking-wider text-primary">
+            Guia completo
+          </p>
           <h1 className="text-4xl font-bold leading-tight md:text-5xl">
             Como melhorar a reputação no Google em 2026
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            O passo a passo que franquias e negócios locais usam para sair de 3,8 e chegar a 4,7
-            estrelas — sem depender de sorte ou de pedidos manuais.
+            O passo a passo que franquias e negócios locais usam para sair de
+            3,8 e chegar a 4,7 estrelas — sem depender de sorte ou de pedidos
+            manuais.
           </p>
         </header>
 
         <section className="prose prose-invert max-w-none space-y-6 text-base leading-relaxed">
           <p>
-            A reputação no Google é hoje o principal fator de decisão de compra local. Mais de 87%
-            dos consumidores pesquisam avaliações antes de visitar um estabelecimento. Subir de
-            3,8 para 4,5 estrelas pode <strong>dobrar</strong> o número de cliques no seu perfil.
+            A reputação no Google é hoje o principal fator de decisão de compra
+            local. Mais de 87% dos consumidores pesquisam avaliações antes de
+            visitar um estabelecimento. Subir de 3,8 para 4,5 estrelas pode{" "}
+            <strong>dobrar</strong> o número de cliques no seu perfil.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">1. Reivindique e otimize o Google Meu Negócio</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            1. Reivindique e otimize o Google Meu Negócio
+          </h2>
           <p>
-            Garanta que o perfil está verificado, com categoria correta, horário atualizado, fotos
-            recentes e descrição com palavras-chave da sua cidade e serviço.
+            Garanta que o perfil está verificado, com categoria correta, horário
+            atualizado, fotos recentes e descrição com palavras-chave da sua
+            cidade e serviço.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">2. Peça avaliações de forma sistemática</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            2. Peça avaliações de forma sistemática
+          </h2>
           <p>
-            Crie uma rotina: cada cliente atendido recebe um link curto para avaliar. Quanto mais
-            recente o review, mais peso ele tem no algoritmo do Google.
+            Crie uma rotina: cada cliente atendido recebe um link curto para
+            avaliar. Quanto mais recente o review, mais peso ele tem no
+            algoritmo do Google.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">3. Responda 100% das avaliações em 24h</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            3. Responda 100% das avaliações em 24h
+          </h2>
           <p>
-            Responder mostra ao Google que o perfil está ativo e ao cliente que você se importa.
-            A IA da <Link to="/" className="text-primary underline">Branchly</Link> gera respostas
-            profissionais em segundos, mantendo o tom da sua marca.
+            Responder mostra ao Google que o perfil está ativo e ao cliente que
+            você se importa. A IA da{" "}
+            <Link to="/" className="text-primary underline">
+              Branchly
+            </Link>{" "}
+            gera respostas profissionais em segundos, mantendo o tom da sua
+            marca.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">4. Monitore seus concorrentes locais</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            4. Monitore seus concorrentes locais
+          </h2>
           <p>
-            Saber a nota média dos 5 concorrentes mais próximos é o que separa quem cresce de
-            quem estagna. A Branchly faz benchmark automático por categoria e cidade.
+            Saber a nota média dos 5 concorrentes mais próximos é o que separa
+            quem cresce de quem estagna. A Branchly faz benchmark automático por
+            categoria e cidade.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">5. Acompanhe métricas semanalmente</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            5. Acompanhe métricas semanalmente
+          </h2>
           <p>
-            Nota média, volume de novos reviews, taxa de resposta e sentimento. Esses 4 números
-            contam toda a história da sua reputação.
+            Nota média, volume de novos reviews, taxa de resposta e sentimento.
+            Esses 4 números contam toda a história da sua reputação.
           </p>
 
           <div className="mt-12 rounded-xl border border-border bg-card p-8 text-center">
-            <h3 className="text-2xl font-semibold">Comece de graça com a Branchly</h3>
+            <h3 className="text-2xl font-semibold">
+              Comece de graça com a Branchly
+            </h3>
             <p className="mt-2 text-muted-foreground">
-              Monitore reviews, responda com IA e veja como você se compara aos concorrentes.
+              Monitore reviews, responda com IA e veja como você se compara aos
+              concorrentes.
             </p>
             <Link
-              to="/sign-up"
+              to="/sign-up/$"
               className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Criar conta gratuita

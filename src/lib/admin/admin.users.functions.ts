@@ -42,24 +42,33 @@ export const listAllUsers = createServerFn({ method: "POST" })
     });
 
     // Augment with override + counts
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const ids = users.map((u) => u.id);
     const emails = users.map((u) => u.email).filter(Boolean) as string[];
     const [{ data: overrides }, { data: locs }] = await Promise.all([
       supabaseAdmin
         .from("plan_overrides")
         .select("user_email, plan")
-        .in("user_email", emails.map((e) => e.toLowerCase())),
+        .in(
+          "user_email",
+          emails.map((e) => e.toLowerCase()),
+        ),
       supabaseAdmin.from("locations").select("owner_id").in("owner_id", ids),
     ]);
-    const overrideMap = new Map((overrides ?? []).map((r) => [r.user_email, r.plan]));
+    const overrideMap = new Map(
+      (overrides ?? []).map((r) => [r.user_email, r.plan]),
+    );
     const locCount = new Map<string, number>();
-    for (const r of locs ?? []) locCount.set(r.owner_id, (locCount.get(r.owner_id) ?? 0) + 1);
+    for (const r of locs ?? [])
+      locCount.set(r.owner_id, (locCount.get(r.owner_id) ?? 0) + 1);
 
     return {
       users: users.map((u) => ({
         ...u,
-        planOverride: u.email ? overrideMap.get(u.email.toLowerCase()) ?? null : null,
+        planOverride: u.email
+          ? (overrideMap.get(u.email.toLowerCase()) ?? null)
+          : null,
         locationCount: locCount.get(u.id) ?? 0,
       })),
       totalCount: res.totalCount,
@@ -78,10 +87,14 @@ export const setPlanOverride = createServerFn({ method: "POST" })
       .parse(i),
   )
   .handler(async ({ data, context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const email = data.email.trim().toLowerCase();
     if (data.plan === null) {
-      await supabaseAdmin.from("plan_overrides").delete().eq("user_email", email);
+      await supabaseAdmin
+        .from("plan_overrides")
+        .delete()
+        .eq("user_email", email);
       await logAdminAction(context.email, "plan_override.remove", { email });
       return { ok: true, cleared: true };
     }
@@ -91,18 +104,27 @@ export const setPlanOverride = createServerFn({ method: "POST" })
       reason: data.reason ?? null,
       set_by: context.email,
     });
-    await logAdminAction(context.email, "plan_override.set", { email, plan: data.plan });
+    await logAdminAction(context.email, "plan_override.set", {
+      email,
+      plan: data.plan,
+    });
     return { ok: true };
   });
 
 export const banUser = createServerFn({ method: "POST" })
   .middleware([requireDeveloper])
-  .inputValidator((i) => z.object({ userId: z.string().min(1), ban: z.boolean() }).parse(i))
+  .inputValidator((i) =>
+    z.object({ userId: z.string().min(1), ban: z.boolean() }).parse(i),
+  )
   .handler(async ({ data, context }) => {
     const { createClerkClient } = await import("@clerk/backend");
-    const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
+    const clerk = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY!,
+    });
     if (data.ban) await clerk.users.banUser(data.userId);
     else await clerk.users.unbanUser(data.userId);
-    await logAdminAction(context.email, data.ban ? "user.ban" : "user.unban", { userId: data.userId });
+    await logAdminAction(context.email, data.ban ? "user.ban" : "user.unban", {
+      userId: data.userId,
+    });
     return { ok: true };
   });

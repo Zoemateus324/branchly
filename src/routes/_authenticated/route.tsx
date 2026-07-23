@@ -10,13 +10,15 @@ export const Route = createFileRoute("/_authenticated")({
     // flashing if Clerk hasn't hydrated yet and makes the guard explicit
     // rather than relying on the component-level useAuth() check alone.
     if (typeof window === "undefined") return {};
-    const clerk = (window as unknown as {
-      Clerk?: {
-        loaded?: boolean;
-        load?: () => Promise<void>;
-        session?: unknown;
-      };
-    }).Clerk;
+    const clerk = (
+      window as unknown as {
+        Clerk?: {
+          loaded?: boolean;
+          load?: () => Promise<void>;
+          session?: unknown;
+        };
+      }
+    ).Clerk;
 
     if (clerk && !clerk.loaded && clerk.load) {
       try {
@@ -27,7 +29,7 @@ export const Route = createFileRoute("/_authenticated")({
     }
 
     if (clerk?.loaded && !clerk.session) {
-      throw redirect({ to: "/sign-in" });
+      throw redirect({ to: "/sign-in/$", params: { _splat: "" } });
     }
     return {};
   },
@@ -49,7 +51,7 @@ function AuthenticatedLayout() {
   }
 
   if (!isSignedIn) {
-    throw redirect({ to: "/sign-in" });
+    throw redirect({ to: "/sign-in/$", params: { _splat: "" } });
   }
 
   return <Outlet />;

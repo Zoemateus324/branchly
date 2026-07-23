@@ -5,7 +5,8 @@ const BASE_URL = "https://branchly.com.br";
 
 interface SitemapEntry {
   path: string;
-  changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+  changefreq?:
+    "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
 }
 
@@ -17,17 +18,35 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/sign-up", changefreq: "monthly", priority: "0.8" },
           { path: "/sign-in", changefreq: "monthly", priority: "0.5" },
-          { path: "/guia/melhorar-reputacao-no-google", changefreq: "monthly", priority: "0.9" },
-          { path: "/guia/aparecer-nas-primeiras-paginas-do-google", changefreq: "monthly", priority: "0.9" },
-          { path: "/guide/improve-google-reputation", changefreq: "monthly", priority: "0.9" },
-          { path: "/guide/rank-first-page-google", changefreq: "monthly", priority: "0.9" },
+          {
+            path: "/guia/melhorar-reputacao-no-google",
+            changefreq: "monthly",
+            priority: "0.9",
+          },
+          {
+            path: "/guia/aparecer-nas-primeiras-paginas-do-google",
+            changefreq: "monthly",
+            priority: "0.9",
+          },
+          {
+            path: "/guide/improve-google-reputation",
+            changefreq: "monthly",
+            priority: "0.9",
+          },
+          {
+            path: "/guide/rank-first-page-google",
+            changefreq: "monthly",
+            priority: "0.9",
+          },
         ];
 
         const urls = entries.map((e) =>
           [
             `  <url>`,
             `    <loc>${BASE_URL}${e.path}</loc>`,
-            e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
+            e.changefreq
+              ? `    <changefreq>${e.changefreq}</changefreq>`
+              : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,
             `  </url>`,
           ]

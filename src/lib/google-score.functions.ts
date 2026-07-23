@@ -15,7 +15,8 @@ export const lookupScore = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { scrapeGoogleBusiness } = await import("./firecrawl.server");
     const { calculateScore } = await import("./score.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
 
     // Cache: reuse a recent lookup for the same (name, city, category) within
     // 10 minutes to avoid abuse of the paid Firecrawl API and prevent flooding
@@ -23,7 +24,9 @@ export const lookupScore = createServerFn({ method: "POST" })
     const tenMinAgo = new Date(Date.now() - 10 * 60_000).toISOString();
     const cacheQuery = supabaseAdmin
       .from("score_lookups")
-      .select("name, city, category, rating, review_count, score, breakdown, source_url")
+      .select(
+        "name, city, category, rating, review_count, score, breakdown, source_url",
+      )
       .ilike("name", data.name)
       .ilike("city", data.city)
       .gte("created_at", tenMinAgo)
@@ -34,17 +37,33 @@ export const lookupScore = createServerFn({ method: "POST" })
       : await cacheQuery.is("category", null);
     if (cached && cached.length > 0) {
       const c = cached[0] as {
-        name: string; city: string; category: string | null;
-        rating: number | null; review_count: number | null;
-        score: number | null; breakdown: unknown; source_url: string | null;
+        name: string;
+        city: string;
+        category: string | null;
+        rating: number | null;
+        review_count: number | null;
+        score: number | null;
+        breakdown: unknown;
+        source_url: string | null;
       };
       let benchmark: number | null = null;
       if (data.category) {
         const { data: bench } = await supabaseAdmin
-          .from("score_lookups").select("score").eq("category", data.category).limit(50);
+          .from("score_lookups")
+          .select("score")
+          .eq("category", data.category)
+          .limit(50);
         if (bench && bench.length > 1) {
-          const vals = bench.map((b: { score: number | null }) => Number(b.score)).filter((n: number) => Number.isFinite(n));
-          if (vals.length > 0) benchmark = Math.round((vals.reduce((a: number, b: number) => a + b, 0) / vals.length) * 10) / 10;
+          const vals = bench
+            .map((b: { score: number | null }) => Number(b.score))
+            .filter((n: number) => Number.isFinite(n));
+          if (vals.length > 0)
+            benchmark =
+              Math.round(
+                (vals.reduce((a: number, b: number) => a + b, 0) /
+                  vals.length) *
+                  10,
+              ) / 10;
         }
       }
       return {
@@ -63,10 +82,14 @@ export const lookupScore = createServerFn({ method: "POST" })
     const { findPlace } = await import("./google-places.server");
     const place = await findPlace(scraped.name || data.name, data.city);
     if (place) {
-      if (scraped.rating == null && place.rating != null) scraped.rating = place.rating;
-      if (!scraped.reviewCount && place.userRatingCount) scraped.reviewCount = place.userRatingCount;
-      if (!scraped.address && place.formattedAddress) scraped.address = place.formattedAddress;
-      if (!scraped.sourceUrl && place.googleMapsUri) scraped.sourceUrl = place.googleMapsUri;
+      if (scraped.rating == null && place.rating != null)
+        scraped.rating = place.rating;
+      if (!scraped.reviewCount && place.userRatingCount)
+        scraped.reviewCount = place.userRatingCount;
+      if (!scraped.address && place.formattedAddress)
+        scraped.address = place.formattedAddress;
+      if (!scraped.sourceUrl && place.googleMapsUri)
+        scraped.sourceUrl = place.googleMapsUri;
     }
     const { score, breakdown } = calculateScore(scraped);
 
@@ -89,8 +112,15 @@ export const lookupScore = createServerFn({ method: "POST" })
         .eq("category", data.category)
         .limit(50);
       if (bench && bench.length > 1) {
-        const vals = bench.map((b: { score: number | null }) => Number(b.score)).filter((n: number) => Number.isFinite(n));
-        if (vals.length > 0) benchmark = Math.round((vals.reduce((a: number, b: number) => a + b, 0) / vals.length) * 10) / 10;
+        const vals = bench
+          .map((b: { score: number | null }) => Number(b.score))
+          .filter((n: number) => Number.isFinite(n));
+        if (vals.length > 0)
+          benchmark =
+            Math.round(
+              (vals.reduce((a: number, b: number) => a + b, 0) / vals.length) *
+                10,
+            ) / 10;
       }
     }
 
@@ -112,16 +142,21 @@ export const refreshMyLocationScore = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { scrapeGoogleBusiness } = await import("./firecrawl.server");
     const { calculateScore } = await import("./score.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
 
     const scraped = await scrapeGoogleBusiness(data);
     const { findPlace } = await import("./google-places.server");
     const place = await findPlace(scraped.name || data.name, data.city);
     if (place) {
-      if (scraped.rating == null && place.rating != null) scraped.rating = place.rating;
-      if (!scraped.reviewCount && place.userRatingCount) scraped.reviewCount = place.userRatingCount;
-      if (!scraped.address && place.formattedAddress) scraped.address = place.formattedAddress;
-      if (!scraped.sourceUrl && place.googleMapsUri) scraped.sourceUrl = place.googleMapsUri;
+      if (scraped.rating == null && place.rating != null)
+        scraped.rating = place.rating;
+      if (!scraped.reviewCount && place.userRatingCount)
+        scraped.reviewCount = place.userRatingCount;
+      if (!scraped.address && place.formattedAddress)
+        scraped.address = place.formattedAddress;
+      if (!scraped.sourceUrl && place.googleMapsUri)
+        scraped.sourceUrl = place.googleMapsUri;
     }
     const { score, breakdown } = calculateScore(scraped);
 
@@ -149,10 +184,15 @@ export const refreshMyLocationScore = createServerFn({ method: "POST" })
 
     let locationId: string;
     if (existing) {
-      const { error } = await supabaseAdmin.from("locations").update(payload).eq("id", existing.id);
+      const { error } = await supabaseAdmin
+        .from("locations")
+        .update(payload)
+        .eq("id", existing.id);
       if (error) {
         console.error("[locations.update]", error);
-        throw new Error("Não foi possível atualizar a localização. Tente novamente.");
+        throw new Error(
+          "Não foi possível atualizar a localização. Tente novamente.",
+        );
       }
       locationId = existing.id;
     } else {
@@ -163,17 +203,30 @@ export const refreshMyLocationScore = createServerFn({ method: "POST" })
         .single();
       if (error) {
         console.error("[locations.insert]", error);
-        throw new Error("Não foi possível salvar a localização. Tente novamente.");
+        throw new Error(
+          "Não foi possível salvar a localização. Tente novamente.",
+        );
       }
       locationId = inserted!.id;
     }
 
     // Persist scraped reviews (replace previous batch for this location)
     if (scraped.recentReviews?.length) {
-      await supabaseAdmin.from("reviews").delete().eq("location_id", locationId);
+      await supabaseAdmin
+        .from("reviews")
+        .delete()
+        .eq("location_id", locationId);
       const reviewRows = scraped.recentReviews.map((r) => {
-        const rating = typeof r.rating === "number" ? Math.round(r.rating) : null;
-        const sentiment = rating === null ? "neutral" : rating >= 4 ? "positive" : rating <= 2 ? "negative" : "neutral";
+        const rating =
+          typeof r.rating === "number" ? Math.round(r.rating) : null;
+        const sentiment =
+          rating === null
+            ? "neutral"
+            : rating >= 4
+              ? "positive"
+              : rating <= 2
+                ? "negative"
+                : "neutral";
         return {
           owner_id: context.userId,
           location_id: locationId,
@@ -198,7 +251,11 @@ export const refreshMyLocationScore = createServerFn({ method: "POST" })
         reviews: scraped.recentReviews,
       });
       const tag = `auto:${locationId}`;
-      await supabaseAdmin.from("insights").delete().eq("owner_id", context.userId).eq("category", tag);
+      await supabaseAdmin
+        .from("insights")
+        .delete()
+        .eq("owner_id", context.userId)
+        .eq("category", tag);
       if (insights.length) {
         await supabaseAdmin.from("insights").insert(
           insights.map((i) => ({
@@ -240,7 +297,12 @@ async function generateInsights(ctx: {
   rating: number | null;
   reviewCount: number | null;
   score: number;
-  reviews: { author?: string; rating?: number; text?: string; timeAgo?: string }[];
+  reviews: {
+    author?: string;
+    rating?: number;
+    text?: string;
+    timeAgo?: string;
+  }[];
 }): Promise<{ title: string; body: string; severity: string }[]> {
   const apiKey = process.env.LOVABLE_API_KEY;
   if (!apiKey) return [];
@@ -250,27 +312,37 @@ async function generateInsights(ctx: {
     .join("\n");
   const prompt = `Você é um analista de reputação de negócios locais. Negócio: "${ctx.name}". Score: ${ctx.score}. Rating médio: ${ctx.rating ?? "?"} com ${ctx.reviewCount ?? "?"} avaliações.\nReviews recentes:\n${reviewSnippets || "(nenhum)"}\n\nGere de 3 a 4 insights práticos em português do Brasil. Responda APENAS com JSON válido no formato: {"insights":[{"title":"...","body":"...","severity":"info|warning|critical","category":"opcional"}]}`;
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: "Você responde apenas com JSON válido." },
-        { role: "user", content: prompt },
-      ],
-    }),
-  });
+  const res = await fetch(
+    "https://ai.gateway.lovable.dev/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: "Você responde apenas com JSON válido." },
+          { role: "user", content: prompt },
+        ],
+      }),
+    },
+  );
   if (!res.ok) {
     console.error("[insights] gateway error", res.status, await res.text());
     return [];
   }
-  const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
+  const json = (await res.json()) as {
+    choices?: { message?: { content?: string } }[];
+  };
   const content = json.choices?.[0]?.message?.content ?? "";
   const match = content.match(/\{[\s\S]*\}/);
   if (!match) return [];
   try {
-    const parsed = JSON.parse(match[0]) as { insights?: { title: string; body: string; severity?: string }[] };
+    const parsed = JSON.parse(match[0]) as {
+      insights?: { title: string; body: string; severity?: string }[];
+    };
     return (parsed.insights ?? []).slice(0, 4).map((i) => ({
       title: i.title,
       body: i.body,
@@ -284,7 +356,8 @@ async function generateInsights(ctx: {
 export const listMyLocations = createServerFn({ method: "GET" })
   .middleware([requireClerkAuth])
   .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("locations")
       .select("*")
@@ -292,7 +365,9 @@ export const listMyLocations = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     if (error) {
       console.error("[locations.list]", error);
-      throw new Error("Não foi possível carregar as localizações. Tente novamente.");
+      throw new Error(
+        "Não foi possível carregar as localizações. Tente novamente.",
+      );
     }
     return { locations: data ?? [] };
   });

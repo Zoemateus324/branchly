@@ -1,4 +1,9 @@
-import { createFileRoute, Outlet, useRouterState, redirect } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  useRouterState,
+  redirect,
+} from "@tanstack/react-router";
 import { useUser } from "@clerk/clerk-react";
 import {
   LayoutDashboard,
@@ -85,7 +90,10 @@ function AdminLayout() {
                 <SidebarMenu>
                   {NAV.map((item) => (
                     <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton asChild isActive={isActive(item.to, item.exact)}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.to, item.exact)}
+                      >
                         <a href={item.to} className="flex items-center gap-2">
                           <item.icon className="h-4 w-4" />
                           <span>{item.label}</span>

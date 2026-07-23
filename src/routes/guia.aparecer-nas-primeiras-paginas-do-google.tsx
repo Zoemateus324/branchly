@@ -3,9 +3,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 const TITLE = "Como Aparecer nas Primeiras Páginas do Google | Branchly";
 const DESCRIPTION =
   "Aprenda como aparecer nas primeiras páginas do Google com SEO local, gestão de avaliações e benchmark de concorrentes. Guia prático da Branchly para 2026.";
-const URL = "https://branchly.com.br/guia/aparecer-nas-primeiras-paginas-do-google";
+const URL =
+  "https://branchly.com.br/guia/aparecer-nas-primeiras-paginas-do-google";
 
-export const Route = createFileRoute("/guia/aparecer-nas-primeiras-paginas-do-google")({
+export const Route = createFileRoute(
+  "/guia/aparecer-nas-primeiras-paginas-do-google",
+)({
   head: () => ({
     meta: [
       { title: TITLE },
@@ -37,7 +40,10 @@ export const Route = createFileRoute("/guia/aparecer-nas-primeiras-paginas-do-go
           publisher: {
             "@type": "Organization",
             name: "Branchly",
-            logo: { "@type": "ImageObject", url: "https://branchly.com.br/favicon.ico" },
+            logo: {
+              "@type": "ImageObject",
+              url: "https://branchly.com.br/favicon.ico",
+            },
           },
           mainEntityOfPage: URL,
         }),
@@ -94,66 +100,92 @@ function GuideAparecerPrimeirasPaginas() {
     <main className="min-h-screen bg-background text-foreground">
       <article className="mx-auto max-w-3xl px-6 py-16">
         <nav className="mb-8 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Branchly</Link>
+          <Link to="/" className="hover:text-foreground">
+            Branchly
+          </Link>
           <span className="mx-2">/</span>
           <span>Guia</span>
         </nav>
         <header className="mb-10">
-          <p className="mb-3 text-sm font-medium uppercase tracking-wider text-primary">SEO Local</p>
+          <p className="mb-3 text-sm font-medium uppercase tracking-wider text-primary">
+            SEO Local
+          </p>
           <h1 className="text-4xl font-bold leading-tight md:text-5xl">
             Como aparecer nas primeiras páginas do Google
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            O método em 5 passos que negócios locais usam para subir no pacote de mapas e dominar
-            os resultados da sua cidade.
+            O método em 5 passos que negócios locais usam para subir no pacote
+            de mapas e dominar os resultados da sua cidade.
           </p>
         </header>
 
         <section className="prose prose-invert max-w-none space-y-6 text-base leading-relaxed">
           <p>
-            Estar na primeira página do Google não é sorte — é o resultado de três pilares
-            trabalhados em conjunto: <strong>autoridade</strong>, <strong>relevância</strong> e
-            <strong> reputação</strong>. Para negócios locais, reputação é o pilar que mais pesa.
+            Estar na primeira página do Google não é sorte — é o resultado de
+            três pilares trabalhados em conjunto: <strong>autoridade</strong>,{" "}
+            <strong>relevância</strong> e<strong> reputação</strong>. Para
+            negócios locais, reputação é o pilar que mais pesa.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">1. Otimize o Google Meu Negócio</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            1. Otimize o Google Meu Negócio
+          </h2>
           <p>
-            Perfil verificado, categoria principal correta, NAP (Nome, Endereço, Telefone)
-            consistente em todos os diretórios, fotos atualizadas e posts semanais.
+            Perfil verificado, categoria principal correta, NAP (Nome, Endereço,
+            Telefone) consistente em todos os diretórios, fotos atualizadas e
+            posts semanais.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">2. Acumule avaliações reais e recentes</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            2. Acumule avaliações reais e recentes
+          </h2>
           <p>
-            Avaliações são o combustível do ranking local. O Google prioriza negócios com fluxo
-            constante de reviews e nota acima de 4,5. Cada review novo é um sinal de relevância.
+            Avaliações são o combustível do ranking local. O Google prioriza
+            negócios com fluxo constante de reviews e nota acima de 4,5. Cada
+            review novo é um sinal de relevância.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">3. Responda todas as avaliações</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            3. Responda todas as avaliações
+          </h2>
           <p>
-            Responder mostra atividade e melhora a percepção dos próximos visitantes. A IA da
-            <Link to="/" className="text-primary underline"> Branchly</Link> faz isso em escala
-            para todas as suas localizações.
+            Responder mostra atividade e melhora a percepção dos próximos
+            visitantes. A IA da
+            <Link to="/" className="text-primary underline">
+              {" "}
+              Branchly
+            </Link>{" "}
+            faz isso em escala para todas as suas localizações.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">4. Analise os concorrentes que já ranqueiam</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            4. Analise os concorrentes que já ranqueiam
+          </h2>
           <p>
-            Quem está na sua frente tem 3 coisas em comum: mais reviews, nota maior e mais fotos.
-            O benchmark da Branchly mostra exatamente a diferença e como fechá-la.
+            Quem está na sua frente tem 3 coisas em comum: mais reviews, nota
+            maior e mais fotos. O benchmark da Branchly mostra exatamente a
+            diferença e como fechá-la.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">5. Site rápido e conteúdo local</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            5. Site rápido e conteúdo local
+          </h2>
           <p>
-            Páginas com nome da cidade no título, depoimentos reais, FAQ estruturada e tempo de
-            carregamento abaixo de 2 segundos. Esses sinais técnicos completam o pacote.
+            Páginas com nome da cidade no título, depoimentos reais, FAQ
+            estruturada e tempo de carregamento abaixo de 2 segundos. Esses
+            sinais técnicos completam o pacote.
           </p>
 
           <div className="mt-12 rounded-xl border border-border bg-card p-8 text-center">
-            <h3 className="text-2xl font-semibold">Veja quanto você está distante da 1ª página</h3>
+            <h3 className="text-2xl font-semibold">
+              Veja quanto você está distante da 1ª página
+            </h3>
             <p className="mt-2 text-muted-foreground">
-              A Branchly mostra seu score local, compara com os concorrentes e indica os próximos passos.
+              A Branchly mostra seu score local, compara com os concorrentes e
+              indica os próximos passos.
             </p>
             <Link
-              to="/sign-up"
+              to="/sign-up/$"
               className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Analisar meu negócio grátis
