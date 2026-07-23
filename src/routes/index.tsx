@@ -1,6 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/site/Header";
-import { Hero, Logos, Stats, Problems, Solution, Simulator, Pricing, CTA, Footer } from "@/components/site/Sections";
+import {
+  Hero,
+  Logos,
+  Stats,
+  Problems,
+  Solution,
+  Simulator,
+  Pricing,
+  CTA,
+  Footer,
+} from "@/components/site/Sections";
 
 const TITLE = "Branchly — Multi-Location Reputation Intelligence";
 const DESCRIPTION =
@@ -35,10 +45,30 @@ export const Route = createFileRoute("/")({
           operatingSystem: "Web",
           description: DESCRIPTION,
           offers: [
-            { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
-            { "@type": "Offer", name: "Starter", price: "19", priceCurrency: "USD" },
-            { "@type": "Offer", name: "Pro", price: "29", priceCurrency: "USD" },
-            { "@type": "Offer", name: "Premium", price: "49", priceCurrency: "USD" },
+            {
+              "@type": "Offer",
+              name: "Free",
+              price: "0",
+              priceCurrency: "USD",
+            },
+            {
+              "@type": "Offer",
+              name: "Starter",
+              price: "19",
+              priceCurrency: "USD",
+            },
+            {
+              "@type": "Offer",
+              name: "Pro",
+              price: "29",
+              priceCurrency: "USD",
+            },
+            {
+              "@type": "Offer",
+              name: "Premium",
+              price: "49",
+              priceCurrency: "USD",
+            },
           ],
           aggregateRating: {
             "@type": "AggregateRating",
@@ -58,7 +88,7 @@ export const Route = createFileRoute("/")({
               name: "What is multi-location reputation management?",
               acceptedAnswer: {
                 "@type": "Answer",
-                text: "Multi-location reputation management is the practice of monitoring, analyzing and improving customer reviews and ratings across every physical location of a business in one place. Branchly centralizes Google, Facebook and other review sources, benchmarks each location against local competitors and surfaces AI insights to grow ratings.",
+                text: "Multi-location reputation management is the practice of monitoring, analyzing and improving customer reviews and ratings across every physical location of a business in one place. Branchly monitors Google reviews, benchmarks each location against local competitors and surfaces AI insights to grow ratings.",
               },
             },
             {

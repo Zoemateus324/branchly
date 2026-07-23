@@ -55,18 +55,25 @@ export const getFinancialOverview = createServerFn({ method: "GET" })
       limit: 100,
     });
     const churnRate = subs.length
-      ? Math.round((canceled.data.length / (subs.length + canceled.data.length)) * 10000) / 100
+      ? Math.round(
+          (canceled.data.length / (subs.length + canceled.data.length)) * 10000,
+        ) / 100
       : 0;
 
     // Recent invoices (last 20)
-    const invoices = await stripe.invoices.list({ limit: 20, expand: ["data.customer"] });
+    const invoices = await stripe.invoices.list({
+      limit: 20,
+      expand: ["data.customer"],
+    });
     const recentInvoices = invoices.data.map((inv) => ({
       id: inv.id,
       amount: (inv.amount_paid ?? 0) / 100,
       currency: inv.currency,
       status: inv.status,
       customer:
-        typeof inv.customer === "object" && inv.customer && !("deleted" in inv.customer)
+        typeof inv.customer === "object" &&
+        inv.customer &&
+        !("deleted" in inv.customer)
           ? inv.customer.email
           : null,
       created: inv.created,
@@ -82,7 +89,8 @@ export const getFinancialOverview = createServerFn({ method: "GET" })
 
     // Monthly revenue series (last 6 months) from successful charges
     const monthsBack = 6;
-    const sixMonthsAgo = Math.floor(Date.now() / 1000) - monthsBack * 30 * 86400;
+    const sixMonthsAgo =
+      Math.floor(Date.now() / 1000) - monthsBack * 30 * 86400;
     const charges: Stripe.Charge[] = [];
     starting_after = undefined;
     for (let i = 0; i < 10; i++) {
@@ -106,11 +114,16 @@ export const getFinancialOverview = createServerFn({ method: "GET" })
       const k = new Date(c.created * 1000).toISOString().slice(0, 7);
       if (k in monthly) monthly[k] += (c.amount ?? 0) / 100;
     }
-    const revenueSeries = Object.entries(monthly).map(([month, revenue]) => ({ month, revenue }));
+    const revenueSeries = Object.entries(monthly).map(([month, revenue]) => ({
+      month,
+      revenue,
+    }));
 
     // Projection — average of last 3 full months, projected forward
     const lastThree = revenueSeries.slice(-3).map((r) => r.revenue);
-    const avg = lastThree.length ? lastThree.reduce((a, b) => a + b, 0) / lastThree.length : mrr;
+    const avg = lastThree.length
+      ? lastThree.reduce((a, b) => a + b, 0) / lastThree.length
+      : mrr;
     const projection30 = avg;
     const projection90 = avg * 3;
     const arr = mrr * 12;

@@ -17,13 +17,19 @@ export interface ScoreBreakdown {
  * - 30%: review-volume on log scale (caps near 1k reviews)
  * - 20%: recency / freshness from sampled recent reviews
  */
-export function calculateScore(input: ScoreInput): { score: number; breakdown: ScoreBreakdown } {
+export function calculateScore(input: ScoreInput): {
+  score: number;
+  breakdown: ScoreBreakdown;
+} {
   const rating = input.rating ?? 0;
   const reviewCount = input.reviewCount ?? 0;
   const recent = input.recentReviews ?? [];
 
   const ratingScore = Math.max(0, Math.min(50, (rating / 5) * 50));
-  const volumeScore = Math.max(0, Math.min(30, (Math.log10(Math.max(1, reviewCount)) / 3) * 30));
+  const volumeScore = Math.max(
+    0,
+    Math.min(30, (Math.log10(Math.max(1, reviewCount)) / 3) * 30),
+  );
 
   let recencyScore = 0;
   if (recent.length > 0) {

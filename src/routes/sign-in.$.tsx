@@ -8,7 +8,11 @@ export const Route = createFileRoute("/sign-in/$")({
   head: () => ({
     meta: [
       { title: "Sign in — Branchly" },
-      { name: "description", content: "Sign in to your Branchly workspace to monitor reviews, benchmark locations and act on AI insights." },
+      {
+        name: "description",
+        content:
+          "Sign in to your Branchly workspace to monitor reviews, benchmark locations and act on AI insights.",
+      },
       { name: "robots", content: "noindex, follow" },
       { property: "og:title", content: "Sign in — Branchly" },
       { property: "og:url", content: "/sign-in" },
@@ -27,8 +31,12 @@ function SignInPage() {
       <div className="mx-auto flex max-w-md flex-col gap-6 px-6 py-20">
         <div className="flex flex-col items-center gap-3 text-center">
           <Logo />
-          <h1 className="font-display text-2xl font-semibold tracking-tight">Welcome back</h1>
-          <p className="text-sm text-muted-foreground">Sign in to your Branchly workspace.</p>
+          <h1 className="font-display text-2xl font-semibold tracking-tight">
+            Welcome back
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Sign in to your Branchly workspace.
+          </p>
         </div>
         <ClerkFrame>
           <SignIn

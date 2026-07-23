@@ -1,4 +1,10 @@
-import { useState, useEffect, type ReactNode, createContext, useContext } from "react";
+import {
+  useState,
+  useEffect,
+  type ReactNode,
+  createContext,
+  useContext,
+} from "react";
 import { Link } from "@tanstack/react-router";
 import { useUser, UserButton } from "@clerk/clerk-react";
 import { toast } from "sonner";
@@ -6,11 +12,32 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Globe, ChevronDown, Moon, Sun } from "lucide-react";
 import { useApp } from "@/lib/providers";
-import { createCheckout, checkSubscription, customerPortal, PLANS, type PlanKey } from "@/lib/stripe.functions";
-import { refreshMyLocationScore, listMyLocations } from "@/lib/google-score.functions";
-import { listMembers, inviteMember, updateMemberRole, removeMember } from "@/lib/team.functions";
+import {
+  createCheckout,
+  checkSubscription,
+  customerPortal,
+  PLANS,
+  type PlanKey,
+} from "@/lib/stripe.functions";
+import {
+  refreshMyLocationScore,
+  listMyLocations,
+} from "@/lib/google-score.functions";
+import {
+  listMembers,
+  inviteMember,
+  updateMemberRole,
+  removeMember,
+} from "@/lib/team.functions";
 import { getDashboardData } from "@/lib/dashboard.functions";
-import { ROLE_LABELS, PLAN_LIMITS, planFromKey, minPlanFor, type PlanTier, type PlanLimits } from "@/lib/plans";
+import {
+  ROLE_LABELS,
+  PLAN_LIMITS,
+  planFromKey,
+  minPlanFor,
+  type PlanTier,
+  type PlanLimits,
+} from "@/lib/plans";
 import {
   addLocation,
   addCompetitor,
@@ -21,7 +48,13 @@ import {
   generateRepliesForUnreplied,
 } from "@/lib/dashboard-actions.functions";
 import { UpgradeDialog } from "./UpgradeDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { CheckCircle } from "lucide-react";
 import {
   LayoutDashboard,
@@ -55,7 +88,10 @@ import { Logo } from "@/components/site/Logo";
 const act = (msg: string) => toast.success(msg);
 
 type DaysFilter = 7 | 15 | 30;
-const DashboardFilterContext = createContext<{ days: DaysFilter; setDays: (d: DaysFilter) => void }>({
+const DashboardFilterContext = createContext<{
+  days: DaysFilter;
+  setDays: (d: DaysFilter) => void;
+}>({
   days: 30,
   setDays: () => {},
 });
@@ -72,7 +108,11 @@ const usePlan = () => useContext(PlanCtx);
 
 function PlanProvider({ children }: { children: ReactNode }) {
   const checkSub = useServerFn(checkSubscription);
-  const { data } = useQuery({ queryKey: ["subscription-plan"], queryFn: () => checkSub(), refetchInterval: 60_000 });
+  const { data } = useQuery({
+    queryKey: ["subscription-plan"],
+    queryFn: () => checkSub(),
+    refetchInterval: 60_000,
+  });
   const plan = planFromKey(data?.plan ?? null);
   const limits = PLAN_LIMITS[plan];
   const [upgrade, setUpgrade] = useState<UpgradeRequest | null>(null);
@@ -152,7 +192,10 @@ function LanguageSelector() {
   }, []);
 
   return (
-    <div className="relative hidden md:block" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="relative hidden md:block"
+      onClick={(e) => e.stopPropagation()}
+    >
       <button
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
@@ -163,19 +206,35 @@ function LanguageSelector() {
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-44 rounded-lg border border-border bg-popover p-1 shadow-lg z-50">
-          <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground">Language</div>
+          <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+            Language
+          </div>
           {(["en", "pt"] as const).map((l) => (
-            <button key={l} onClick={() => { setLocale(l); setOpen(false); }}
-              className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-sm transition hover:bg-muted ${locale === l ? "text-foreground" : "text-muted-foreground"}`}>
+            <button
+              key={l}
+              onClick={() => {
+                setLocale(l);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-sm transition hover:bg-muted ${locale === l ? "text-foreground" : "text-muted-foreground"}`}
+            >
               {l === "en" ? "English" : "Português (BR)"}
               {locale === l && <span className="text-accent">●</span>}
             </button>
           ))}
           <div className="my-1 h-px bg-border" />
-          <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground">Currency</div>
+          <div className="px-2 py-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+            Currency
+          </div>
           {(["USD", "BRL"] as const).map((c) => (
-            <button key={c} onClick={() => { setCurrency(c); setOpen(false); }}
-              className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-sm transition hover:bg-muted ${currency === c ? "text-foreground" : "text-muted-foreground"}`}>
+            <button
+              key={c}
+              onClick={() => {
+                setCurrency(c);
+                setOpen(false);
+              }}
+              className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-sm transition hover:bg-muted ${currency === c ? "text-foreground" : "text-muted-foreground"}`}
+            >
               {c === "USD" ? "US Dollar" : "Real Brasileiro"}
               {currency === c && <span className="text-accent">●</span>}
             </button>
@@ -194,7 +253,11 @@ function ThemeToggle() {
       aria-label="Toggle theme"
       className="hidden md:block rounded-md p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
     >
-      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {theme === "dark" ? (
+        <Sun className="h-4 w-4" />
+      ) : (
+        <Moon className="h-4 w-4" />
+      )}
     </button>
   );
 }
@@ -217,111 +280,142 @@ export function DashboardShell() {
       if (id) setSection(id);
     };
     window.addEventListener("branchly:set-section", handler as EventListener);
-    return () => window.removeEventListener("branchly:set-section", handler as EventListener);
+    return () =>
+      window.removeEventListener(
+        "branchly:set-section",
+        handler as EventListener,
+      );
   }, []);
 
   return (
     <DashboardFilterContext.Provider value={{ days, setDays }}>
-    <PlanProvider>
-    <div className="min-h-screen w-full bg-background">
-      <div className="flex w-full min-h-screen">
-        {/* Sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-border bg-muted/20 md:flex md:flex-col">
-          <div className="flex h-16 items-center border-b border-border px-5">
-            <Link to="/" aria-label="Branchly home">
-              <Logo />
-            </Link>
-          </div>
-          <nav className="flex-1 space-y-0.5 p-3">
-            {NAV.map((item) => {
-              const Icon = item.icon;
-              const isActive = section === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setSection(item.id)}
-                  className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition ${
-                    isActive
-                      ? "bg-background text-foreground font-medium shadow-sm"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
-          <div className="border-t border-border p-3">
-            <div className="rounded-lg border border-border bg-card p-3">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-                <Sparkles className="h-3 w-3 text-accent" /> Pro trial
+      <PlanProvider>
+        <div className="min-h-screen w-full bg-background">
+          <div className="flex w-full min-h-screen">
+            {/* Sidebar */}
+            <aside className="sticky top-0 hidden h-screen w-60 shrink-0 border-r border-border bg-muted/20 md:flex md:flex-col">
+              <div className="flex h-16 items-center border-b border-border px-5">
+                <Link to="/" aria-label="Branchly home">
+                  <Logo />
+                </Link>
               </div>
-              <div className="mt-1.5 text-xs text-foreground">12 days remaining</div>
-              <button onClick={() => { setSection("billing"); act("Opening billing…"); }} className="mt-2.5 w-full rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background transition hover:opacity-90">
-                Upgrade plan
-              </button>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main */}
-        <div className="flex min-w-0 flex-1 flex-col">
-          {/* Topbar */}
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl md:px-6">
-            <div className="flex items-center gap-3">
-              <h1 className="font-display text-base font-semibold tracking-tight md:text-lg">{active.label}</h1>
-              <span className="hidden text-xs text-muted-foreground sm:inline">
-                · Welcome back, {user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "there"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative hidden md:block">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search reviews, locations…"
-                  onKeyDown={(e) => { if (e.key === "Enter") act(`Searching "${(e.target as HTMLInputElement).value}"…`); }}
-                  className="h-9 w-64 rounded-md border border-border bg-muted/40 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:bg-background focus:outline-none focus:ring-2 focus:ring-accent/30"
-                />
+              <nav className="flex-1 space-y-0.5 p-3">
+                {NAV.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = section === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setSection(item.id)}
+                      className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition ${
+                        isActive
+                          ? "bg-background text-foreground font-medium shadow-sm"
+                          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </nav>
+              <div className="border-t border-border p-3">
+                <div className="rounded-lg border border-border bg-card p-3">
+                  <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <Sparkles className="h-3 w-3 text-accent" /> Pro trial
+                  </div>
+                  <div className="mt-1.5 text-xs text-foreground">
+                    12 days remaining
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSection("billing");
+                      act("Opening billing…");
+                    }}
+                    className="mt-2.5 w-full rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+                  >
+                    Upgrade plan
+                  </button>
+                </div>
               </div>
-              <NotificationsBell onOpenReviews={() => setSection("reviews")} />
-              <LanguageSelector />
-              <ThemeToggle />
-              <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "h-8 w-8 rounded-full" } }} />
+            </aside>
+
+            {/* Main */}
+            <div className="flex min-w-0 flex-1 flex-col">
+              {/* Topbar */}
+              <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl md:px-6">
+                <div className="flex items-center gap-3">
+                  <h1 className="font-display text-base font-semibold tracking-tight md:text-lg">
+                    {active.label}
+                  </h1>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">
+                    · Welcome back,{" "}
+                    {user?.firstName ||
+                      user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] ||
+                      "there"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative hidden md:block">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search reviews, locations…"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter")
+                          act(
+                            `Searching "${(e.target as HTMLInputElement).value}"…`,
+                          );
+                      }}
+                      className="h-9 w-64 rounded-md border border-border bg-muted/40 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground focus:bg-background focus:outline-none focus:ring-2 focus:ring-accent/30"
+                    />
+                  </div>
+                  <NotificationsBell
+                    onOpenReviews={() => setSection("reviews")}
+                  />
+                  <LanguageSelector />
+                  <ThemeToggle />
+                  <UserButton
+                    afterSignOutUrl="/"
+                    appearance={{
+                      elements: { avatarBox: "h-8 w-8 rounded-full" },
+                    }}
+                  />
+                </div>
+              </header>
+
+              {/* Mobile section selector */}
+              <div className="flex gap-1.5 overflow-x-auto border-b border-border bg-muted/20 px-4 py-2 md:hidden">
+                {NAV.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setSection(item.id)}
+                    className={`shrink-0 rounded-md px-3 py-1.5 text-xs transition ${
+                      section === item.id
+                        ? "bg-background font-medium text-foreground"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              <main className="flex-1 p-4 md:p-6 lg:p-8">
+                {section === "overview" && <OverviewSection />}
+                {section === "reputation" && <ReputationSection />}
+                {section === "locations" && <LocationsSection />}
+                {section === "competitors" && <CompetitorsSection />}
+                {section === "reviews" && <ReviewsSection />}
+                {section === "insights" && <InsightsSection />}
+                {section === "reports" && <ReportsSection />}
+                {section === "team" && <TeamSection />}
+                {section === "billing" && <BillingSection />}
+              </main>
             </div>
-          </header>
-
-          {/* Mobile section selector */}
-          <div className="flex gap-1.5 overflow-x-auto border-b border-border bg-muted/20 px-4 py-2 md:hidden">
-            {NAV.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setSection(item.id)}
-                className={`shrink-0 rounded-md px-3 py-1.5 text-xs transition ${
-                  section === item.id ? "bg-background font-medium text-foreground" : "text-muted-foreground"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
           </div>
-
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
-            {section === "overview" && <OverviewSection />}
-            {section === "reputation" && <ReputationSection />}
-            {section === "locations" && <LocationsSection />}
-            {section === "competitors" && <CompetitorsSection />}
-            {section === "reviews" && <ReviewsSection />}
-            {section === "insights" && <InsightsSection />}
-            {section === "reports" && <ReportsSection />}
-            {section === "team" && <TeamSection />}
-            {section === "billing" && <BillingSection />}
-          </main>
         </div>
-      </div>
-    </div>
-    </PlanProvider>
+      </PlanProvider>
     </DashboardFilterContext.Provider>
   );
 }
@@ -343,18 +437,28 @@ function KpiCard({
 }) {
   const TrendIcon = trend === "down" ? TrendingDown : TrendingUp;
   const color =
-    trend === "down" ? "text-rose-500" : trend === "neutral" ? "text-muted-foreground" : "text-emerald-500";
+    trend === "down"
+      ? "text-rose-500"
+      : trend === "neutral"
+        ? "text-muted-foreground"
+        : "text-emerald-500";
   return (
     <div className="rounded-xl border border-border bg-card p-5">
-      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="font-display text-2xl font-semibold tabular-nums">{value}</span>
+        <span className="font-display text-2xl font-semibold tabular-nums">
+          {value}
+        </span>
         <span className={`flex items-center gap-0.5 text-xs ${color}`}>
           <TrendIcon className="h-3 w-3" />
           {delta}
         </span>
       </div>
-      {hint && <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>}
+      {hint && (
+        <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>
+      )}
     </div>
   );
 }
@@ -376,8 +480,14 @@ function SectionCard({
     <div className={`rounded-xl border border-border bg-card p-5 ${className}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <div className="font-display text-sm font-semibold text-foreground">{title}</div>
-          {subtitle && <div className="mt-0.5 text-xs text-muted-foreground">{subtitle}</div>}
+          <div className="font-display text-sm font-semibold text-foreground">
+            {title}
+          </div>
+          {subtitle && (
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {subtitle}
+            </div>
+          )}
         </div>
         {action}
       </div>
@@ -398,7 +508,9 @@ function PageHeader({
   return (
     <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h2 className="font-display text-2xl font-semibold tracking-tight">{title}</h2>
+        <h2 className="font-display text-2xl font-semibold tracking-tight">
+          {title}
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
       </div>
       {action}
@@ -406,7 +518,13 @@ function PageHeader({
   );
 }
 
-function Sparkline({ data, color = "oklch(0.6 0.18 265)" }: { data: number[]; color?: string }) {
+function Sparkline({
+  data,
+  color = "oklch(0.6 0.18 265)",
+}: {
+  data: number[];
+  color?: string;
+}) {
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
@@ -420,8 +538,19 @@ function Sparkline({ data, color = "oklch(0.6 0.18 265)" }: { data: number[]; co
     })
     .join(" ");
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-6 w-20">
-      <path d={path} fill="none" stroke={color} strokeWidth="1.4" vectorEffect="non-scaling-stroke" strokeLinecap="round" />
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      preserveAspectRatio="none"
+      className="h-6 w-20"
+    >
+      <path
+        d={path}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.4"
+        vectorEffect="non-scaling-stroke"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -441,11 +570,23 @@ function AreaChart({ data, compare }: { data: number[]; compare?: number[] }) {
   const area = `${toPath(data)} L${w},${h} L0,${h} Z`;
   return (
     <div className="relative h-48 w-full">
-      <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-full w-full">
+      <svg
+        viewBox={`0 0 ${w} ${h}`}
+        preserveAspectRatio="none"
+        className="h-full w-full"
+      >
         <defs>
           <linearGradient id="ds-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.6 0.18 265)" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="oklch(0.6 0.18 265)" stopOpacity="0" />
+            <stop
+              offset="0%"
+              stopColor="oklch(0.6 0.18 265)"
+              stopOpacity="0.28"
+            />
+            <stop
+              offset="100%"
+              stopColor="oklch(0.6 0.18 265)"
+              stopOpacity="0"
+            />
           </linearGradient>
         </defs>
         <path d={area} fill="url(#ds-fill)" />
@@ -477,21 +618,38 @@ function Bars({ values }: { values: number[] }) {
   return (
     <div className="flex h-32 items-end gap-1.5">
       {values.map((v, i) => (
-        <div key={i} className="flex-1 rounded-t bg-gradient-to-t from-accent/60 to-accent" style={{ height: `${(v / max) * 100}%` }} />
+        <div
+          key={i}
+          className="flex-1 rounded-t bg-gradient-to-t from-accent/60 to-accent"
+          style={{ height: `${(v / max) * 100}%` }}
+        />
       ))}
     </div>
   );
 }
 
-function StarBar({ stars, count, total }: { stars: number; count: number; total: number }) {
+function StarBar({
+  stars,
+  count,
+  total,
+}: {
+  stars: number;
+  count: number;
+  total: number;
+}) {
   const pct = (count / total) * 100;
   return (
     <div className="flex items-center gap-3 text-xs">
       <span className="w-8 text-muted-foreground">{stars}★</span>
       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-foreground/80" style={{ width: `${pct}%` }} />
+        <div
+          className="h-full rounded-full bg-foreground/80"
+          style={{ width: `${pct}%` }}
+        />
       </div>
-      <span className="w-10 text-right tabular-nums text-muted-foreground">{count}</span>
+      <span className="w-10 text-right tabular-nums text-muted-foreground">
+        {count}
+      </span>
     </div>
   );
 }
@@ -501,7 +659,10 @@ function StarBar({ stars, count, total }: { stars: number; count: number; total:
 function useDashboard() {
   const { days } = useDaysFilter();
   const fn = useServerFn(getDashboardData);
-  return useQuery({ queryKey: ["dashboard", days], queryFn: () => fn({ data: { days } }) });
+  return useQuery({
+    queryKey: ["dashboard", days],
+    queryFn: () => fn({ data: { days } }),
+  });
 }
 
 function EmptyState({ title, hint }: { title: string; hint?: string }) {
@@ -517,12 +678,16 @@ function OverviewSection() {
   const { data, isLoading } = useDashboard();
   const { days } = useDaysFilter();
   const setSectionEvent = (id: SectionId) =>
-    window.dispatchEvent(new CustomEvent("branchly:set-section", { detail: id }));
+    window.dispatchEvent(
+      new CustomEvent("branchly:set-section", { detail: id }),
+    );
   const k = data?.kpis;
   const locs = data?.locations ?? [];
   const ins = data?.insights ?? [];
   const trend = data?.trend ?? [];
-  const trendData = trend.length ? trend.map((t) => t.value) : new Array(days).fill(0);
+  const trendData = trend.length
+    ? trend.map((t) => t.value)
+    : new Array(days).fill(0);
   return (
     <div className="space-y-6">
       <PageHeader
@@ -531,17 +696,40 @@ function OverviewSection() {
         action={
           <div className="flex items-center gap-2">
             <DaysFilterDropdown />
-            <button onClick={() => act("Export started — check your email")} className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90">
+            <button
+              onClick={() => act("Export started — check your email")}
+              className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+            >
               <Download className="h-3.5 w-3.5" /> Export
             </button>
           </div>
         }
       />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard label="Reputation Score" value={k ? k.avgScore.toFixed(1) : "—"} delta={isLoading ? "…" : `${k?.activeLocations ?? 0} loc.`} trend="neutral" />
-        <KpiCard label="Total Reviews" value={k ? k.totalReviews.toLocaleString() : "—"} delta={`${data?.reviews.length ?? 0} captured`} trend="neutral" />
-        <KpiCard label="Avg Rating" value={k ? k.avgRating.toFixed(1) : "—"} delta="Google" trend="neutral" />
-        <KpiCard label="Response Rate" value={k ? `${k.responseRate}%` : "—"} delta={`${k?.atRisk ?? 0} at risk`} trend={k && k.atRisk > 0 ? "down" : "neutral"} />
+        <KpiCard
+          label="Reputation Score"
+          value={k ? k.avgScore.toFixed(1) : "—"}
+          delta={isLoading ? "…" : `${k?.activeLocations ?? 0} loc.`}
+          trend="neutral"
+        />
+        <KpiCard
+          label="Total Reviews"
+          value={k ? k.totalReviews.toLocaleString() : "—"}
+          delta={`${data?.reviews.length ?? 0} captured`}
+          trend="neutral"
+        />
+        <KpiCard
+          label="Avg Rating"
+          value={k ? k.avgRating.toFixed(1) : "—"}
+          delta="Google"
+          trend="neutral"
+        />
+        <KpiCard
+          label="Response Rate"
+          value={k ? `${k.responseRate}%` : "—"}
+          delta={`${k?.atRisk ?? 0} at risk`}
+          trend={k && k.atRisk > 0 ? "down" : "neutral"}
+        />
       </div>
 
       <RealScoreWidget />
@@ -554,36 +742,65 @@ function OverviewSection() {
           action={
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
               <span className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full" style={{ background: "oklch(0.6 0.18 265)" }} />
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ background: "oklch(0.6 0.18 265)" }}
+                />
                 You
               </span>
             </div>
           }
         >
           {trendData.every((v) => v === 0) ? (
-            <EmptyState title="Sem dados no período" hint="Calcule um score para começar a popular o gráfico." />
+            <EmptyState
+              title="Sem dados no período"
+              hint="Calcule um score para começar a popular o gráfico."
+            />
           ) : (
             <AreaChart data={trendData} />
           )}
         </SectionCard>
 
-        <SectionCard title="Sentiment mix" subtitle={`Last ${data?.reviews.length ?? 0} reviews`}>
+        <SectionCard
+          title="Sentiment mix"
+          subtitle={`Last ${data?.reviews.length ?? 0} reviews`}
+        >
           <div className="space-y-3">
-            <SentimentBar label="Positive" value={data?.sentiment.positive ?? 0} color="bg-emerald-500" />
-            <SentimentBar label="Neutral" value={data?.sentiment.neutral ?? 0} color="bg-muted-foreground/40" />
-            <SentimentBar label="Negative" value={data?.sentiment.negative ?? 0} color="bg-rose-500" />
+            <SentimentBar
+              label="Positive"
+              value={data?.sentiment.positive ?? 0}
+              color="bg-emerald-500"
+            />
+            <SentimentBar
+              label="Neutral"
+              value={data?.sentiment.neutral ?? 0}
+              color="bg-muted-foreground/40"
+            />
+            <SentimentBar
+              label="Negative"
+              value={data?.sentiment.negative ?? 0}
+              color="bg-rose-500"
+            />
           </div>
           <div className="mt-5 border-t border-border pt-4">
-            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Top topics</div>
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              Top topics
+            </div>
             <div className="mt-2 flex flex-wrap gap-1.5">
-              {data?.sources.length ? data.sources.slice(0, 7).map((s, i) => (
-                <span
-                  key={s.src}
-                  className={`rounded-full px-2.5 py-0.5 text-[11px] ${i < 2 ? "bg-foreground text-background" : "bg-muted text-muted-foreground"}`}
-                >
-                  {s.src}
+              {data?.sources.length ? (
+                data.sources.slice(0, 7).map((s, i) => (
+                  <span
+                    key={s.src}
+                    className={`rounded-full px-2.5 py-0.5 text-[11px] ${i < 2 ? "bg-foreground text-background" : "bg-muted text-muted-foreground"}`}
+                  >
+                    {s.src}
+                  </span>
+                ))
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  Sem reviews ainda
                 </span>
-              )) : <span className="text-xs text-muted-foreground">Sem reviews ainda</span>}
+              )}
             </div>
           </div>
         </SectionCard>
@@ -595,37 +812,54 @@ function OverviewSection() {
           subtitle="By reputation score"
           className="lg:col-span-2"
           action={
-            <button onClick={() => act("Opening all locations…")} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+            <button
+              onClick={() => act("Opening all locations…")}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
               View all <ChevronRight className="h-3 w-3" />
             </button>
           }
         >
           {locs.length === 0 ? (
-            <EmptyState title="Nenhuma localização cadastrada" hint="Adicione um negócio no widget de score acima." />
+            <EmptyState
+              title="Nenhuma localização cadastrada"
+              hint="Adicione um negócio no widget de score acima."
+            />
           ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                <th className="py-2 font-medium">Location</th>
-                <th className="py-2 font-medium">Score</th>
-                <th className="py-2 font-medium">Reviews</th>
-                <th className="py-2 font-medium">Rating</th>
-              </tr>
-            </thead>
-            <tbody>
-              {locs.slice(0, 5).map((l) => (
-                <tr key={l.id} className="border-b border-border/60 last:border-0">
-                  <td className="py-3">
-                    <div className="font-medium">{l.name}</div>
-                    <div className="text-[11px] text-muted-foreground">{l.city ?? "—"}</div>
-                  </td>
-                  <td className="py-3 font-mono tabular-nums">{l.score !== null ? Number(l.score).toFixed(1) : "—"}</td>
-                  <td className="py-3 text-muted-foreground">{l.review_count ?? 0}</td>
-                  <td className="py-3 text-muted-foreground">{l.rating !== null ? Number(l.rating).toFixed(1) : "—"}</td>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <th className="py-2 font-medium">Location</th>
+                  <th className="py-2 font-medium">Score</th>
+                  <th className="py-2 font-medium">Reviews</th>
+                  <th className="py-2 font-medium">Rating</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {locs.slice(0, 5).map((l) => (
+                  <tr
+                    key={l.id}
+                    className="border-b border-border/60 last:border-0"
+                  >
+                    <td className="py-3">
+                      <div className="font-medium">{l.name}</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {l.city ?? "—"}
+                      </div>
+                    </td>
+                    <td className="py-3 font-mono tabular-nums">
+                      {l.score !== null ? Number(l.score).toFixed(1) : "—"}
+                    </td>
+                    <td className="py-3 text-muted-foreground">
+                      {l.review_count ?? 0}
+                    </td>
+                    <td className="py-3 text-muted-foreground">
+                      {l.rating !== null ? Number(l.rating).toFixed(1) : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </SectionCard>
 
@@ -633,25 +867,39 @@ function OverviewSection() {
           title="AI Insights"
           subtitle="Motivações ranqueadas por impacto"
           action={
-            <button onClick={() => setSectionEvent("insights")} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+            <button
+              onClick={() => setSectionEvent("insights")}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
               Ver todas <ChevronRight className="h-3 w-3" />
             </button>
           }
         >
           {ins.length === 0 ? (
-            <EmptyState title="Sem insights ainda" hint="Insights aparecerão conforme reviews forem analisados." />
+            <EmptyState
+              title="Sem insights ainda"
+              hint="Insights aparecerão conforme reviews forem analisados."
+            />
           ) : (
-          <div className="space-y-3">
-            {ins.slice(0, 3).map((i) => (
-              <div key={i.id} className="rounded-lg border border-border bg-muted/30 p-3">
-                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-                  <Sparkles className="h-3 w-3 text-accent" /> {i.category ?? "Insight"}
+            <div className="space-y-3">
+              {ins.slice(0, 3).map((i) => (
+                <div
+                  key={i.id}
+                  className="rounded-lg border border-border bg-muted/30 p-3"
+                >
+                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <Sparkles className="h-3 w-3 text-accent" />{" "}
+                    {i.category ?? "Insight"}
+                  </div>
+                  <div className="mt-1 text-sm font-medium">{i.title}</div>
+                  {i.severity && (
+                    <div className="mt-1 text-xs text-emerald-500">
+                      {i.severity}
+                    </div>
+                  )}
                 </div>
-                <div className="mt-1 text-sm font-medium">{i.title}</div>
-                {i.severity && <div className="mt-1 text-xs text-emerald-500">{i.severity}</div>}
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           )}
         </SectionCard>
       </div>
@@ -659,7 +907,15 @@ function OverviewSection() {
   );
 }
 
-function SentimentBar({ label, value, color }: { label: string; value: number; color: string }) {
+function SentimentBar({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number;
+  color: string;
+}) {
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-xs">
@@ -667,7 +923,10 @@ function SentimentBar({ label, value, color }: { label: string; value: number; c
         <span className="font-mono tabular-nums">{value}%</span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }} />
+        <div
+          className={`h-full rounded-full ${color}`}
+          style={{ width: `${value}%` }}
+        />
       </div>
     </div>
   );
@@ -689,30 +948,54 @@ function ReputationSection() {
         title="Reputation"
         subtitle="Score breakdown, drivers and benchmark."
         action={
-          <button onClick={() => act("Filter: all locations")} className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground">
+          <button
+            onClick={() => act("Filter: all locations")}
+            className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
+          >
             <Filter className="h-3.5 w-3.5" /> All locations
           </button>
         }
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <SectionCard title="Reputation score" subtitle="Weighted across all sources">
+        <SectionCard
+          title="Reputation score"
+          subtitle="Weighted across all sources"
+        >
           <div className="flex items-baseline gap-3">
-            <span className="font-display text-5xl font-semibold tabular-nums">{score.toFixed(1)}</span>
-            <span className="text-sm text-muted-foreground">{data?.kpis.activeLocations ?? 0} localizações</span>
+            <span className="font-display text-5xl font-semibold tabular-nums">
+              {score.toFixed(1)}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {data?.kpis.activeLocations ?? 0} localizações
+            </span>
           </div>
           <div className="mt-4 space-y-2 text-xs">
             <Bench label="Rating médio" value={data?.kpis.avgRating ?? 0} />
-            <Bench label="Reviews totais" value={data?.kpis.totalReviews ?? 0} />
+            <Bench
+              label="Reviews totais"
+              value={data?.kpis.totalReviews ?? 0}
+            />
             <Bench label="Em risco" value={-(data?.kpis.atRisk ?? 0)} />
           </div>
         </SectionCard>
 
-        <SectionCard title="Rating distribution" subtitle={`${total.toLocaleString()} reviews`} className="lg:col-span-2">
-          {total === 0 ? <EmptyState title="Sem reviews capturados ainda" /> : (
+        <SectionCard
+          title="Rating distribution"
+          subtitle={`${total.toLocaleString()} reviews`}
+          className="lg:col-span-2"
+        >
+          {total === 0 ? (
+            <EmptyState title="Sem reviews capturados ainda" />
+          ) : (
             <div className="space-y-2">
               {dist.map((d) => (
-                <StarBar key={d.stars} stars={d.stars} count={d.count} total={total} />
+                <StarBar
+                  key={d.stars}
+                  stars={d.stars}
+                  count={d.count}
+                  total={total}
+                />
               ))}
             </div>
           )}
@@ -720,15 +1003,23 @@ function ReputationSection() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <SectionCard title="Insights recentes" subtitle="O que está movendo o score">
+        <SectionCard
+          title="Insights recentes"
+          subtitle="O que está movendo o score"
+        >
           {(data?.insights.length ?? 0) === 0 ? (
             <EmptyState title="Sem insights ainda" />
           ) : (
             <ul className="space-y-3 text-sm">
               {data!.insights.slice(0, 5).map((d) => (
-                <li key={d.id} className="flex items-center justify-between border-b border-border/50 pb-2 last:border-0">
+                <li
+                  key={d.id}
+                  className="flex items-center justify-between border-b border-border/50 pb-2 last:border-0"
+                >
                   <span>{d.title}</span>
-                  <span className="text-xs text-muted-foreground">{d.category ?? "—"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {d.category ?? "—"}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -744,10 +1035,15 @@ function ReputationSection() {
                 <div key={s.src}>
                   <div className="mb-1 flex justify-between text-xs">
                     <span>{s.src}</span>
-                    <span className="text-muted-foreground tabular-nums">{s.count}</span>
+                    <span className="text-muted-foreground tabular-nums">
+                      {s.count}
+                    </span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full bg-accent" style={{ width: `${(s.count / sourceTotal) * 100}%` }} />
+                    <div
+                      className="h-full rounded-full bg-accent"
+                      style={{ width: `${(s.count / sourceTotal) * 100}%` }}
+                    />
                   </div>
                 </div>
               ))}
@@ -764,7 +1060,9 @@ function Bench({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-muted-foreground">{label}</span>
-      <span className={`font-mono tabular-nums ${positive ? "text-emerald-500" : "text-rose-500"}`}>
+      <span
+        className={`font-mono tabular-nums ${positive ? "text-emerald-500" : "text-rose-500"}`}
+      >
         {positive ? "+" : ""}
         {value.toFixed(1)}
       </span>
@@ -788,14 +1086,19 @@ function LocationsSection() {
   const { requireFeature, limits } = usePlan();
   const [modalOpen, setModalOpen] = useState(false);
   const used = locs.length;
-  const onAdd = () => { if (requireFeature("locations", used + 1)) setModalOpen(true); };
+  const onAdd = () => {
+    if (requireFeature("locations", used + 1)) setModalOpen(true);
+  };
   return (
     <div className="space-y-6">
       <PageHeader
         title="Locations"
         subtitle={`Gerencie suas unidades · ${used}/${limits.locations === 9999 ? "∞" : limits.locations} usadas`}
         action={
-          <button onClick={onAdd} className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90">
+          <button
+            onClick={onAdd}
+            className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+          >
             <Plus className="h-3.5 w-3.5" /> Add location
           </button>
         }
@@ -803,64 +1106,117 @@ function LocationsSection() {
       <AddLocationModal open={modalOpen} onOpenChange={setModalOpen} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard label="Active" value={String(k?.activeLocations ?? 0)} delta="—" trend="neutral" />
-        <KpiCard label="Avg score" value={k ? k.avgScore.toFixed(1) : "—"} delta="—" trend="neutral" />
-        <KpiCard label="At risk" value={String(k?.atRisk ?? 0)} delta="score < 75" trend={k && k.atRisk > 0 ? "down" : "neutral"} />
-        <KpiCard label="Total reviews" value={String(k?.totalReviews ?? 0)} delta="—" trend="neutral" />
+        <KpiCard
+          label="Active"
+          value={String(k?.activeLocations ?? 0)}
+          delta="—"
+          trend="neutral"
+        />
+        <KpiCard
+          label="Avg score"
+          value={k ? k.avgScore.toFixed(1) : "—"}
+          delta="—"
+          trend="neutral"
+        />
+        <KpiCard
+          label="At risk"
+          value={String(k?.atRisk ?? 0)}
+          delta="score < 75"
+          trend={k && k.atRisk > 0 ? "down" : "neutral"}
+        />
+        <KpiCard
+          label="Total reviews"
+          value={String(k?.totalReviews ?? 0)}
+          delta="—"
+          trend="neutral"
+        />
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="flex items-center justify-between border-b border-border p-4">
-          <div className="font-display text-sm font-semibold">All locations</div>
+          <div className="font-display text-sm font-semibold">
+            All locations
+          </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => act("Filter applied")} className="flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground">
+            <button
+              onClick={() => act("Filter applied")}
+              className="flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+            >
               <Filter className="h-3 w-3" /> Filter
             </button>
-            <button onClick={() => act("Export started")} className="flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground">
+            <button
+              onClick={() => act("Export started")}
+              className="flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+            >
               <Download className="h-3 w-3" /> Export
             </button>
           </div>
         </div>
         {locs.length === 0 ? (
-          <EmptyState title="Nenhuma localização" hint="Use o widget de Score real no Overview para adicionar." />
+          <EmptyState
+            title="Nenhuma localização"
+            hint="Use o widget de Score real no Overview para adicionar."
+          />
         ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">Location</th>
-              <th className="px-4 py-2.5 font-medium">Status</th>
-              <th className="px-4 py-2.5 font-medium">Score</th>
-              <th className="px-4 py-2.5 font-medium">Reviews</th>
-              <th className="px-4 py-2.5 font-medium">Rating</th>
-              <th className="px-4 py-2.5 font-medium text-right">Atualizado</th>
-              <th className="px-4 py-2.5 font-medium" />
-            </tr>
-          </thead>
-          <tbody>
-            {locs.map((l) => (
-              <tr key={l.id} className="border-b border-border/60 last:border-0 hover:bg-muted/30">
-                <td className="px-4 py-3">
-                  <div className="font-medium">{l.name}</div>
-                  <div className="text-[11px] text-muted-foreground">{l.city ?? "—"}</div>
-                </td>
-                <td className="px-4 py-3">
-                  <StatusPill status={statusForScore(l.score !== null ? Number(l.score) : null)} />
-                </td>
-                <td className="px-4 py-3 font-mono tabular-nums">{l.score !== null ? Number(l.score).toFixed(1) : "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{l.review_count ?? 0}</td>
-                <td className="px-4 py-3 text-muted-foreground">{l.rating !== null ? Number(l.rating).toFixed(1) : "—"}</td>
-                <td className="px-4 py-3 text-right text-xs text-muted-foreground">
-                  {l.last_scraped_at ? new Date(l.last_scraped_at).toLocaleDateString() : "—"}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button onClick={() => act(`Opening ${l.name}…`)} className="text-muted-foreground hover:text-foreground">
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </td>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-2.5 font-medium">Location</th>
+                <th className="px-4 py-2.5 font-medium">Status</th>
+                <th className="px-4 py-2.5 font-medium">Score</th>
+                <th className="px-4 py-2.5 font-medium">Reviews</th>
+                <th className="px-4 py-2.5 font-medium">Rating</th>
+                <th className="px-4 py-2.5 font-medium text-right">
+                  Atualizado
+                </th>
+                <th className="px-4 py-2.5 font-medium" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {locs.map((l) => (
+                <tr
+                  key={l.id}
+                  className="border-b border-border/60 last:border-0 hover:bg-muted/30"
+                >
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{l.name}</div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {l.city ?? "—"}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusPill
+                      status={statusForScore(
+                        l.score !== null ? Number(l.score) : null,
+                      )}
+                    />
+                  </td>
+                  <td className="px-4 py-3 font-mono tabular-nums">
+                    {l.score !== null ? Number(l.score).toFixed(1) : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {l.review_count ?? 0}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {l.rating !== null ? Number(l.rating).toFixed(1) : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right text-xs text-muted-foreground">
+                    {l.last_scraped_at
+                      ? new Date(l.last_scraped_at).toLocaleDateString()
+                      : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button
+                      onClick={() => act(`Opening ${l.name}…`)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
@@ -874,7 +1230,11 @@ function RealScoreWidget() {
   const refreshFn = useServerFn(refreshMyLocationScore);
   const listFn = useServerFn(listMyLocations);
   const { t } = useApp();
-  const [form, setForm] = useState({ name: "", city: "", category: t.simulator.categories[0] });
+  const [form, setForm] = useState({
+    name: "",
+    city: "",
+    category: t.simulator.categories[0],
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -890,7 +1250,13 @@ function RealScoreWidget() {
     setLoading(true);
     setError(null);
     try {
-      await refreshFn({ data: { name: form.name, city: form.city, category: form.category || undefined } });
+      await refreshFn({
+        data: {
+          name: form.name,
+          city: form.city,
+          category: form.category || undefined,
+        },
+      });
       toast.success("Score atualizado com dados reais do Google");
       setForm({ name: "", city: "", category: "" });
       queryClient.invalidateQueries({ queryKey: ["my-locations"] });
@@ -927,7 +1293,9 @@ function RealScoreWidget() {
               onChange={(e) => setForm({ ...form, category: e.target.value })}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20"
             >
-              {t.simulator.categories.map((c) => <option key={c}>{c}</option>)}
+              {t.simulator.categories.map((c) => (
+                <option key={c}>{c}</option>
+              ))}
             </select>
           </div>
           {error && (
@@ -940,33 +1308,60 @@ function RealScoreWidget() {
             disabled={!form.name || !form.city || loading}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-foreground py-2 text-sm font-medium text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> Analisando…</> : <><Sparkles className="h-4 w-4" /> Calcular score real</>}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Analisando…
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" /> Calcular score real
+              </>
+            )}
           </button>
         </div>
         <div className="rounded-xl border border-border bg-muted/20 p-4">
           {top ? (
             <>
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Último local analisado</div>
-              <div className="mt-1 font-display text-base font-semibold">{top.name}</div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                Último local analisado
+              </div>
+              <div className="mt-1 font-display text-base font-semibold">
+                {top.name}
+              </div>
               <div className="text-xs text-muted-foreground">{top.city}</div>
               <div className="mt-3 flex items-end gap-4">
                 <div className="font-display text-4xl font-semibold tabular-nums">
                   {top.score !== null ? Number(top.score).toFixed(1) : "—"}
                 </div>
                 <div className="mb-1 text-xs text-muted-foreground">
-                  <div>Rating: <span className="font-mono text-foreground">{top.rating !== null ? Number(top.rating).toFixed(1) : "—"}</span></div>
-                  <div>{top.review_count?.toLocaleString() ?? 0} avaliações</div>
+                  <div>
+                    Rating:{" "}
+                    <span className="font-mono text-foreground">
+                      {top.rating !== null
+                        ? Number(top.rating).toFixed(1)
+                        : "—"}
+                    </span>
+                  </div>
+                  <div>
+                    {top.review_count?.toLocaleString() ?? 0} avaliações
+                  </div>
                 </div>
               </div>
               {top.google_url && (
-                <a href={top.google_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                <a
+                  href={top.google_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                >
                   Ver no Google <ExternalLink className="h-3 w-3" />
                 </a>
               )}
             </>
           ) : (
             <div className="flex h-full items-center justify-center text-center text-xs text-muted-foreground">
-              Nenhum local analisado ainda. Preencha ao lado para gerar seu primeiro score real.
+              Nenhum local analisado ainda. Preencha ao lado para gerar seu
+              primeiro score real.
             </div>
           )}
         </div>
@@ -983,7 +1378,10 @@ function TeamSection() {
   const inviteFn = useServerFn(inviteMember);
   const updateRoleFn = useServerFn(updateMemberRole);
   const removeFn = useServerFn(removeMember);
-  const [form, setForm] = useState<{ email: string; role: "admin" | "financial" | "member" }>({ email: "", role: "member" });
+  const [form, setForm] = useState<{
+    email: string;
+    role: "admin" | "financial" | "member";
+  }>({ email: "", role: "member" });
   const [submitting, setSubmitting] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -1022,7 +1420,10 @@ function TeamSection() {
     }
   };
 
-  const changeRole = async (id: string, role: "admin" | "financial" | "member") => {
+  const changeRole = async (
+    id: string,
+    role: "admin" | "financial" | "member",
+  ) => {
     try {
       await updateRoleFn({ data: { id, role } });
       toast.success("Papel atualizado");
@@ -1051,12 +1452,17 @@ function TeamSection() {
           <div className="flex items-start gap-3">
             <Crown className="mt-0.5 h-5 w-5 text-amber-500" />
             <div className="flex-1">
-              <div className="font-display text-sm font-semibold">Equipe é um recurso dos planos pagos</div>
+              <div className="font-display text-sm font-semibold">
+                Equipe é um recurso dos planos pagos
+              </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Convide administrativo, financeiro e membros nos planos Starter (até 2), Pro (até 5) ou Premium (ilimitado).
+                Convide administrativo, financeiro e membros nos planos Starter
+                (até 2), Pro (até 5) ou Premium (ilimitado).
               </p>
               <button
-                onClick={() => toast.message("Abra Billing para escolher um plano")}
+                onClick={() =>
+                  toast.message("Abra Billing para escolher um plano")
+                }
                 className="mt-3 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background"
               >
                 Ver planos
@@ -1066,7 +1472,10 @@ function TeamSection() {
         </div>
       )}
 
-      <SectionCard title="Convidar novo membro" subtitle="O convidado receberá acesso assim que se cadastrar com este e-mail.">
+      <SectionCard
+        title="Convidar novo membro"
+        subtitle="O convidado receberá acesso assim que se cadastrar com este e-mail."
+      >
         <div className="flex flex-col gap-2 md:flex-row">
           <input
             placeholder="email@empresa.com"
@@ -1077,7 +1486,12 @@ function TeamSection() {
           />
           <select
             value={form.role}
-            onChange={(e) => setForm({ ...form, role: e.target.value as "admin" | "financial" | "member" })}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                role: e.target.value as "admin" | "financial" | "member",
+              })
+            }
             disabled={!isPaid}
             className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20 disabled:opacity-50"
           >
@@ -1090,17 +1504,28 @@ function TeamSection() {
             disabled={!isPaid || !form.email || submitting}
             className="flex items-center justify-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} Convidar
+            {submitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <UserPlus className="h-4 w-4" />
+            )}{" "}
+            Convidar
           </button>
         </div>
       </SectionCard>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border p-4 font-display text-sm font-semibold">Membros</div>
+        <div className="border-b border-border p-4 font-display text-sm font-semibold">
+          Membros
+        </div>
         {isLoading ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">Carregando…</div>
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            Carregando…
+          </div>
         ) : members.length === 0 ? (
-          <div className="p-8 text-center text-sm text-muted-foreground">Nenhum membro convidado ainda.</div>
+          <div className="p-8 text-center text-sm text-muted-foreground">
+            Nenhum membro convidado ainda.
+          </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
@@ -1113,7 +1538,10 @@ function TeamSection() {
             </thead>
             <tbody>
               {members.map((m) => (
-                <tr key={m.id} className="border-b border-border/60 last:border-0">
+                <tr
+                  key={m.id}
+                  className="border-b border-border/60 last:border-0"
+                >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <Shield className="h-3.5 w-3.5 text-muted-foreground" />
@@ -1123,7 +1551,12 @@ function TeamSection() {
                   <td className="px-4 py-3">
                     <select
                       value={m.role}
-                      onChange={(e) => changeRole(m.id, e.target.value as "admin" | "financial" | "member")}
+                      onChange={(e) =>
+                        changeRole(
+                          m.id,
+                          e.target.value as "admin" | "financial" | "member",
+                        )
+                      }
                       className="rounded-md border border-border bg-background px-2 py-1 text-xs"
                     >
                       <option value="admin">{ROLE_LABELS.admin}</option>
@@ -1132,7 +1565,9 @@ function TeamSection() {
                     </select>
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] ${m.status === "active" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"}`}>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] ${m.status === "active" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600 dark:text-amber-400"}`}
+                    >
                       {m.status === "active" ? "Ativo" : "Pendente"}
                     </span>
                   </td>
@@ -1156,15 +1591,32 @@ function TeamSection() {
 }
 
 function StatusPill({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string; Icon: typeof CheckCircle2 }> = {
-    healthy: { label: "Healthy", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400", Icon: CheckCircle2 },
-    attention: { label: "Attention", cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400", Icon: Clock },
-    risk: { label: "At risk", cls: "bg-rose-500/10 text-rose-600 dark:text-rose-400", Icon: AlertTriangle },
+  const map: Record<
+    string,
+    { label: string; cls: string; Icon: typeof CheckCircle2 }
+  > = {
+    healthy: {
+      label: "Healthy",
+      cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+      Icon: CheckCircle2,
+    },
+    attention: {
+      label: "Attention",
+      cls: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+      Icon: Clock,
+    },
+    risk: {
+      label: "At risk",
+      cls: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+      Icon: AlertTriangle,
+    },
   };
   const s = map[status] ?? map.healthy;
   const Icon = s.Icon;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${s.cls}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${s.cls}`}
+    >
       <Icon className="h-3 w-3" /> {s.label}
     </span>
   );
@@ -1175,18 +1627,23 @@ function StatusPill({ status }: { status: string }) {
 function CompetitorsSection() {
   const { data } = useDashboard();
   const comps = data?.competitors ?? [];
-  const totalReviews = comps.reduce((s, c) => s + (c.review_count ?? 0), 0) || 1;
+  const totalReviews =
+    comps.reduce((s, c) => s + (c.review_count ?? 0), 0) || 1;
   const queryClient = useQueryClient();
   const removeFn = useServerFn(removeCompetitor);
   const { requireFeature, limits } = usePlan();
   const [modalOpen, setModalOpen] = useState(false);
-  const onAdd = () => { if (requireFeature("competitors", comps.length + 1)) setModalOpen(true); };
+  const onAdd = () => {
+    if (requireFeature("competitors", comps.length + 1)) setModalOpen(true);
+  };
   const onDelete = async (id: string) => {
     try {
       await removeFn({ data: { id } });
       toast.success("Concorrente removido");
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    } catch (e) { toast.error((e as Error).message); }
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   };
   return (
     <div className="space-y-6">
@@ -1194,7 +1651,10 @@ function CompetitorsSection() {
         title="Competitors"
         subtitle={`Compare-se com a categoria · ${comps.length}/${limits.competitors === 9999 ? "∞" : limits.competitors} rastreados`}
         action={
-          <button onClick={onAdd} className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90">
+          <button
+            onClick={onAdd}
+            className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+          >
             <Plus className="h-3.5 w-3.5" /> Track competitor
           </button>
         }
@@ -1202,40 +1662,66 @@ function CompetitorsSection() {
       <AddCompetitorModal open={modalOpen} onOpenChange={setModalOpen} />
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border p-4 font-display text-sm font-semibold">Tracked competitors</div>
+        <div className="border-b border-border p-4 font-display text-sm font-semibold">
+          Tracked competitors
+        </div>
         {comps.length === 0 ? (
-          <EmptyState title="Sem concorrentes rastreados" hint="Adicione concorrentes para comparar seu rating." />
+          <EmptyState
+            title="Sem concorrentes rastreados"
+            hint="Adicione concorrentes para comparar seu rating."
+          />
         ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">Competitor</th>
-              <th className="px-4 py-2.5 font-medium">Rating</th>
-              <th className="px-4 py-2.5 font-medium">Reviews</th>
-              <th className="px-4 py-2.5 font-medium">Share</th>
-            </tr>
-          </thead>
-          <tbody>
-            {comps.map((c) => (
-              <tr key={c.id} className="border-b border-border/60 last:border-0">
-                <td className="px-4 py-3 font-medium">{c.name}</td>
-                <td className="px-4 py-3 font-mono tabular-nums">{c.rating !== null ? Number(c.rating).toFixed(1) : "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{(c.review_count ?? 0).toLocaleString()}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full bg-foreground/70" style={{ width: `${((c.review_count ?? 0) / totalReviews) * 100}%` }} />
-                    </div>
-                    <span className="text-xs text-muted-foreground tabular-nums">{Math.round(((c.review_count ?? 0) / totalReviews) * 100)}%</span>
-                    <button onClick={() => onDelete(c.id)} className="ml-2 rounded-md border border-border bg-card p-1.5 text-muted-foreground hover:text-rose-500" aria-label="Remover">
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                </td>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-2.5 font-medium">Competitor</th>
+                <th className="px-4 py-2.5 font-medium">Rating</th>
+                <th className="px-4 py-2.5 font-medium">Reviews</th>
+                <th className="px-4 py-2.5 font-medium">Share</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {comps.map((c) => (
+                <tr
+                  key={c.id}
+                  className="border-b border-border/60 last:border-0"
+                >
+                  <td className="px-4 py-3 font-medium">{c.name}</td>
+                  <td className="px-4 py-3 font-mono tabular-nums">
+                    {c.rating !== null ? Number(c.rating).toFixed(1) : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {(c.review_count ?? 0).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-foreground/70"
+                          style={{
+                            width: `${((c.review_count ?? 0) / totalReviews) * 100}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        {Math.round(
+                          ((c.review_count ?? 0) / totalReviews) * 100,
+                        )}
+                        %
+                      </span>
+                      <button
+                        onClick={() => onDelete(c.id)}
+                        className="ml-2 rounded-md border border-border bg-card p-1.5 text-muted-foreground hover:text-rose-500"
+                        aria-label="Remover"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
@@ -1263,8 +1749,11 @@ function ReviewsSection() {
       const r = await captureFn();
       toast.success(`${r.captured} localizações atualizadas`);
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    } catch (e) { toast.error((e as Error).message); }
-    finally { setCapturing(false); }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setCapturing(false);
+    }
   };
   const onGenerateAll = async () => {
     if (!requireFeature("aiReplies")) return;
@@ -1279,7 +1768,9 @@ function ReviewsSection() {
         toast.error("Faça upgrade para usar respostas com IA");
         window.dispatchEvent(new CustomEvent("branchly:open-billing"));
       } else toast.error(msg);
-    } finally { setGenerating(false); }
+    } finally {
+      setGenerating(false);
+    }
   };
   const onGenerateOne = async (id: string) => {
     if (!requireFeature("aiReplies")) return;
@@ -1294,15 +1785,23 @@ function ReviewsSection() {
         toast.error("Faça upgrade para usar respostas com IA");
         window.dispatchEvent(new CustomEvent("branchly:open-billing"));
       } else toast.error(msg);
-    } finally { setPerRow((s) => ({ ...s, [id]: false })); }
+    } finally {
+      setPerRow((s) => ({ ...s, [id]: false }));
+    }
   };
   const filtered = all.filter((r) =>
-    filter === "unreplied" ? !r.reply : filter === "negative" ? (r.sentiment ?? "").toLowerCase() === "negative" : true,
+    filter === "unreplied"
+      ? !r.reply
+      : filter === "negative"
+        ? (r.sentiment ?? "").toLowerCase() === "negative"
+        : true,
   );
   const counts = {
     all: all.length,
     unreplied: all.filter((r) => !r.reply).length,
-    negative: all.filter((r) => (r.sentiment ?? "").toLowerCase() === "negative").length,
+    negative: all.filter(
+      (r) => (r.sentiment ?? "").toLowerCase() === "negative",
+    ).length,
   };
   return (
     <div className="space-y-6">
@@ -1311,11 +1810,29 @@ function ReviewsSection() {
         subtitle="Reply faster with AI-drafted responses, tuned to your brand voice."
         action={
           <div className="flex items-center gap-2">
-            <button onClick={onCapture} disabled={capturing} className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground disabled:opacity-50">
-              {capturing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />} Capturar reviews
+            <button
+              onClick={onCapture}
+              disabled={capturing}
+              className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+            >
+              {capturing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="h-3.5 w-3.5" />
+              )}{" "}
+              Capturar reviews
             </button>
-            <button onClick={onGenerateAll} disabled={generating || counts.unreplied === 0} className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90 disabled:opacity-50">
-              {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} Gerar respostas IA
+            <button
+              onClick={onGenerateAll}
+              disabled={generating || counts.unreplied === 0}
+              className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90 disabled:opacity-50"
+            >
+              {generating ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}{" "}
+              Gerar respostas IA
             </button>
           </div>
         }
@@ -1325,7 +1842,11 @@ function ReviewsSection() {
         {(
           [
             { id: "all", label: "All reviews", count: counts.all },
-            { id: "unreplied", label: "Awaiting reply", count: counts.unreplied },
+            {
+              id: "unreplied",
+              label: "Awaiting reply",
+              count: counts.unreplied,
+            },
             { id: "negative", label: "Negative", count: counts.negative },
           ] as const
         ).map((f) => (
@@ -1333,76 +1854,109 @@ function ReviewsSection() {
             key={f.id}
             onClick={() => setFilter(f.id)}
             className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition ${
-              filter === f.id ? "border-foreground bg-foreground text-background" : "border-border bg-card text-muted-foreground hover:text-foreground"
+              filter === f.id
+                ? "border-foreground bg-foreground text-background"
+                : "border-border bg-card text-muted-foreground hover:text-foreground"
             }`}
           >
             {f.label}
-            <span className={`rounded-full px-1.5 py-px text-[10px] ${filter === f.id ? "bg-background/20" : "bg-muted"}`}>{f.count}</span>
+            <span
+              className={`rounded-full px-1.5 py-px text-[10px] ${filter === f.id ? "bg-background/20" : "bg-muted"}`}
+            >
+              {f.count}
+            </span>
           </button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
-        <EmptyState title="Nenhum review encontrado" hint="Reviews aparecerão aqui assim que forem capturados do Google." />
+        <EmptyState
+          title="Nenhum review encontrado"
+          hint="Reviews aparecerão aqui assim que forem capturados do Google."
+        />
       ) : (
-      <div className="space-y-3">
-        {filtered.map((r) => (
-          <div key={r.id} className="rounded-xl border border-border bg-card p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted font-medium text-sm">
-                  {(r.author ?? "?")[0]}
-                </div>
-                <div>
-                  <div className="text-sm font-medium">{r.author ?? "Anônimo"}</div>
-                  <div className="text-[11px] text-muted-foreground">
-                    {r.source ?? "—"} · {r.posted_at ? new Date(r.posted_at).toLocaleDateString() : "—"}
+        <div className="space-y-3">
+          {filtered.map((r) => (
+            <div
+              key={r.id}
+              className="rounded-xl border border-border bg-card p-5"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted font-medium text-sm">
+                    {(r.author ?? "?")[0]}
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium">
+                      {r.author ?? "Anônimo"}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {r.source ?? "—"} ·{" "}
+                      {r.posted_at
+                        ? new Date(r.posted_at).toLocaleDateString()
+                        : "—"}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex">
-                  {Array.from({ length: 5 }).map((_, s) => (
-                    <Star
-                      key={s}
-                      className={`h-3.5 w-3.5 ${s < (r.rating ?? 0) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
-                    />
-                  ))}
+                <div className="flex items-center gap-2">
+                  <div className="flex">
+                    {Array.from({ length: 5 }).map((_, s) => (
+                      <Star
+                        key={s}
+                        className={`h-3.5 w-3.5 ${s < (r.rating ?? 0) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                      />
+                    ))}
+                  </div>
+                  <SentimentChip sentiment={r.sentiment ?? "neutral"} />
                 </div>
-                <SentimentChip sentiment={r.sentiment ?? "neutral"} />
               </div>
+              <p className="mt-3 text-sm text-foreground/90">
+                {r.comment ?? ""}
+              </p>
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-[11px] text-muted-foreground">
+                  {r.reply ? (
+                    <span className="flex items-center gap-1 text-emerald-500">
+                      <CheckCircle2 className="h-3 w-3" /> Replied
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-amber-500">
+                      <Clock className="h-3 w-3" /> Awaiting reply
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => act(`Opening review by ${r.author}…`)}
+                    className="rounded-md border border-border bg-card px-3 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+                  >
+                    Open <ExternalLink className="ml-1 inline h-3 w-3" />
+                  </button>
+                  <button
+                    onClick={() => onGenerateOne(r.id)}
+                    disabled={!!perRow[r.id]}
+                    className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1 text-xs font-medium text-accent-foreground transition hover:opacity-90 disabled:opacity-50"
+                  >
+                    {perRow[r.id] ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3 w-3" />
+                    )}{" "}
+                    AI reply
+                  </button>
+                </div>
+              </div>
+              {r.reply && (
+                <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-foreground/90">
+                  <div className="mb-1 text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                    Sua resposta
+                  </div>
+                  {r.reply}
+                </div>
+              )}
             </div>
-            <p className="mt-3 text-sm text-foreground/90">{r.comment ?? ""}</p>
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-[11px] text-muted-foreground">
-                {r.reply ? (
-                  <span className="flex items-center gap-1 text-emerald-500">
-                    <CheckCircle2 className="h-3 w-3" /> Replied
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-amber-500">
-                    <Clock className="h-3 w-3" /> Awaiting reply
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => act(`Opening review by ${r.author}…`)} className="rounded-md border border-border bg-card px-3 py-1 text-xs text-muted-foreground transition hover:text-foreground">
-                  Open <ExternalLink className="ml-1 inline h-3 w-3" />
-                </button>
-                <button onClick={() => onGenerateOne(r.id)} disabled={!!perRow[r.id]} className="flex items-center gap-1.5 rounded-md bg-accent px-3 py-1 text-xs font-medium text-accent-foreground transition hover:opacity-90 disabled:opacity-50">
-                  {perRow[r.id] ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />} AI reply
-                </button>
-              </div>
-            </div>
-            {r.reply && (
-              <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-xs text-foreground/90">
-                <div className="mb-1 text-[10px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Sua resposta</div>
-                {r.reply}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -1414,7 +1968,13 @@ function SentimentChip({ sentiment }: { sentiment: string }) {
     neutral: "bg-muted text-muted-foreground",
     negative: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
   };
-  return <span className={`rounded-full px-2 py-0.5 text-[10px] capitalize ${map[sentiment] ?? map.neutral}`}>{sentiment}</span>;
+  return (
+    <span
+      className={`rounded-full px-2 py-0.5 text-[10px] capitalize ${map[sentiment] ?? map.neutral}`}
+    >
+      {sentiment}
+    </span>
+  );
 }
 
 /* ------------------------------- Insights ------------------------------ */
@@ -1428,41 +1988,63 @@ function InsightsSection() {
         title="AI Insights"
         subtitle="Patterns surfaced from thousands of reviews — ranked by revenue impact."
         action={
-          <button onClick={() => act("Filter: all categories")} className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground">
+          <button
+            onClick={() => act("Filter: all categories")}
+            className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
+          >
             <Filter className="h-3.5 w-3.5" /> All categories
           </button>
         }
       />
 
       {ins.length === 0 ? (
-        <EmptyState title="Sem insights ainda" hint="Insights aparecerão conforme reviews forem analisados pela IA." />
+        <EmptyState
+          title="Sem insights ainda"
+          hint="Insights aparecerão conforme reviews forem analisados pela IA."
+        />
       ) : (
-      <div className="grid gap-4 lg:grid-cols-2">
-        {ins.map((i) => (
-          <div key={i.id} className="rounded-xl border border-border bg-gradient-to-br from-card to-muted/30 p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-                <Sparkles className="h-3 w-3 text-accent" /> {i.category ?? "Insight"}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {ins.map((i) => (
+            <div
+              key={i.id}
+              className="rounded-xl border border-border bg-gradient-to-br from-card to-muted/30 p-5"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <Sparkles className="h-3 w-3 text-accent" />{" "}
+                  {i.category ?? "Insight"}
+                </div>
+                {i.severity && (
+                  <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                    {i.severity}
+                  </span>
+                )}
               </div>
-              {i.severity && (
-                <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-                  {i.severity}
-                </span>
+              <div className="mt-3 font-display text-base font-semibold leading-snug">
+                {i.title}
+              </div>
+              {i.body && (
+                <p className="mt-2 text-sm text-muted-foreground">{i.body}</p>
               )}
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={() => toast.message("Insight dismissed")}
+                  className="rounded-md border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
+                >
+                  Dismiss
+                </button>
+                <button
+                  onClick={() =>
+                    act(`Action created: ${i.category ?? "insight"}`)
+                  }
+                  className="rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+                >
+                  Create action
+                </button>
+              </div>
             </div>
-            <div className="mt-3 font-display text-base font-semibold leading-snug">{i.title}</div>
-            {i.body && <p className="mt-2 text-sm text-muted-foreground">{i.body}</p>}
-            <div className="mt-4 flex gap-2">
-              <button onClick={() => toast.message("Insight dismissed")} className="rounded-md border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground">
-                Dismiss
-              </button>
-              <button onClick={() => act(`Action created: ${i.category ?? "insight"}`)} className="rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90">
-                Create action
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -1475,14 +2057,19 @@ function ReportsSection() {
   const reports = data?.reports ?? [];
   const { requireFeature, limits } = usePlan();
   const [modalOpen, setModalOpen] = useState(false);
-  const onAdd = () => { if (requireFeature("reports", reports.length + 1)) setModalOpen(true); };
+  const onAdd = () => {
+    if (requireFeature("reports", reports.length + 1)) setModalOpen(true);
+  };
   return (
     <div className="space-y-6">
       <PageHeader
         title="Reports"
         subtitle={`Relatórios deste mês · ${reports.length}/${limits.reports === 9999 ? "∞" : limits.reports}`}
         action={
-          <button onClick={onAdd} className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90">
+          <button
+            onClick={onAdd}
+            className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+          >
             <Plus className="h-3.5 w-3.5" /> New report
           </button>
         }
@@ -1491,41 +2078,61 @@ function ReportsSection() {
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {reports.length === 0 ? (
-          <EmptyState title="Sem relatórios" hint="Agende um novo relatório para começar." />
+          <EmptyState
+            title="Sem relatórios"
+            hint="Agende um novo relatório para começar."
+          />
         ) : (
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">Report</th>
-              <th className="px-4 py-2.5 font-medium">Period</th>
-              <th className="px-4 py-2.5 font-medium">Status</th>
-              <th className="px-4 py-2.5 font-medium">Created</th>
-              <th className="px-4 py-2.5 font-medium text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((r) => (
-              <tr key={r.id} className="border-b border-border/60 last:border-0 hover:bg-muted/30">
-                <td className="px-4 py-3 font-medium">{r.name}</td>
-                <td className="px-4 py-3 text-muted-foreground">{r.period ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{r.status ?? "—"}</td>
-                <td className="px-4 py-3 text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button onClick={() => act(`Editing ${r.name}`)} className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground">
-                      Edit
-                    </button>
-                    {r.file_url && (
-                      <a href={r.file_url} target="_blank" rel="noreferrer" className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground">
-                        <Download className="h-3 w-3" />
-                      </a>
-                    )}
-                  </div>
-                </td>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-2.5 font-medium">Report</th>
+                <th className="px-4 py-2.5 font-medium">Period</th>
+                <th className="px-4 py-2.5 font-medium">Status</th>
+                <th className="px-4 py-2.5 font-medium">Created</th>
+                <th className="px-4 py-2.5 font-medium text-right">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {reports.map((r) => (
+                <tr
+                  key={r.id}
+                  className="border-b border-border/60 last:border-0 hover:bg-muted/30"
+                >
+                  <td className="px-4 py-3 font-medium">{r.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {r.period ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {r.status ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => act(`Editing ${r.name}`)}
+                        className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+                      >
+                        Edit
+                      </button>
+                      {r.file_url && (
+                        <a
+                          href={r.file_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+                        >
+                          <Download className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </div>
@@ -1536,7 +2143,10 @@ function ReportsSection() {
 
 function BillingSection() {
   const { user } = useUser();
-  const email = user?.primaryEmailAddress?.emailAddress ?? user?.emailAddresses?.[0]?.emailAddress ?? "";
+  const email =
+    user?.primaryEmailAddress?.emailAddress ??
+    user?.emailAddresses?.[0]?.emailAddress ??
+    "";
   const queryClient = useQueryClient();
   const checkSub = useServerFn(checkSubscription);
   const createCheckoutFn = useServerFn(createCheckout);
@@ -1553,7 +2163,9 @@ function BillingSection() {
     if (!email) return toast.error("Sign in to subscribe");
     try {
       toast.loading("Opening Stripe checkout…", { id: "co" });
-      const res = await createCheckoutFn({ data: { plan, origin: window.location.origin } });
+      const res = await createCheckoutFn({
+        data: { plan, origin: window.location.origin },
+      });
       toast.dismiss("co");
       if (res.url) window.open(res.url, "_blank");
     } catch (e) {
@@ -1583,57 +2195,98 @@ function BillingSection() {
         title="Billing"
         subtitle="Manage your plan, invoices and payment method."
         action={
-          <button onClick={() => queryClient.invalidateQueries({ queryKey: ["subscription", email] })} className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90">
+          <button
+            onClick={() =>
+              queryClient.invalidateQueries({
+                queryKey: ["subscription", email],
+              })
+            }
+            className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+          >
             Refresh status
           </button>
         }
       />
 
       <SectionCard
-        title={isLoading ? "Checking subscription…" : sub?.subscribed ? `Current plan · ${PLANS[activePlan as PlanKey]?.name ?? "Active"}` : "No active subscription"}
-        subtitle={sub?.subscribed && sub.currentPeriodEnd ? `Renews ${new Date(sub.currentPeriodEnd).toLocaleDateString()}` : "Choose a plan to get started"}
-        action={sub?.subscribed ? (
-          <button onClick={handlePortal} className="rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90">
-            Manage subscription
-          </button>
-        ) : undefined}
+        title={
+          isLoading
+            ? "Checking subscription…"
+            : sub?.subscribed
+              ? `Current plan · ${PLANS[activePlan as PlanKey]?.name ?? "Active"}`
+              : "No active subscription"
+        }
+        subtitle={
+          sub?.subscribed && sub.currentPeriodEnd
+            ? `Renews ${new Date(sub.currentPeriodEnd).toLocaleDateString()}`
+            : "Choose a plan to get started"
+        }
+        action={
+          sub?.subscribed ? (
+            <button
+              onClick={handlePortal}
+              className="rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+            >
+              Manage subscription
+            </button>
+          ) : undefined
+        }
       >
         <div className="grid gap-3 md:grid-cols-3">
-          {(Object.entries(PLANS) as [PlanKey, (typeof PLANS)[PlanKey]][]).map(([key, plan]) => {
-            const isActive = activePlan === key;
-            return (
-              <div key={key} className={`rounded-xl border p-4 transition ${isActive ? "border-accent bg-accent/5" : "border-border bg-card"}`}>
-                <div className="flex items-center justify-between">
-                  <div className="font-display text-base font-semibold">{plan.name}</div>
-                  {isActive && (
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle className="h-3 w-3" /> Active
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="font-display text-3xl font-semibold">${plan.price}</span>
-                  <span className="text-xs text-muted-foreground">/ month</span>
-                </div>
-                <button
-                  onClick={() => (isActive ? handlePortal() : handleSubscribe(key))}
-                  disabled={isLoading}
-                  className={`mt-4 w-full rounded-md px-3 py-2 text-xs font-medium transition ${
-                    isActive
-                      ? "border border-border bg-card text-muted-foreground hover:text-foreground"
-                      : "bg-foreground text-background hover:opacity-90"
-                  }`}
+          {(Object.entries(PLANS) as [PlanKey, (typeof PLANS)[PlanKey]][]).map(
+            ([key, plan]) => {
+              const isActive = activePlan === key;
+              return (
+                <div
+                  key={key}
+                  className={`rounded-xl border p-4 transition ${isActive ? "border-accent bg-accent/5" : "border-border bg-card"}`}
                 >
-                  {isActive ? "Manage" : sub?.subscribed ? "Switch plan" : "Subscribe"}
-                </button>
-              </div>
-            );
-          })}
+                  <div className="flex items-center justify-between">
+                    <div className="font-display text-base font-semibold">
+                      {plan.name}
+                    </div>
+                    {isActive && (
+                      <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle className="h-3 w-3" /> Active
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="font-display text-3xl font-semibold">
+                      ${plan.price}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      / month
+                    </span>
+                  </div>
+                  <button
+                    onClick={() =>
+                      isActive ? handlePortal() : handleSubscribe(key)
+                    }
+                    disabled={isLoading}
+                    className={`mt-4 w-full rounded-md px-3 py-2 text-xs font-medium transition ${
+                      isActive
+                        ? "border border-border bg-card text-muted-foreground hover:text-foreground"
+                        : "bg-foreground text-background hover:opacity-90"
+                    }`}
+                  >
+                    {isActive
+                      ? "Manage"
+                      : sub?.subscribed
+                        ? "Switch plan"
+                        : "Subscribe"}
+                  </button>
+                </div>
+              );
+            },
+          )}
         </div>
       </SectionCard>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
-        <div className="border-b border-border p-4 font-display text-sm font-semibold">Invoices</div>
+        <div className="border-b border-border p-4 font-display text-sm font-semibold">
+          Invoices
+        </div>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -1646,23 +2299,56 @@ function BillingSection() {
           </thead>
           <tbody>
             {[
-              { id: "INV-2026-005", date: "May 28, 2026", amount: "$149.00", status: "Paid" },
-              { id: "INV-2026-004", date: "Apr 28, 2026", amount: "$149.00", status: "Paid" },
-              { id: "INV-2026-003", date: "Mar 28, 2026", amount: "$149.00", status: "Paid" },
-              { id: "INV-2026-002", date: "Feb 28, 2026", amount: "$149.00", status: "Paid" },
-              { id: "INV-2026-001", date: "Jan 28, 2026", amount: "$99.00", status: "Paid" },
+              {
+                id: "INV-2026-005",
+                date: "May 28, 2026",
+                amount: "$149.00",
+                status: "Paid",
+              },
+              {
+                id: "INV-2026-004",
+                date: "Apr 28, 2026",
+                amount: "$149.00",
+                status: "Paid",
+              },
+              {
+                id: "INV-2026-003",
+                date: "Mar 28, 2026",
+                amount: "$149.00",
+                status: "Paid",
+              },
+              {
+                id: "INV-2026-002",
+                date: "Feb 28, 2026",
+                amount: "$149.00",
+                status: "Paid",
+              },
+              {
+                id: "INV-2026-001",
+                date: "Jan 28, 2026",
+                amount: "$99.00",
+                status: "Paid",
+              },
             ].map((inv) => (
-              <tr key={inv.id} className="border-b border-border/60 last:border-0">
+              <tr
+                key={inv.id}
+                className="border-b border-border/60 last:border-0"
+              >
                 <td className="px-4 py-3 font-mono text-xs">{inv.id}</td>
                 <td className="px-4 py-3 text-muted-foreground">{inv.date}</td>
-                <td className="px-4 py-3 font-mono tabular-nums">{inv.amount}</td>
+                <td className="px-4 py-3 font-mono tabular-nums">
+                  {inv.amount}
+                </td>
                 <td className="px-4 py-3">
                   <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
                     {inv.status}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => act(`Downloading ${inv.id}`)} className="text-muted-foreground hover:text-foreground">
+                  <button
+                    onClick={() => act(`Downloading ${inv.id}`)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
                     <Download className="h-3.5 w-3.5" />
                   </button>
                 </td>
@@ -1692,7 +2378,9 @@ function NotificationsBell({ onOpenReviews }: { onOpenReviews: () => void }) {
         aria-label="Notificações"
       >
         <Bell className="h-4 w-4" />
-        {reviews.length > 0 && <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />}
+        {reviews.length > 0 && (
+          <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
+        )}
       </button>
       {open && (
         <>
@@ -1703,30 +2391,44 @@ function NotificationsBell({ onOpenReviews }: { onOpenReviews: () => void }) {
           />
           <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
             <div className="flex items-center justify-between border-b border-border p-3">
-              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Notificações</span>
-              <span className="text-[10px] text-muted-foreground">{unreplied} pendentes</span>
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Notificações
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {unreplied} pendentes
+              </span>
             </div>
             <div className="max-h-80 overflow-y-auto">
               {reviews.length === 0 ? (
-                <div className="p-6 text-center text-xs text-muted-foreground">Nada por aqui ainda.</div>
+                <div className="p-6 text-center text-xs text-muted-foreground">
+                  Nada por aqui ainda.
+                </div>
               ) : (
                 reviews.map((r) => (
                   <button
                     key={r.id}
-                    onClick={() => { setOpen(false); onOpenReviews(); }}
+                    onClick={() => {
+                      setOpen(false);
+                      onOpenReviews();
+                    }}
                     className="block w-full border-b border-border/60 p-3 text-left last:border-0 hover:bg-muted/40"
                   >
                     <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                       <span>{r.author ?? "Anônimo"}</span>
                       <span>{r.rating ?? "—"}★</span>
                     </div>
-                    <div className="mt-1 line-clamp-2 text-xs text-foreground/90">{r.comment ?? "(sem texto)"}</div>
+                    <div className="mt-1 line-clamp-2 text-xs text-foreground/90">
+                      {r.comment ?? "(sem texto)"}
+                    </div>
                   </button>
                 ))
               )}
             </div>
             <button
-              onClick={() => { setOpen(false); onOpenReviews(); }}
+              onClick={() => {
+                setOpen(false);
+                onOpenReviews();
+              }}
               className="block w-full border-t border-border bg-muted/30 p-2 text-center text-xs text-muted-foreground hover:text-foreground"
             >
               Ver todos os reviews
@@ -1739,18 +2441,30 @@ function NotificationsBell({ onOpenReviews }: { onOpenReviews: () => void }) {
 }
 
 /* ----- Add Location Modal ----- */
-export function AddLocationModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+export function AddLocationModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
   const { t } = useApp();
   const queryClient = useQueryClient();
   const fn = useServerFn(addLocation);
-  const [form, setForm] = useState({ name: "", city: "", category: t.simulator.categories[0] });
+  const [form, setForm] = useState({
+    name: "",
+    city: "",
+    category: t.simulator.categories[0],
+  });
   const [loading, setLoading] = useState(false);
 
   const submit = async () => {
     if (!form.name || !form.city || loading) return;
     setLoading(true);
     try {
-      await fn({ data: { name: form.name, city: form.city, category: form.category } });
+      await fn({
+        data: { name: form.name, city: form.city, category: form.category },
+      });
       toast.success("Localização adicionada");
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["my-locations"] });
@@ -1773,23 +2487,51 @@ export function AddLocationModal({ open, onOpenChange }: { open: boolean; onOpen
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Adicionar nova localização</DialogTitle>
-          <DialogDescription>Buscamos os dados reais no Google Maps via IA.</DialogDescription>
+          <DialogDescription>
+            Buscamos os dados reais no Google Maps via IA.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <input placeholder="Nome do negócio" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-          <input placeholder="Cidade" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20">
-            {t.simulator.categories.map((c) => <option key={c}>{c}</option>)}
+          <input
+            placeholder="Nome do negócio"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
+          <input
+            placeholder="Cidade"
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
+          <select
+            value={form.category}
+            onChange={(e) => setForm({ ...form, category: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          >
+            {t.simulator.categories.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
           </select>
         </div>
         <div className="flex justify-end gap-2">
-          <button onClick={() => onOpenChange(false)} className="rounded-md border border-border bg-card px-3 py-2 text-xs">Cancelar</button>
-          <button onClick={submit} disabled={!form.name || !form.city || loading}
-            className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50">
-            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} Adicionar
+          <button
+            onClick={() => onOpenChange(false)}
+            className="rounded-md border border-border bg-card px-3 py-2 text-xs"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={submit}
+            disabled={!form.name || !form.city || loading}
+            className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Plus className="h-3 w-3" />
+            )}{" "}
+            Adicionar
           </button>
         </div>
       </DialogContent>
@@ -1798,7 +2540,13 @@ export function AddLocationModal({ open, onOpenChange }: { open: boolean; onOpen
 }
 
 /* ----- Add Competitor Modal ----- */
-export function AddCompetitorModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+export function AddCompetitorModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
   const queryClient = useQueryClient();
   const fn = useServerFn(addCompetitor);
   const [form, setForm] = useState({ name: "", rating: "", review_count: "" });
@@ -1808,11 +2556,13 @@ export function AddCompetitorModal({ open, onOpenChange }: { open: boolean; onOp
     if (!form.name || loading) return;
     setLoading(true);
     try {
-      await fn({ data: {
-        name: form.name,
-        rating: form.rating ? Number(form.rating) : null,
-        review_count: form.review_count ? Number(form.review_count) : null,
-      }});
+      await fn({
+        data: {
+          name: form.name,
+          rating: form.rating ? Number(form.rating) : null,
+          review_count: form.review_count ? Number(form.review_count) : null,
+        },
+      });
       toast.success("Concorrente adicionado");
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
       onOpenChange(false);
@@ -1824,7 +2574,9 @@ export function AddCompetitorModal({ open, onOpenChange }: { open: boolean; onOp
         window.dispatchEvent(new CustomEvent("branchly:open-billing"));
         onOpenChange(false);
       } else toast.error(msg);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -1832,25 +2584,58 @@ export function AddCompetitorModal({ open, onOpenChange }: { open: boolean; onOp
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Adicionar concorrente</DialogTitle>
-          <DialogDescription>Rastreie a reputação de um concorrente local.</DialogDescription>
+          <DialogDescription>
+            Rastreie a reputação de um concorrente local.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <input placeholder="Nome do concorrente" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
+          <input
+            placeholder="Nome do concorrente"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
           <div className="grid grid-cols-2 gap-2">
-            <input type="number" step="0.1" min="0" max="5" placeholder="Rating (0-5)"
-              value={form.rating} onChange={(e) => setForm({ ...form, rating: e.target.value })}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-            <input type="number" min="0" placeholder="Nº avaliações"
-              value={form.review_count} onChange={(e) => setForm({ ...form, review_count: e.target.value })}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="5"
+              placeholder="Rating (0-5)"
+              value={form.rating}
+              onChange={(e) => setForm({ ...form, rating: e.target.value })}
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
+            <input
+              type="number"
+              min="0"
+              placeholder="Nº avaliações"
+              value={form.review_count}
+              onChange={(e) =>
+                setForm({ ...form, review_count: e.target.value })
+              }
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
           </div>
         </div>
         <div className="flex justify-end gap-2">
-          <button onClick={() => onOpenChange(false)} className="rounded-md border border-border bg-card px-3 py-2 text-xs">Cancelar</button>
-          <button onClick={submit} disabled={!form.name || loading}
-            className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50">
-            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} Rastrear
+          <button
+            onClick={() => onOpenChange(false)}
+            className="rounded-md border border-border bg-card px-3 py-2 text-xs"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={submit}
+            disabled={!form.name || loading}
+            className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Plus className="h-3 w-3" />
+            )}{" "}
+            Rastrear
           </button>
         </div>
       </DialogContent>
@@ -1859,7 +2644,13 @@ export function AddCompetitorModal({ open, onOpenChange }: { open: boolean; onOp
 }
 
 /* ----- New Report Modal ----- */
-export function NewReportModal({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+export function NewReportModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
   const queryClient = useQueryClient();
   const fn = useServerFn(createReport);
   const [form, setForm] = useState({ name: "", period: "Últimos 30 dias" });
@@ -1881,7 +2672,9 @@ export function NewReportModal({ open, onOpenChange }: { open: boolean; onOpenCh
         window.dispatchEvent(new CustomEvent("branchly:open-billing"));
         onOpenChange(false);
       } else toast.error(msg);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -1889,13 +2682,22 @@ export function NewReportModal({ open, onOpenChange }: { open: boolean; onOpenCh
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Novo relatório</DialogTitle>
-          <DialogDescription>Crie um relatório para exportar ou compartilhar.</DialogDescription>
+          <DialogDescription>
+            Crie um relatório para exportar ou compartilhar.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <input placeholder="Nome do relatório" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-          <select value={form.period} onChange={(e) => setForm({ ...form, period: e.target.value })}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20">
+          <input
+            placeholder="Nome do relatório"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
+          <select
+            value={form.period}
+            onChange={(e) => setForm({ ...form, period: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          >
             <option>Últimos 7 dias</option>
             <option>Últimos 15 dias</option>
             <option>Últimos 30 dias</option>
@@ -1903,10 +2705,23 @@ export function NewReportModal({ open, onOpenChange }: { open: boolean; onOpenCh
           </select>
         </div>
         <div className="flex justify-end gap-2">
-          <button onClick={() => onOpenChange(false)} className="rounded-md border border-border bg-card px-3 py-2 text-xs">Cancelar</button>
-          <button onClick={submit} disabled={!form.name || loading}
-            className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50">
-            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />} Criar
+          <button
+            onClick={() => onOpenChange(false)}
+            className="rounded-md border border-border bg-card px-3 py-2 text-xs"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={submit}
+            disabled={!form.name || loading}
+            className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Plus className="h-3 w-3" />
+            )}{" "}
+            Criar
           </button>
         </div>
       </DialogContent>

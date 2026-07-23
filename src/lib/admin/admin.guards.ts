@@ -11,9 +11,14 @@ export const requireDeveloper = createMiddleware({ type: "function" })
     return next({ context });
   });
 
-export async function logAdminAction(actorEmail: string, action: string, payload?: unknown) {
+export async function logAdminAction(
+  actorEmail: string,
+  action: string,
+  payload?: unknown,
+) {
   try {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("admin_audit_log").insert({
       actor_email: actorEmail,
       action,

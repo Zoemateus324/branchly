@@ -1,4 +1,11 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { translations, type Locale, type Dict } from "./i18n/translations";
 
 type Currency = "BRL" | "USD";
@@ -33,18 +40,26 @@ function detectTheme(): Theme {
   if (typeof window === "undefined") return "dark";
   return (
     (localStorage.getItem("branchly:theme") as Theme | null) ??
-    (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    (window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light")
   );
 }
 
 export function AppProviders({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(() => {
     if (typeof window === "undefined") return "en";
-    return (localStorage.getItem("branchly:locale") as Locale | null) ?? detectLocale();
+    return (
+      (localStorage.getItem("branchly:locale") as Locale | null) ??
+      detectLocale()
+    );
   });
   const [currency, setCurrencyState] = useState<Currency>(() => {
     if (typeof window === "undefined") return "USD";
-    return (localStorage.getItem("branchly:currency") as Currency | null) ?? detectCurrency();
+    return (
+      (localStorage.getItem("branchly:currency") as Currency | null) ??
+      detectCurrency()
+    );
   });
   const [theme, setThemeState] = useState<Theme>(detectTheme);
 

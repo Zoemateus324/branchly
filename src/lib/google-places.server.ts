@@ -46,7 +46,11 @@ export async function findPlace(
       body: JSON.stringify({ textQuery: query, maxResultCount: 1 }),
     });
     if (!res.ok) {
-      console.error("[google-places] HTTP", res.status, await res.text().catch(() => ""));
+      console.error(
+        "[google-places] HTTP",
+        res.status,
+        await res.text().catch(() => ""),
+      );
       return null;
     }
     const json = (await res.json()) as {
@@ -69,7 +73,8 @@ export async function findPlace(
       name: p.displayName?.text ?? name,
       formattedAddress: p.formattedAddress ?? null,
       rating: typeof p.rating === "number" ? p.rating : null,
-      userRatingCount: typeof p.userRatingCount === "number" ? p.userRatingCount : null,
+      userRatingCount:
+        typeof p.userRatingCount === "number" ? p.userRatingCount : null,
       location: p.location ?? null,
       websiteUri: p.websiteUri ?? null,
       googleMapsUri: p.googleMapsUri ?? null,

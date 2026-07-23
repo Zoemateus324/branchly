@@ -6,7 +6,11 @@ export const attachClerkAuth = createMiddleware({ type: "function" }).client(
   async ({ next }) => {
     let token: string | null = null;
     try {
-      const clerk = (globalThis as unknown as { Clerk?: { session?: { getToken: () => Promise<string | null> } } }).Clerk;
+      const clerk = (
+        globalThis as unknown as {
+          Clerk?: { session?: { getToken: () => Promise<string | null> } };
+        }
+      ).Clerk;
       token = (await clerk?.session?.getToken()) ?? null;
     } catch {
       token = null;

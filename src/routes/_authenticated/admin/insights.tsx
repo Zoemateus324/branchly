@@ -10,9 +10,12 @@ function Page() {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold capitalize">insights</h1>
       <Card>
-        <CardHeader><CardTitle>Em breve</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Em breve</CardTitle>
+        </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Esta seção faz parte da Fase 2/3 do painel administrativo e será habilitada em breve.
+          Esta seção faz parte da Fase 2/3 do painel administrativo e será
+          habilitada em breve.
         </CardContent>
       </Card>
     </div>

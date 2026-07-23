@@ -37,7 +37,10 @@ export const Route = createFileRoute("/guide/rank-first-page-google")({
           publisher: {
             "@type": "Organization",
             name: "Branchly",
-            logo: { "@type": "ImageObject", url: "https://branchly.com.br/favicon.ico" },
+            logo: {
+              "@type": "ImageObject",
+              url: "https://branchly.com.br/favicon.ico",
+            },
           },
           mainEntityOfPage: URL,
         }),
@@ -94,66 +97,91 @@ function GuideRankFirstPage() {
     <main className="min-h-screen bg-background text-foreground">
       <article className="mx-auto max-w-3xl px-6 py-16">
         <nav className="mb-8 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Branchly</Link>
+          <Link to="/" className="hover:text-foreground">
+            Branchly
+          </Link>
           <span className="mx-2">/</span>
           <span>Guide</span>
         </nav>
         <header className="mb-10">
-          <p className="mb-3 text-sm font-medium uppercase tracking-wider text-primary">Local SEO</p>
+          <p className="mb-3 text-sm font-medium uppercase tracking-wider text-primary">
+            Local SEO
+          </p>
           <h1 className="text-4xl font-bold leading-tight md:text-5xl">
             How to rank on the first page of Google
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            The 5-step method local businesses use to climb the map pack and dominate search results
-            in their city.
+            The 5-step method local businesses use to climb the map pack and
+            dominate search results in their city.
           </p>
         </header>
 
         <section className="prose prose-invert max-w-none space-y-6 text-base leading-relaxed">
           <p>
-            Showing up on Google's first page isn't luck — it's the result of three pillars working
-            together: <strong>authority</strong>, <strong>relevance</strong> and
-            <strong> reputation</strong>. For local businesses, reputation is the heaviest pillar.
+            Showing up on Google's first page isn't luck — it's the result of
+            three pillars working together: <strong>authority</strong>,{" "}
+            <strong>relevance</strong> and
+            <strong> reputation</strong>. For local businesses, reputation is
+            the heaviest pillar.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">1. Optimize Google Business Profile</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            1. Optimize Google Business Profile
+          </h2>
           <p>
-            Verified profile, correct primary category, consistent NAP (Name, Address, Phone) across
-            directories, fresh photos, and weekly posts.
+            Verified profile, correct primary category, consistent NAP (Name,
+            Address, Phone) across directories, fresh photos, and weekly posts.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">2. Build a steady flow of recent reviews</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            2. Build a steady flow of recent reviews
+          </h2>
           <p>
-            Reviews are the fuel of local ranking. Google rewards businesses with a constant stream
-            of reviews and ratings above 4.5. Every new review is a relevance signal.
+            Reviews are the fuel of local ranking. Google rewards businesses
+            with a constant stream of reviews and ratings above 4.5. Every new
+            review is a relevance signal.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">3. Reply to every single review</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            3. Reply to every single review
+          </h2>
           <p>
             Replies show activity and improve perception for the next visitor.
-            <Link to="/" className="text-primary underline"> Branchly's</Link> AI handles this at
-            scale across all your locations.
+            <Link to="/" className="text-primary underline">
+              {" "}
+              Branchly's
+            </Link>{" "}
+            AI handles this at scale across all your locations.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">4. Study the competitors already ranking</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            4. Study the competitors already ranking
+          </h2>
           <p>
-            Businesses ranking above you share three things: more reviews, higher rating, more
-            photos. Branchly's benchmark shows the exact gap and how to close it.
+            Businesses ranking above you share three things: more reviews,
+            higher rating, more photos. Branchly's benchmark shows the exact gap
+            and how to close it.
           </p>
 
-          <h2 className="mt-10 text-2xl font-semibold">5. Fast site and local content</h2>
+          <h2 className="mt-10 text-2xl font-semibold">
+            5. Fast site and local content
+          </h2>
           <p>
-            Pages with the city name in the title, real testimonials, structured FAQ and sub-2s
-            load time. These technical signals complete the package.
+            Pages with the city name in the title, real testimonials, structured
+            FAQ and sub-2s load time. These technical signals complete the
+            package.
           </p>
 
           <div className="mt-12 rounded-xl border border-border bg-card p-8 text-center">
-            <h3 className="text-2xl font-semibold">See how far you are from page 1</h3>
+            <h3 className="text-2xl font-semibold">
+              See how far you are from page 1
+            </h3>
             <p className="mt-2 text-muted-foreground">
-              Branchly shows your local score, compares it to competitors and recommends next steps.
+              Branchly shows your local score, compares it to competitors and
+              recommends next steps.
             </p>
             <Link
-              to="/sign-up"
+              to="/sign-up/$"
               className="mt-6 inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               Analyze my business free

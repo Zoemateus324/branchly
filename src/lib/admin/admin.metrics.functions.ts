@@ -4,24 +4,52 @@ import { requireDeveloper } from "@/lib/admin/admin.guards";
 export const getAdminOverview = createServerFn({ method: "GET" })
   .middleware([requireDeveloper])
   .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const now = new Date();
     const day = 86_400_000;
     const todayISO = new Date(now.getTime() - day).toISOString();
     const weekISO = new Date(now.getTime() - 7 * day).toISOString();
     const monthISO = new Date(now.getTime() - 30 * day).toISOString();
 
-    const [locsAll, locsDay, locsWeek, locsMonth, lookups, reviews, reports, insights] =
-      await Promise.all([
-        supabaseAdmin.from("locations").select("owner_id", { count: "exact", head: true }),
-        supabaseAdmin.from("locations").select("owner_id", { count: "exact", head: true }).gte("created_at", todayISO),
-        supabaseAdmin.from("locations").select("owner_id", { count: "exact", head: true }).gte("created_at", weekISO),
-        supabaseAdmin.from("locations").select("owner_id", { count: "exact", head: true }).gte("created_at", monthISO),
-        supabaseAdmin.from("score_lookups").select("id", { count: "exact", head: true }),
-        supabaseAdmin.from("reviews").select("id", { count: "exact", head: true }),
-        supabaseAdmin.from("reports").select("id", { count: "exact", head: true }),
-        supabaseAdmin.from("insights").select("id", { count: "exact", head: true }),
-      ]);
+    const [
+      locsAll,
+      locsDay,
+      locsWeek,
+      locsMonth,
+      lookups,
+      reviews,
+      reports,
+      insights,
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("locations")
+        .select("owner_id", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("locations")
+        .select("owner_id", { count: "exact", head: true })
+        .gte("created_at", todayISO),
+      supabaseAdmin
+        .from("locations")
+        .select("owner_id", { count: "exact", head: true })
+        .gte("created_at", weekISO),
+      supabaseAdmin
+        .from("locations")
+        .select("owner_id", { count: "exact", head: true })
+        .gte("created_at", monthISO),
+      supabaseAdmin
+        .from("score_lookups")
+        .select("id", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("reviews")
+        .select("id", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("reports")
+        .select("id", { count: "exact", head: true }),
+      supabaseAdmin
+        .from("insights")
+        .select("id", { count: "exact", head: true }),
+    ]);
 
     // Unique owners (proxy for active users)
     const { data: ownersData } = await supabaseAdmin
@@ -42,7 +70,10 @@ export const getAdminOverview = createServerFn({ method: "GET" })
       const k = (row.created_at as string).slice(0, 10);
       if (k in buckets) buckets[k]++;
     }
-    const series = Object.entries(buckets).map(([date, count]) => ({ date, count }));
+    const series = Object.entries(buckets).map(([date, count]) => ({
+      date,
+      count,
+    }));
 
     return {
       totals: {
@@ -65,7 +96,8 @@ export const getAdminOverview = createServerFn({ method: "GET" })
 export const getRecentAuditLog = createServerFn({ method: "GET" })
   .middleware([requireDeveloper])
   .handler(async () => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
       .from("admin_audit_log")
       .select("*")
