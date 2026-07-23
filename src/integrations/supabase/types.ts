@@ -277,6 +277,56 @@ export type Database = {
         };
         Relationships: [];
       };
+      // NOTE: hand-written to match supabase/migrations/20260723120000_meta_connections.sql —
+      // this file is normally auto-generated via `supabase gen types`. Regenerate for real
+      // once that migration has been applied to the live database.
+      meta_connections: {
+        Row: {
+          connected_at: string;
+          created_at: string;
+          id: string;
+          last_synced_at: string | null;
+          location_id: string | null;
+          owner_id: string;
+          page_access_token: string;
+          page_id: string;
+          page_name: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          connected_at?: string;
+          created_at?: string;
+          id?: string;
+          last_synced_at?: string | null;
+          location_id?: string | null;
+          owner_id: string;
+          page_access_token: string;
+          page_id: string;
+          page_name?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          connected_at?: string;
+          created_at?: string;
+          id?: string;
+          last_synced_at?: string | null;
+          location_id?: string | null;
+          owner_id?: string;
+          page_access_token?: string;
+          page_id?: string;
+          page_name?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "meta_connections_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "locations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       reports: {
         Row: {
           created_at: string;

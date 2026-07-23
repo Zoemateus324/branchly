@@ -30,6 +30,7 @@ import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
 import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as IntegrationsFacebookCallbackRouteImport } from './routes/integrations.facebook.callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -143,6 +144,12 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const IntegrationsFacebookCallbackRoute =
+  IntegrationsFacebookCallbackRouteImport.update({
+    id: '/integrations/facebook/callback',
+    path: '/integrations/facebook/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/integrations/facebook/callback': typeof IntegrationsFacebookCallbackRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -185,6 +193,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/integrations/facebook/callback': typeof IntegrationsFacebookCallbackRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesById {
@@ -209,6 +218,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/integrations/facebook/callback': typeof IntegrationsFacebookCallbackRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/seo'
     | '/admin/users'
+    | '/integrations/facebook/callback'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -254,6 +265,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/seo'
     | '/admin/users'
+    | '/integrations/facebook/callback'
     | '/admin'
   id:
     | '__root__'
@@ -277,6 +289,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/seo'
     | '/_authenticated/admin/users'
+    | '/integrations/facebook/callback'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -290,6 +303,7 @@ export interface RootRouteChildren {
   GuideRankFirstPageGoogleRoute: typeof GuideRankFirstPageGoogleRoute
   SignInSplatRoute: typeof SignInSplatRoute
   SignUpSplatRoute: typeof SignUpSplatRoute
+  IntegrationsFacebookCallbackRoute: typeof IntegrationsFacebookCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -441,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/integrations/facebook/callback': {
+      id: '/integrations/facebook/callback'
+      path: '/integrations/facebook/callback'
+      fullPath: '/integrations/facebook/callback'
+      preLoaderRoute: typeof IntegrationsFacebookCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -500,6 +521,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuideRankFirstPageGoogleRoute: GuideRankFirstPageGoogleRoute,
   SignInSplatRoute: SignInSplatRoute,
   SignUpSplatRoute: SignUpSplatRoute,
+  IntegrationsFacebookCallbackRoute: IntegrationsFacebookCallbackRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

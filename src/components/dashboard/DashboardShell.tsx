@@ -47,6 +47,12 @@ import {
   generateReplyForReview,
   generateRepliesForUnreplied,
 } from "@/lib/dashboard-actions.functions";
+import {
+  getFacebookAuthUrl,
+  getFacebookConnection,
+  captureFacebookReviews,
+  disconnectFacebook,
+} from "@/lib/meta.functions";
 import { UpgradeDialog } from "./UpgradeDialog";
 import {
   Dialog,
@@ -82,6 +88,8 @@ import {
   Trash2,
   Crown,
   Shield,
+  Facebook,
+  Unlink,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 
@@ -1730,6 +1738,121 @@ function CompetitorsSection() {
 
 /* ------------------------------- Reviews ------------------------------- */
 
+function FacebookConnectionCard() {
+  const queryClient = useQueryClient();
+  const getAuthUrl = useServerFn(getFacebookAuthUrl);
+  const getConnection = useServerFn(getFacebookConnection);
+  const captureFn = useServerFn(captureFacebookReviews);
+  const disconnectFn = useServerFn(disconnectFacebook);
+  const [connecting, setConnecting] = useState(false);
+  const [capturing, setCapturing] = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ["facebook-connection"],
+    queryFn: () => getConnection(),
+  });
+  const connection = data?.connection ?? null;
+
+  const onConnect = async () => {
+    setConnecting(true);
+    try {
+      const { url } = await getAuthUrl();
+      window.location.href = url;
+    } catch (e) {
+      toast.error((e as Error).message);
+      setConnecting(false);
+    }
+  };
+
+  const onCapture = async () => {
+    setCapturing(true);
+    try {
+      const r = await captureFn();
+      toast.success(`${r.captured} avaliações importadas do Facebook`);
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["facebook-connection"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setCapturing(false);
+    }
+  };
+
+  const onDisconnect = async () => {
+    try {
+      await disconnectFn();
+      toast.success("Facebook desconectado");
+      queryClient.invalidateQueries({ queryKey: ["facebook-connection"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1877F2]/10 text-[#1877F2]">
+          <Facebook className="h-4.5 w-4.5" />
+        </div>
+        <div>
+          <div className="text-sm font-medium text-foreground">
+            {connection ? connection.page_name : "Facebook"}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {connection
+              ? `Conectado · última sincronização: ${
+                  connection.last_synced_at
+                    ? new Date(connection.last_synced_at).toLocaleString(
+                        "pt-BR",
+                      )
+                    : "nunca"
+                }`
+              : "Conecte uma Página para importar avaliações"}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {connection ? (
+          <>
+            <button
+              onClick={onCapture}
+              disabled={capturing}
+              className="flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+            >
+              {capturing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="h-3.5 w-3.5" />
+              )}{" "}
+              Importar avaliações
+            </button>
+            <button
+              onClick={onDisconnect}
+              className="flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground transition hover:text-rose-500"
+              title="Desconectar"
+            >
+              <Unlink className="h-3.5 w-3.5" />
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={onConnect}
+            disabled={connecting}
+            className="flex items-center gap-1.5 rounded-md bg-[#1877F2] px-3 py-1.5 text-xs font-medium text-white transition hover:opacity-90 disabled:opacity-50"
+          >
+            {connecting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Facebook className="h-3.5 w-3.5" />
+            )}{" "}
+            Conectar Facebook
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ReviewsSection() {
   const { data } = useDashboard();
   const all = data?.reviews ?? [];
@@ -1837,6 +1960,8 @@ function ReviewsSection() {
           </div>
         }
       />
+
+      <FacebookConnectionCard />
 
       <div className="flex flex-wrap items-center gap-2">
         {(
