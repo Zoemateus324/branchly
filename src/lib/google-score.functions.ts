@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireClerkAuth } from "@/integrations/clerk/auth-middleware";
 import type { Json } from "@/integrations/supabase/types";
 import type { ScoreBreakdown } from "./score.server";
+import { estimateMonthlyLoss } from "./revenue-estimate";
 
 const lookupInput = z.object({
   name: z.string().trim().min(1).max(200),
@@ -75,6 +76,7 @@ export const lookupScore = createServerFn({ method: "POST" })
         reviewCount: c.review_count,
         address: null as string | null,
         sourceUrl: c.source_url ?? "",
+        lossEstimate: estimateMonthlyLoss(c.rating, data.category ?? null),
       };
     }
 
@@ -133,6 +135,7 @@ export const lookupScore = createServerFn({ method: "POST" })
       reviewCount: scraped.reviewCount,
       address: scraped.address,
       sourceUrl: scraped.sourceUrl,
+      lossEstimate: estimateMonthlyLoss(scraped.rating, data.category ?? null),
     };
   });
 
