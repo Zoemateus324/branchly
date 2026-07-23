@@ -5,6 +5,8 @@ import {
   buildFacebookAuthUrl,
   exchangeCodeForPage,
   fetchFacebookRatings,
+  resolveInstagramAccount,
+  fetchInstagramComments,
 } from "./meta.server";
 
 export const getFacebookAuthUrl = createServerFn({ method: "GET" })
@@ -26,12 +28,24 @@ export const connectFacebookPage = createServerFn({ method: "POST" })
       await import("@/integrations/supabase/client.server");
     const page = await exchangeCodeForPage(data.code);
 
+    // An Instagram professional account (Business/Creator) linked to
+    // this Page is optional — most Pages won't have one, and that's
+    // fine, we just won't offer Instagram comment capture for them.
+    let instagram: { id: string; username: string | null } | null = null;
+    try {
+      instagram = await resolveInstagramAccount(page.id, page.access_token);
+    } catch (e) {
+      console.error("[meta.connect] instagram lookup failed (non-fatal)", e);
+    }
+
     const { error } = await supabaseAdmin.from("meta_connections").upsert(
       {
         owner_id: context.userId,
         page_id: page.id,
         page_name: page.name,
         page_access_token: page.access_token,
+        instagram_business_account_id: instagram?.id ?? null,
+        instagram_username: instagram?.username ?? null,
         connected_at: new Date().toISOString(),
       },
       { onConflict: "owner_id,page_id" },
@@ -40,7 +54,11 @@ export const connectFacebookPage = createServerFn({ method: "POST" })
       console.error("[meta.connect] failed to save connection", error);
       throw new Error("Não foi possível salvar a conexão com o Facebook.");
     }
-    return { pageId: page.id, pageName: page.name };
+    return {
+      pageId: page.id,
+      pageName: page.name,
+      instagramUsername: instagram?.username ?? null,
+    };
   });
 
 export const getFacebookConnection = createServerFn({ method: "GET" })
@@ -50,7 +68,9 @@ export const getFacebookConnection = createServerFn({ method: "GET" })
       await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("meta_connections")
-      .select("page_id, page_name, last_synced_at, connected_at")
+      .select(
+        "page_id, page_name, last_synced_at, connected_at, instagram_username",
+      )
       .eq("owner_id", context.userId)
       .order("connected_at", { ascending: false })
       .limit(1)
@@ -139,4 +159,110 @@ export const captureFacebookReviews = createServerFn({ method: "POST" })
       .eq("page_id", conn.page_id);
 
     return { captured: ratings.length, pageName: conn.page_name };
+  });
+
+/**
+ * Classifies comment sentiment via the same Lovable AI gateway already
+ * used for AI insights and AI reply drafting elsewhere in this app.
+ * Falls back to "neutral" for any comment the model call fails on
+ * rather than aborting the whole batch.
+ */
+async function classifySentiment(texts: string[]): Promise<string[]> {
+  if (texts.length === 0) return [];
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) return texts.map(() => "neutral");
+
+  const numbered = texts.map((t, i) => `${i}: ${t.slice(0, 300)}`).join("\n");
+  const prompt = `Classifique o sentimento de cada comentário do Instagram abaixo como "positive", "negative" ou "neutral". Responda APENAS com JSON válido no formato {"sentiments": ["positive", "negative", ...]}, na mesma ordem e quantidade dos comentários.\n\nComentários:\n${numbered}`;
+
+  try {
+    const res = await fetch(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: "Você responde apenas com JSON válido.",
+            },
+            { role: "user", content: prompt },
+          ],
+        }),
+      },
+    );
+    if (!res.ok) throw new Error(`AI gateway ${res.status}`);
+    const json = (await res.json()) as {
+      choices?: { message?: { content?: string } }[];
+    };
+    const content = json.choices?.[0]?.message?.content ?? "";
+    const match = content.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("no JSON in AI response");
+    const parsed = JSON.parse(match[0]) as { sentiments?: string[] };
+    const sentiments = parsed.sentiments ?? [];
+    return texts.map((_, i) => sentiments[i] ?? "neutral");
+  } catch (e) {
+    console.error("[instagram] sentiment classification failed", e);
+    return texts.map(() => "neutral");
+  }
+}
+
+export const captureInstagramComments = createServerFn({ method: "POST" })
+  .middleware([requireClerkAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
+    const { data: conn, error: connErr } = await supabaseAdmin
+      .from("meta_connections")
+      .select(
+        "instagram_business_account_id, instagram_username, page_access_token",
+      )
+      .eq("owner_id", context.userId)
+      .order("connected_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (connErr || !conn) {
+      throw new Error("Nenhuma Página do Facebook conectada ainda.");
+    }
+    if (!conn.instagram_business_account_id) {
+      throw new Error(
+        "Nenhuma conta profissional do Instagram vinculada a essa Página.",
+      );
+    }
+
+    const comments = await fetchInstagramComments(
+      conn.instagram_business_account_id,
+      conn.page_access_token,
+    );
+
+    if (comments.length > 0) {
+      const sentiments = await classifySentiment(comments.map((c) => c.text));
+      const rows = comments.map((c, i) => ({
+        owner_id: context.userId,
+        author: c.authorUsername,
+        rating: null, // Instagram comments have no star rating — see module docblock
+        comment: c.text,
+        source: "Instagram",
+        sentiment: sentiments[i] ?? "neutral",
+        posted_at: c.createdTime ?? new Date().toISOString(),
+      }));
+      await supabaseAdmin
+        .from("reviews")
+        .delete()
+        .eq("owner_id", context.userId)
+        .eq("source", "Instagram");
+      await supabaseAdmin.from("reviews").insert(rows);
+    }
+
+    await supabaseAdmin
+      .from("meta_connections")
+      .update({ last_synced_at: new Date().toISOString() })
+      .eq("owner_id", context.userId);
+
+    return { captured: comments.length, username: conn.instagram_username };
   });

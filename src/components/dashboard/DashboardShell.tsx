@@ -51,6 +51,7 @@ import {
   getFacebookAuthUrl,
   getFacebookConnection,
   captureFacebookReviews,
+  captureInstagramComments,
   disconnectFacebook,
 } from "@/lib/meta.functions";
 import { UpgradeDialog } from "./UpgradeDialog";
@@ -89,6 +90,7 @@ import {
   Crown,
   Shield,
   Facebook,
+  Instagram,
   Unlink,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
@@ -1743,9 +1745,11 @@ function FacebookConnectionCard() {
   const getAuthUrl = useServerFn(getFacebookAuthUrl);
   const getConnection = useServerFn(getFacebookConnection);
   const captureFn = useServerFn(captureFacebookReviews);
+  const captureIgFn = useServerFn(captureInstagramComments);
   const disconnectFn = useServerFn(disconnectFacebook);
   const [connecting, setConnecting] = useState(false);
   const [capturing, setCapturing] = useState(false);
+  const [capturingIg, setCapturingIg] = useState(false);
 
   const { data } = useQuery({
     queryKey: ["facebook-connection"],
@@ -1775,6 +1779,20 @@ function FacebookConnectionCard() {
       toast.error((e as Error).message);
     } finally {
       setCapturing(false);
+    }
+  };
+
+  const onCaptureInstagram = async () => {
+    setCapturingIg(true);
+    try {
+      const r = await captureIgFn();
+      toast.success(`${r.captured} comentários importados do Instagram`);
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["facebook-connection"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setCapturingIg(false);
     }
   };
 
@@ -1808,6 +1826,12 @@ function FacebookConnectionCard() {
                     : "nunca"
                 }`
               : "Conecte uma Página para importar avaliações"}
+            {connection?.instagram_username && (
+              <span className="ml-2 inline-flex items-center gap-1 text-[#E1306C]">
+                <Instagram className="h-3 w-3" /> @
+                {connection.instagram_username}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -1826,6 +1850,21 @@ function FacebookConnectionCard() {
               )}{" "}
               Importar avaliações
             </button>
+            {connection.instagram_username && (
+              <button
+                onClick={onCaptureInstagram}
+                disabled={capturingIg}
+                title="Instagram não tem avaliações — isso importa comentários recentes e classifica o sentimento com IA"
+                className="flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+              >
+                {capturingIg ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Instagram className="h-3.5 w-3.5" />
+                )}{" "}
+                Importar comentários
+              </button>
+            )}
             <button
               onClick={onDisconnect}
               className="flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground transition hover:text-rose-500"

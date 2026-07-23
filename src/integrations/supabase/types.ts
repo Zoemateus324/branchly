@@ -285,6 +285,8 @@ export type Database = {
           connected_at: string;
           created_at: string;
           id: string;
+          instagram_business_account_id: string | null;
+          instagram_username: string | null;
           last_synced_at: string | null;
           location_id: string | null;
           owner_id: string;
@@ -297,6 +299,8 @@ export type Database = {
           connected_at?: string;
           created_at?: string;
           id?: string;
+          instagram_business_account_id?: string | null;
+          instagram_username?: string | null;
           last_synced_at?: string | null;
           location_id?: string | null;
           owner_id: string;
@@ -309,6 +313,8 @@ export type Database = {
           connected_at?: string;
           created_at?: string;
           id?: string;
+          instagram_business_account_id?: string | null;
+          instagram_username?: string | null;
           last_synced_at?: string | null;
           location_id?: string | null;
           owner_id?: string;

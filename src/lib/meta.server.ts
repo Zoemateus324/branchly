@@ -61,6 +61,7 @@ export function buildFacebookAuthUrl(state: string): string {
       "pages_show_list",
       "pages_read_engagement",
       "pages_read_user_content",
+      "instagram_basic",
     ].join(","),
     response_type: "code",
   });
@@ -161,3 +162,112 @@ export const canAutoPublishReply = {
   Instagram: false,
   Google: false,
 } as const;
+
+// ---------------------------------------------------------------------
+// Instagram
+// ---------------------------------------------------------------------
+//
+// IMPORTANT — Instagram has no "reviews" or star ratings. There is no
+// equivalent of Google/Facebook review data on Instagram at all. What
+// IS available through the Graph API for an Instagram Business account
+// linked to a connected Facebook Page is:
+//   - the account's recent media (posts)
+//   - the comments on each piece of media
+//
+// So "capturing Instagram reviews" really means: pull recent comments
+// and classify their sentiment, surfacing negative ones the same way a
+// low star rating would be surfaced elsewhere in this product. Do not
+// present this to users as "Instagram reviews" — call it what it is
+// (comments/sentiment monitoring) so the product never implies a
+// feature Instagram doesn't have.
+
+export interface InstagramBusinessAccount {
+  id: string;
+  username: string | null;
+}
+
+/**
+ * Resolves the Instagram Business account linked to a connected Page,
+ * if any. A Page without a linked Instagram professional account
+ * (Business or Creator) simply won't have one — that's a normal,
+ * expected outcome, not an error.
+ */
+export async function resolveInstagramAccount(
+  pageId: string,
+  pageAccessToken: string,
+): Promise<InstagramBusinessAccount | null> {
+  const res = await graphGet<{
+    instagram_business_account?: { id: string; username?: string };
+  }>(`/${pageId}`, {
+    fields: "instagram_business_account{id,username}",
+    access_token: pageAccessToken,
+  });
+  const acct = res.instagram_business_account;
+  if (!acct) return null;
+  return { id: acct.id, username: acct.username ?? null };
+}
+
+export interface InstagramComment {
+  id: string;
+  authorUsername: string | null;
+  text: string;
+  createdTime: string | null;
+  mediaPermalink: string | null;
+}
+
+/**
+ * Fetches recent comments across the account's most recent media items.
+ * `mediaLimit` bounds how many recent posts we look at (comments on
+ * older posts are less actionable for a "what's happening now" view),
+ * `commentsPerMedia` bounds comments fetched per post.
+ */
+export async function fetchInstagramComments(
+  igAccountId: string,
+  pageAccessToken: string,
+  mediaLimit = 10,
+  commentsPerMedia = 25,
+): Promise<InstagramComment[]> {
+  const media = await graphGet<{
+    data: { id: string; permalink?: string }[];
+  }>(`/${igAccountId}/media`, {
+    fields: "id,permalink",
+    access_token: pageAccessToken,
+    limit: String(mediaLimit),
+  });
+
+  const out: InstagramComment[] = [];
+  for (const m of media.data ?? []) {
+    try {
+      const comments = await graphGet<{
+        data: {
+          id: string;
+          text?: string;
+          timestamp?: string;
+          username?: string;
+        }[];
+      }>(`/${m.id}/comments`, {
+        fields: "id,text,timestamp,username",
+        access_token: pageAccessToken,
+        limit: String(commentsPerMedia),
+      });
+      for (const c of comments.data ?? []) {
+        if (!c.text) continue;
+        out.push({
+          id: c.id,
+          authorUsername: c.username ?? null,
+          text: c.text,
+          createdTime: c.timestamp ?? null,
+          mediaPermalink: m.permalink ?? null,
+        });
+      }
+    } catch (e) {
+      // One media item's comments failing to fetch (e.g. comments
+      // disabled on that post) shouldn't abort capture for the rest.
+      console.error(
+        `[instagram] failed to fetch comments for media ${m.id}`,
+        e,
+      );
+    }
+  }
+  return out;
+}
