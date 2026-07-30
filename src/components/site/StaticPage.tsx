@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 import { Header } from "./Header";
 import { Footer } from "./Sections";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 
 interface StaticPageProps {
   eyebrow?: string;
