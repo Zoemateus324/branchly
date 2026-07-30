@@ -95,7 +95,6 @@ import {
   Activity,
   Copy,
   CheckCheck,
-  Globe,
   MousePointerClick,
   PhoneCall,
   MessageCircle,
