@@ -13,6 +13,7 @@ export const Route = createFileRoute("/sign-up/$")({
         content:
           "Start a free Branchly account. Monitor Google reviews, benchmark locations against competitors and grow ratings with AI. 14-day Pro trial. No credit card.",
       },
+      { name: "robots", content: "noindex, follow" },
       { property: "og:title", content: "Start free — Branchly" },
       {
         property: "og:description",

@@ -223,38 +223,30 @@ export const generateReplyForReview = createServerFn({ method: "POST" })
       .single();
     if (error || !review) throw new Error("Review não encontrado");
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY ausente");
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) throw new Error("ANTHROPIC_API_KEY ausente");
 
-    const prompt = `Você é gerente respondendo a uma avaliação pública. Avaliação ${
-      review.rating ?? "?"
-    }★ por ${review.author ?? "cliente"}: "${review.comment ?? ""}". Escreva uma resposta breve (máx 3 frases), educada, profissional, em português do Brasil. Agradeça quando for positivo; reconheça e ofereça solução quando for negativo. Responda apenas com o texto da resposta.`;
+    const userPrompt = `Avaliação ${review.rating ?? "?"}★ por ${review.author ?? "cliente"}: "${review.comment ?? ""}". Escreva uma resposta breve (máx 3 frases), educada, profissional, em português do Brasil. Agradeça quando for positivo; reconheça e ofereça solução quando for negativo. Responda apenas com o texto da resposta.`;
 
-    const res = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: "Você é um gerente cordial e objetivo.",
-            },
-            { role: "user", content: prompt },
-          ],
-        }),
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
       },
-    );
-    if (!res.ok) throw new Error(`AI gateway ${res.status}`);
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 256,
+        system: "Você é um gerente cordial e objetivo respondendo avaliações públicas.",
+        messages: [{ role: "user", content: userPrompt }],
+      }),
+    });
+    if (!res.ok) throw new Error(`AI error ${res.status}`);
     const json = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
+      content?: { type: string; text: string }[];
     };
-    const reply = (json.choices?.[0]?.message?.content ?? "").trim();
+    const reply = (json.content?.find((c) => c.type === "text")?.text ?? "").trim();
     if (!reply) throw new Error("Resposta vazia");
 
     await supabaseAdmin

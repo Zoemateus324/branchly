@@ -1,9 +1,9 @@
 /**
  * Google Maps Platform — Places API (New) helper.
- * Calls go through the Lovable connector gateway, never directly to Google.
+ * Calls go directly to the Google Places API.
  */
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
+const PLACES_API_URL = "https://places.googleapis.com/v1/places:searchText";
 
 export interface PlaceLookup {
   placeId: string;
@@ -26,19 +26,17 @@ export async function findPlace(
   name: string,
   city: string,
 ): Promise<PlaceLookup | null> {
-  const lovableKey = process.env.LOVABLE_API_KEY;
   const mapsKey = process.env.GOOGLE_MAPS_API_KEY;
-  if (!lovableKey || !mapsKey) return null;
+  if (!mapsKey) return null;
 
   const query = `${name} ${city}`.trim().slice(0, 256);
   if (!query) return null;
 
   try {
-    const res = await fetch(`${GATEWAY_URL}/places/v1/places:searchText`, {
+    const res = await fetch(PLACES_API_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${lovableKey}`,
-        "X-Connection-Api-Key": mapsKey,
+        "X-Goog-Api-Key": mapsKey,
         "Content-Type": "application/json",
         "X-Goog-FieldMask":
           "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.location,places.websiteUri,places.googleMapsUri,places.primaryType",
