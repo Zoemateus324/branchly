@@ -9,118 +9,55 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as BranchlyVsTintimRouteImport } from './routes/branchly-vs-tintim'
-import { Route as CareersRouteImport } from './routes/careers'
-import { Route as ChangelogRouteImport } from './routes/changelog'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as CustomersRouteImport } from './routes/customers'
-import { Route as DocsRouteImport } from './routes/docs'
-import { Route as FeaturesRouteImport } from './routes/features'
-import { Route as LgpdRouteImport } from './routes/lgpd'
-import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as RoadmapRouteImport } from './routes/roadmap'
-import { Route as SecurityRouteImport } from './routes/security'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as ApiCollectRouteImport } from './routes/api.collect'
-import { Route as GuiaAparecerNasPrimeirasPaginasDoGoogleRouteImport } from './routes/guia.aparecer-nas-primeiras-paginas-do-google'
-import { Route as GuiaMelhorarReputacaoNoGoogleRouteImport } from './routes/guia.melhorar-reputacao-no-google'
-import { Route as GuideImproveGoogleReputationRouteImport } from './routes/guide.improve-google-reputation'
-import { Route as GuideRankFirstPageGoogleRouteImport } from './routes/guide.rank-first-page-google'
-import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SecurityRouteImport } from './routes/security'
+import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as LgpdRouteImport } from './routes/lgpd'
+import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as CareersRouteImport } from './routes/careers'
+import { Route as BranchlyVsTintimRouteImport } from './routes/branchly-vs-tintim'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignUpSplatRouteImport } from './routes/sign-up.$'
+import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
+import { Route as GuideRankFirstPageGoogleRouteImport } from './routes/guide.rank-first-page-google'
+import { Route as GuideImproveGoogleReputationRouteImport } from './routes/guide.improve-google-reputation'
+import { Route as GuiaMelhorarReputacaoNoGoogleRouteImport } from './routes/guia.melhorar-reputacao-no-google'
+import { Route as GuiaAparecerNasPrimeirasPaginasDoGoogleRouteImport } from './routes/guia.aparecer-nas-primeiras-paginas-do-google'
+import { Route as DocsPixelAtribuicaoRouteImport } from './routes/docs.pixel-atribuicao'
+import { Route as DocsIntegracoesRouteImport } from './routes/docs.integracoes'
+import { Route as DocsInicioRapidoRouteImport } from './routes/docs.inicio-rapido'
+import { Route as DocsGuiasRouteImport } from './routes/docs.guias'
+import { Route as DocsFaqRouteImport } from './routes/docs.faq'
+import { Route as DocsApiRouteImport } from './routes/docs.api'
+import { Route as ApiCollectRouteImport } from './routes/api.collect'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
-import { Route as AuthenticatedAdminAiRouteImport } from './routes/_authenticated/admin/ai'
-import { Route as AuthenticatedAdminBrandingRouteImport } from './routes/_authenticated/admin/branding'
-import { Route as AuthenticatedAdminFinancialRouteImport } from './routes/_authenticated/admin/financial'
-import { Route as AuthenticatedAdminGeoRouteImport } from './routes/_authenticated/admin/geo'
-import { Route as AuthenticatedAdminInsightsRouteImport } from './routes/_authenticated/admin/insights'
-import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin/logs'
-import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
-import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
-import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
-import { Route as ApiPixelPixelIdRouteImport } from './routes/api.pixel.$pixelId'
-import { Route as ApiWhatsappWebhookRouteImport } from './routes/api.whatsapp.webhook'
 import { Route as IntegrationsFacebookCallbackRouteImport } from './routes/integrations.facebook.callback'
+import { Route as ApiWhatsappWebhookRouteImport } from './routes/api.whatsapp.webhook'
+import { Route as ApiPixelPixelIdRouteImport } from './routes/api.pixel.$pixelId'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
+import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
+import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authenticated/admin/logs'
+import { Route as AuthenticatedAdminInsightsRouteImport } from './routes/_authenticated/admin/insights'
+import { Route as AuthenticatedAdminGeoRouteImport } from './routes/_authenticated/admin/geo'
+import { Route as AuthenticatedAdminFinancialRouteImport } from './routes/_authenticated/admin/financial'
+import { Route as AuthenticatedAdminBrandingRouteImport } from './routes/_authenticated/admin/branding'
+import { Route as AuthenticatedAdminAiRouteImport } from './routes/_authenticated/admin/ai'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BranchlyVsTintimRoute = BranchlyVsTintimRouteImport.update({
-  id: '/branchly-vs-tintim',
-  path: '/branchly-vs-tintim',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CareersRoute = CareersRouteImport.update({
-  id: '/careers',
-  path: '/careers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChangelogRoute = ChangelogRouteImport.update({
-  id: '/changelog',
-  path: '/changelog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CustomersRoute = CustomersRouteImport.update({
-  id: '/customers',
-  path: '/customers',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocsRoute = DocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FeaturesRoute = FeaturesRouteImport.update({
-  id: '/features',
-  path: '/features',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LgpdRoute = LgpdRouteImport.update({
-  id: '/lgpd',
-  path: '/lgpd',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RoadmapRoute = RoadmapRouteImport.update({
-  id: '/roadmap',
-  path: '/roadmap',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SecurityRoute = SecurityRouteImport.update({
-  id: '/security',
-  path: '/security',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -128,36 +65,94 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const ApiCollectRoute = ApiCollectRouteImport.update({
-  id: '/api/collect',
-  path: '/api/collect',
+const RoadmapRoute = RoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
   getParentRoute: () => rootRouteImport,
 } as any)
-const GuiaAparecerNasPrimeirasPaginasDoGoogleRoute =
-  GuiaAparecerNasPrimeirasPaginasDoGoogleRouteImport.update({
-    id: '/guia/aparecer-nas-primeiras-paginas-do-google',
-    path: '/guia/aparecer-nas-primeiras-paginas-do-google',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const GuiaMelhorarReputacaoNoGoogleRoute =
-  GuiaMelhorarReputacaoNoGoogleRouteImport.update({
-    id: '/guia/melhorar-reputacao-no-google',
-    path: '/guia/melhorar-reputacao-no-google',
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LgpdRoute = LgpdRouteImport.update({
+  id: '/lgpd',
+  path: '/lgpd',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CustomersRoute = CustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangelogRoute = ChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BranchlyVsTintimRoute = BranchlyVsTintimRouteImport.update({
+  id: '/branchly-vs-tintim',
+  path: '/branchly-vs-tintim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignUpSplatRoute = SignUpSplatRouteImport.update({
+  id: '/sign-up/$',
+  path: '/sign-up/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInSplatRoute = SignInSplatRouteImport.update({
+  id: '/sign-in/$',
+  path: '/sign-in/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideRankFirstPageGoogleRoute =
+  GuideRankFirstPageGoogleRouteImport.update({
+    id: '/guide/rank-first-page-google',
+    path: '/guide/rank-first-page-google',
     getParentRoute: () => rootRouteImport,
   } as any)
 const GuideImproveGoogleReputationRoute =
@@ -166,58 +161,92 @@ const GuideImproveGoogleReputationRoute =
     path: '/guide/improve-google-reputation',
     getParentRoute: () => rootRouteImport,
   } as any)
-const GuideRankFirstPageGoogleRoute =
-  GuideRankFirstPageGoogleRouteImport.update({
-    id: '/guide/rank-first-page-google',
-    path: '/guide/rank-first-page-google',
+const GuiaMelhorarReputacaoNoGoogleRoute =
+  GuiaMelhorarReputacaoNoGoogleRouteImport.update({
+    id: '/guia/melhorar-reputacao-no-google',
+    path: '/guia/melhorar-reputacao-no-google',
     getParentRoute: () => rootRouteImport,
   } as any)
-const SignInSplatRoute = SignInSplatRouteImport.update({
-  id: '/sign-in/$',
-  path: '/sign-in/$',
+const GuiaAparecerNasPrimeirasPaginasDoGoogleRoute =
+  GuiaAparecerNasPrimeirasPaginasDoGoogleRouteImport.update({
+    id: '/guia/aparecer-nas-primeiras-paginas-do-google',
+    path: '/guia/aparecer-nas-primeiras-paginas-do-google',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DocsPixelAtribuicaoRoute = DocsPixelAtribuicaoRouteImport.update({
+  id: '/pixel-atribuicao',
+  path: '/pixel-atribuicao',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsIntegracoesRoute = DocsIntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsInicioRapidoRoute = DocsInicioRapidoRouteImport.update({
+  id: '/inicio-rapido',
+  path: '/inicio-rapido',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsGuiasRoute = DocsGuiasRouteImport.update({
+  id: '/guias',
+  path: '/guias',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsFaqRoute = DocsFaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => DocsRoute,
+} as any)
+const DocsApiRoute = DocsApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => DocsRoute,
+} as any)
+const ApiCollectRoute = ApiCollectRouteImport.update({
+  id: '/api/collect',
+  path: '/api/collect',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignUpSplatRoute = SignUpSplatRouteImport.update({
-  id: '/sign-up/$',
-  path: '/sign-up/$',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
-const AuthenticatedAdminAiRoute = AuthenticatedAdminAiRouteImport.update({
-  id: '/ai',
-  path: '/ai',
+const IntegrationsFacebookCallbackRoute =
+  IntegrationsFacebookCallbackRouteImport.update({
+    id: '/integrations/facebook/callback',
+    path: '/integrations/facebook/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiWhatsappWebhookRoute = ApiWhatsappWebhookRouteImport.update({
+  id: '/api/whatsapp/webhook',
+  path: '/api/whatsapp/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPixelPixelIdRoute = ApiPixelPixelIdRouteImport.update({
+  id: '/api/pixel/$pixelId',
+  path: '/api/pixel/$pixelId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
-const AuthenticatedAdminBrandingRoute =
-  AuthenticatedAdminBrandingRouteImport.update({
-    id: '/branding',
-    path: '/branding',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
-const AuthenticatedAdminFinancialRoute =
-  AuthenticatedAdminFinancialRouteImport.update({
-    id: '/financial',
-    path: '/financial',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
-const AuthenticatedAdminGeoRoute = AuthenticatedAdminGeoRouteImport.update({
-  id: '/geo',
-  path: '/geo',
-  getParentRoute: () => AuthenticatedAdminRouteRoute,
-} as any)
-const AuthenticatedAdminInsightsRoute =
-  AuthenticatedAdminInsightsRouteImport.update({
-    id: '/insights',
-    path: '/insights',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
-const AuthenticatedAdminLogsRoute = AuthenticatedAdminLogsRouteImport.update({
-  id: '/logs',
-  path: '/logs',
+const AuthenticatedAdminSeoRoute = AuthenticatedAdminSeoRouteImport.update({
+  id: '/seo',
+  path: '/seo',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
 const AuthenticatedAdminReportsRoute =
@@ -226,32 +255,39 @@ const AuthenticatedAdminReportsRoute =
     path: '/reports',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
-const AuthenticatedAdminSeoRoute = AuthenticatedAdminSeoRouteImport.update({
-  id: '/seo',
-  path: '/seo',
+const AuthenticatedAdminLogsRoute = AuthenticatedAdminLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
-const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AuthenticatedAdminRouteRoute,
-} as any)
-const ApiPixelPixelIdRoute = ApiPixelPixelIdRouteImport.update({
-  id: '/api/pixel/$pixelId',
-  path: '/api/pixel/$pixelId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiWhatsappWebhookRoute = ApiWhatsappWebhookRouteImport.update({
-  id: '/api/whatsapp/webhook',
-  path: '/api/whatsapp/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IntegrationsFacebookCallbackRoute =
-  IntegrationsFacebookCallbackRouteImport.update({
-    id: '/integrations/facebook/callback',
-    path: '/integrations/facebook/callback',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedAdminInsightsRoute =
+  AuthenticatedAdminInsightsRouteImport.update({
+    id: '/insights',
+    path: '/insights',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedAdminGeoRoute = AuthenticatedAdminGeoRouteImport.update({
+  id: '/geo',
+  path: '/geo',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const AuthenticatedAdminFinancialRoute =
+  AuthenticatedAdminFinancialRouteImport.update({
+    id: '/financial',
+    path: '/financial',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminBrandingRoute =
+  AuthenticatedAdminBrandingRouteImport.update({
+    id: '/branding',
+    path: '/branding',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminAiRoute = AuthenticatedAdminAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -261,7 +297,7 @@ export interface FileRoutesByFullPath {
   '/changelog': typeof ChangelogRoute
   '/contact': typeof ContactRoute
   '/customers': typeof CustomersRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/features': typeof FeaturesRoute
   '/lgpd': typeof LgpdRoute
   '/pricing': typeof PricingRoute
@@ -273,6 +309,12 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/api/collect': typeof ApiCollectRoute
+  '/docs/api': typeof DocsApiRoute
+  '/docs/faq': typeof DocsFaqRoute
+  '/docs/guias': typeof DocsGuiasRoute
+  '/docs/inicio-rapido': typeof DocsInicioRapidoRoute
+  '/docs/integracoes': typeof DocsIntegracoesRoute
+  '/docs/pixel-atribuicao': typeof DocsPixelAtribuicaoRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   '/guia/melhorar-reputacao-no-google': typeof GuiaMelhorarReputacaoNoGoogleRoute
   '/guide/improve-google-reputation': typeof GuideImproveGoogleReputationRoute
@@ -301,7 +343,7 @@ export interface FileRoutesByTo {
   '/changelog': typeof ChangelogRoute
   '/contact': typeof ContactRoute
   '/customers': typeof CustomersRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/features': typeof FeaturesRoute
   '/lgpd': typeof LgpdRoute
   '/pricing': typeof PricingRoute
@@ -312,6 +354,12 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/api/collect': typeof ApiCollectRoute
+  '/docs/api': typeof DocsApiRoute
+  '/docs/faq': typeof DocsFaqRoute
+  '/docs/guias': typeof DocsGuiasRoute
+  '/docs/inicio-rapido': typeof DocsInicioRapidoRoute
+  '/docs/integracoes': typeof DocsIntegracoesRoute
+  '/docs/pixel-atribuicao': typeof DocsPixelAtribuicaoRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   '/guia/melhorar-reputacao-no-google': typeof GuiaMelhorarReputacaoNoGoogleRoute
   '/guide/improve-google-reputation': typeof GuideImproveGoogleReputationRoute
@@ -342,7 +390,7 @@ export interface FileRoutesById {
   '/changelog': typeof ChangelogRoute
   '/contact': typeof ContactRoute
   '/customers': typeof CustomersRoute
-  '/docs': typeof DocsRoute
+  '/docs': typeof DocsRouteWithChildren
   '/features': typeof FeaturesRoute
   '/lgpd': typeof LgpdRoute
   '/pricing': typeof PricingRoute
@@ -354,6 +402,12 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/api/collect': typeof ApiCollectRoute
+  '/docs/api': typeof DocsApiRoute
+  '/docs/faq': typeof DocsFaqRoute
+  '/docs/guias': typeof DocsGuiasRoute
+  '/docs/inicio-rapido': typeof DocsInicioRapidoRoute
+  '/docs/integracoes': typeof DocsIntegracoesRoute
+  '/docs/pixel-atribuicao': typeof DocsPixelAtribuicaoRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   '/guia/melhorar-reputacao-no-google': typeof GuiaMelhorarReputacaoNoGoogleRoute
   '/guide/improve-google-reputation': typeof GuideImproveGoogleReputationRoute
@@ -396,6 +450,12 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/api/collect'
+    | '/docs/api'
+    | '/docs/faq'
+    | '/docs/guias'
+    | '/docs/inicio-rapido'
+    | '/docs/integracoes'
+    | '/docs/pixel-atribuicao'
     | '/guia/aparecer-nas-primeiras-paginas-do-google'
     | '/guia/melhorar-reputacao-no-google'
     | '/guide/improve-google-reputation'
@@ -435,6 +495,12 @@ export interface FileRouteTypes {
     | '/terms'
     | '/dashboard'
     | '/api/collect'
+    | '/docs/api'
+    | '/docs/faq'
+    | '/docs/guias'
+    | '/docs/inicio-rapido'
+    | '/docs/integracoes'
+    | '/docs/pixel-atribuicao'
     | '/guia/aparecer-nas-primeiras-paginas-do-google'
     | '/guia/melhorar-reputacao-no-google'
     | '/guide/improve-google-reputation'
@@ -476,6 +542,12 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/api/collect'
+    | '/docs/api'
+    | '/docs/faq'
+    | '/docs/guias'
+    | '/docs/inicio-rapido'
+    | '/docs/integracoes'
+    | '/docs/pixel-atribuicao'
     | '/guia/aparecer-nas-primeiras-paginas-do-google'
     | '/guia/melhorar-reputacao-no-google'
     | '/guide/improve-google-reputation'
@@ -506,7 +578,7 @@ export interface RootRouteChildren {
   ChangelogRoute: typeof ChangelogRoute
   ContactRoute: typeof ContactRoute
   CustomersRoute: typeof CustomersRoute
-  DocsRoute: typeof DocsRoute
+  DocsRoute: typeof DocsRouteWithChildren
   FeaturesRoute: typeof FeaturesRoute
   LgpdRoute: typeof LgpdRoute
   PricingRoute: typeof PricingRoute
@@ -529,109 +601,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/branchly-vs-tintim': {
-      id: '/branchly-vs-tintim'
-      path: '/branchly-vs-tintim'
-      fullPath: '/branchly-vs-tintim'
-      preLoaderRoute: typeof BranchlyVsTintimRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/careers': {
-      id: '/careers'
-      path: '/careers'
-      fullPath: '/careers'
-      preLoaderRoute: typeof CareersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/changelog': {
-      id: '/changelog'
-      path: '/changelog'
-      fullPath: '/changelog'
-      preLoaderRoute: typeof ChangelogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/customers': {
-      id: '/customers'
-      path: '/customers'
-      fullPath: '/customers'
-      preLoaderRoute: typeof CustomersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/docs': {
-      id: '/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof DocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/features': {
-      id: '/features'
-      path: '/features'
-      fullPath: '/features'
-      preLoaderRoute: typeof FeaturesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lgpd': {
-      id: '/lgpd'
-      path: '/lgpd'
-      fullPath: '/lgpd'
-      preLoaderRoute: typeof LgpdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/roadmap': {
-      id: '/roadmap'
-      path: '/roadmap'
-      fullPath: '/roadmap'
-      preLoaderRoute: typeof RoadmapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/security': {
-      id: '/security'
-      path: '/security'
-      fullPath: '/security'
-      preLoaderRoute: typeof SecurityRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -641,67 +615,109 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/api/collect': {
-      id: '/api/collect'
-      path: '/api/collect'
-      fullPath: '/api/collect'
-      preLoaderRoute: typeof ApiCollectRouteImport
+    '/roadmap': {
+      id: '/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof RoadmapRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/guia/aparecer-nas-primeiras-paginas-do-google': {
-      id: '/guia/aparecer-nas-primeiras-paginas-do-google'
-      path: '/guia/aparecer-nas-primeiras-paginas-do-google'
-      fullPath: '/guia/aparecer-nas-primeiras-paginas-do-google'
-      preLoaderRoute: typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/guia/melhorar-reputacao-no-google': {
-      id: '/guia/melhorar-reputacao-no-google'
-      path: '/guia/melhorar-reputacao-no-google'
-      fullPath: '/guia/melhorar-reputacao-no-google'
-      preLoaderRoute: typeof GuiaMelhorarReputacaoNoGoogleRouteImport
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/guide/improve-google-reputation': {
-      id: '/guide/improve-google-reputation'
-      path: '/guide/improve-google-reputation'
-      fullPath: '/guide/improve-google-reputation'
-      preLoaderRoute: typeof GuideImproveGoogleReputationRouteImport
+    '/lgpd': {
+      id: '/lgpd'
+      path: '/lgpd'
+      fullPath: '/lgpd'
+      preLoaderRoute: typeof LgpdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/guide/rank-first-page-google': {
-      id: '/guide/rank-first-page-google'
-      path: '/guide/rank-first-page-google'
-      fullPath: '/guide/rank-first-page-google'
-      preLoaderRoute: typeof GuideRankFirstPageGoogleRouteImport
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sign-in/$': {
-      id: '/sign-in/$'
-      path: '/sign-in/$'
-      fullPath: '/sign-in/$'
-      preLoaderRoute: typeof SignInSplatRouteImport
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/customers': {
+      id: '/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changelog': {
+      id: '/changelog'
+      path: '/changelog'
+      fullPath: '/changelog'
+      preLoaderRoute: typeof ChangelogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/branchly-vs-tintim': {
+      id: '/branchly-vs-tintim'
+      path: '/branchly-vs-tintim'
+      fullPath: '/branchly-vs-tintim'
+      preLoaderRoute: typeof BranchlyVsTintimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-up/$': {
@@ -711,6 +727,104 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignUpSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sign-in/$': {
+      id: '/sign-in/$'
+      path: '/sign-in/$'
+      fullPath: '/sign-in/$'
+      preLoaderRoute: typeof SignInSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/rank-first-page-google': {
+      id: '/guide/rank-first-page-google'
+      path: '/guide/rank-first-page-google'
+      fullPath: '/guide/rank-first-page-google'
+      preLoaderRoute: typeof GuideRankFirstPageGoogleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/improve-google-reputation': {
+      id: '/guide/improve-google-reputation'
+      path: '/guide/improve-google-reputation'
+      fullPath: '/guide/improve-google-reputation'
+      preLoaderRoute: typeof GuideImproveGoogleReputationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guia/melhorar-reputacao-no-google': {
+      id: '/guia/melhorar-reputacao-no-google'
+      path: '/guia/melhorar-reputacao-no-google'
+      fullPath: '/guia/melhorar-reputacao-no-google'
+      preLoaderRoute: typeof GuiaMelhorarReputacaoNoGoogleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guia/aparecer-nas-primeiras-paginas-do-google': {
+      id: '/guia/aparecer-nas-primeiras-paginas-do-google'
+      path: '/guia/aparecer-nas-primeiras-paginas-do-google'
+      fullPath: '/guia/aparecer-nas-primeiras-paginas-do-google'
+      preLoaderRoute: typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs/pixel-atribuicao': {
+      id: '/docs/pixel-atribuicao'
+      path: '/pixel-atribuicao'
+      fullPath: '/docs/pixel-atribuicao'
+      preLoaderRoute: typeof DocsPixelAtribuicaoRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/integracoes': {
+      id: '/docs/integracoes'
+      path: '/integracoes'
+      fullPath: '/docs/integracoes'
+      preLoaderRoute: typeof DocsIntegracoesRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/inicio-rapido': {
+      id: '/docs/inicio-rapido'
+      path: '/inicio-rapido'
+      fullPath: '/docs/inicio-rapido'
+      preLoaderRoute: typeof DocsInicioRapidoRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/guias': {
+      id: '/docs/guias'
+      path: '/guias'
+      fullPath: '/docs/guias'
+      preLoaderRoute: typeof DocsGuiasRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/faq': {
+      id: '/docs/faq'
+      path: '/faq'
+      fullPath: '/docs/faq'
+      preLoaderRoute: typeof DocsFaqRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/docs/api': {
+      id: '/docs/api'
+      path: '/api'
+      fullPath: '/docs/api'
+      preLoaderRoute: typeof DocsApiRouteImport
+      parentRoute: typeof DocsRoute
+    }
+    '/api/collect': {
+      id: '/api/collect'
+      path: '/api/collect'
+      fullPath: '/api/collect'
+      preLoaderRoute: typeof ApiCollectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/'
@@ -718,74 +832,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
-    '/_authenticated/admin/ai': {
-      id: '/_authenticated/admin/ai'
-      path: '/ai'
-      fullPath: '/admin/ai'
-      preLoaderRoute: typeof AuthenticatedAdminAiRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/branding': {
-      id: '/_authenticated/admin/branding'
-      path: '/branding'
-      fullPath: '/admin/branding'
-      preLoaderRoute: typeof AuthenticatedAdminBrandingRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/financial': {
-      id: '/_authenticated/admin/financial'
-      path: '/financial'
-      fullPath: '/admin/financial'
-      preLoaderRoute: typeof AuthenticatedAdminFinancialRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/geo': {
-      id: '/_authenticated/admin/geo'
-      path: '/geo'
-      fullPath: '/admin/geo'
-      preLoaderRoute: typeof AuthenticatedAdminGeoRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/insights': {
-      id: '/_authenticated/admin/insights'
-      path: '/insights'
-      fullPath: '/admin/insights'
-      preLoaderRoute: typeof AuthenticatedAdminInsightsRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/logs': {
-      id: '/_authenticated/admin/logs'
-      path: '/logs'
-      fullPath: '/admin/logs'
-      preLoaderRoute: typeof AuthenticatedAdminLogsRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/reports': {
-      id: '/_authenticated/admin/reports'
-      path: '/reports'
-      fullPath: '/admin/reports'
-      preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/seo': {
-      id: '/_authenticated/admin/seo'
-      path: '/seo'
-      fullPath: '/admin/seo'
-      preLoaderRoute: typeof AuthenticatedAdminSeoRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/users': {
-      id: '/_authenticated/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/api/pixel/$pixelId': {
-      id: '/api/pixel/$pixelId'
-      path: '/api/pixel/$pixelId'
-      fullPath: '/api/pixel/$pixelId'
-      preLoaderRoute: typeof ApiPixelPixelIdRouteImport
+    '/integrations/facebook/callback': {
+      id: '/integrations/facebook/callback'
+      path: '/integrations/facebook/callback'
+      fullPath: '/integrations/facebook/callback'
+      preLoaderRoute: typeof IntegrationsFacebookCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/whatsapp/webhook': {
@@ -795,12 +846,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiWhatsappWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/integrations/facebook/callback': {
-      id: '/integrations/facebook/callback'
-      path: '/integrations/facebook/callback'
-      fullPath: '/integrations/facebook/callback'
-      preLoaderRoute: typeof IntegrationsFacebookCallbackRouteImport
+    '/api/pixel/$pixelId': {
+      id: '/api/pixel/$pixelId'
+      path: '/api/pixel/$pixelId'
+      fullPath: '/api/pixel/$pixelId'
+      preLoaderRoute: typeof ApiPixelPixelIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/admin/users': {
+      id: '/_authenticated/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/seo': {
+      id: '/_authenticated/admin/seo'
+      path: '/seo'
+      fullPath: '/admin/seo'
+      preLoaderRoute: typeof AuthenticatedAdminSeoRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/reports': {
+      id: '/_authenticated/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/logs': {
+      id: '/_authenticated/admin/logs'
+      path: '/logs'
+      fullPath: '/admin/logs'
+      preLoaderRoute: typeof AuthenticatedAdminLogsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/insights': {
+      id: '/_authenticated/admin/insights'
+      path: '/insights'
+      fullPath: '/admin/insights'
+      preLoaderRoute: typeof AuthenticatedAdminInsightsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/geo': {
+      id: '/_authenticated/admin/geo'
+      path: '/geo'
+      fullPath: '/admin/geo'
+      preLoaderRoute: typeof AuthenticatedAdminGeoRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/financial': {
+      id: '/_authenticated/admin/financial'
+      path: '/financial'
+      fullPath: '/admin/financial'
+      preLoaderRoute: typeof AuthenticatedAdminFinancialRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/branding': {
+      id: '/_authenticated/admin/branding'
+      path: '/branding'
+      fullPath: '/admin/branding'
+      preLoaderRoute: typeof AuthenticatedAdminBrandingRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/ai': {
+      id: '/_authenticated/admin/ai'
+      path: '/ai'
+      fullPath: '/admin/ai'
+      preLoaderRoute: typeof AuthenticatedAdminAiRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
     }
   }
 }
@@ -850,6 +964,26 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface DocsRouteChildren {
+  DocsApiRoute: typeof DocsApiRoute
+  DocsFaqRoute: typeof DocsFaqRoute
+  DocsGuiasRoute: typeof DocsGuiasRoute
+  DocsInicioRapidoRoute: typeof DocsInicioRapidoRoute
+  DocsIntegracoesRoute: typeof DocsIntegracoesRoute
+  DocsPixelAtribuicaoRoute: typeof DocsPixelAtribuicaoRoute
+}
+
+const DocsRouteChildren: DocsRouteChildren = {
+  DocsApiRoute: DocsApiRoute,
+  DocsFaqRoute: DocsFaqRoute,
+  DocsGuiasRoute: DocsGuiasRoute,
+  DocsInicioRapidoRoute: DocsInicioRapidoRoute,
+  DocsIntegracoesRoute: DocsIntegracoesRoute,
+  DocsPixelAtribuicaoRoute: DocsPixelAtribuicaoRoute,
+}
+
+const DocsRouteWithChildren = DocsRoute._addFileChildren(DocsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -859,7 +993,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChangelogRoute: ChangelogRoute,
   ContactRoute: ContactRoute,
   CustomersRoute: CustomersRoute,
-  DocsRoute: DocsRoute,
+  DocsRoute: DocsRouteWithChildren,
   FeaturesRoute: FeaturesRoute,
   LgpdRoute: LgpdRoute,
   PricingRoute: PricingRoute,

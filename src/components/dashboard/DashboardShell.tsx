@@ -46,6 +46,7 @@ import {
   captureReviewsForAll,
   generateReplyForReview,
   generateRepliesForUnreplied,
+  addManualReview,
 } from "@/lib/dashboard-actions.functions";
 import {
   getFacebookAuthUrl,
@@ -102,6 +103,8 @@ import {
   Target,
   ArrowUp,
   ArrowDown,
+  Music2,
+  Pin,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { QRCodeCard } from "@/components/dashboard/QRCodeCard";
@@ -301,9 +304,9 @@ export function DashboardShell() {
   const active = NAV.find((n) => n.id === section)!;
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) =>
-      setUserEmail(data.session?.user?.email ?? null),
-    );
+    supabase.auth
+      .getSession()
+      .then(({ data }) => setUserEmail(data.session?.user?.email ?? null));
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setUserEmail(s?.user?.email ?? null);
     });
@@ -391,8 +394,7 @@ export function DashboardShell() {
                     {active.label}
                   </h1>
                   <span className="hidden text-xs text-muted-foreground sm:inline">
-                    · Welcome back,{" "}
-                    {userEmail?.split("@")[0] || "there"}
+                    · Welcome back, {userEmail?.split("@")[0] || "there"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -990,6 +992,38 @@ function ReputationSection() {
   const score = data?.kpis.avgScore ?? 0;
   const sources = data?.sources ?? [];
   const sourceTotal = sources.reduce((s, x) => s + x.count, 0) || 1;
+  const locs = data?.locations ?? [];
+  const latestReviews = [...(data?.reviews ?? [])]
+    .sort(
+      (a, b) =>
+        new Date(b.posted_at ?? 0).getTime() -
+        new Date(a.posted_at ?? 0).getTime(),
+    )
+    .slice(0, 6);
+
+  // Aggregate score breakdown across all locations that have one
+  const breakdowns = locs
+    .map(
+      (l) =>
+        l.score_breakdown as {
+          rating: number;
+          volume: number;
+          recency: number;
+        } | null,
+    )
+    .filter(
+      (b): b is { rating: number; volume: number; recency: number } => !!b,
+    );
+  const avgBreakdown = breakdowns.length
+    ? {
+        rating:
+          breakdowns.reduce((s, b) => s + b.rating, 0) / breakdowns.length,
+        volume:
+          breakdowns.reduce((s, b) => s + b.volume, 0) / breakdowns.length,
+        recency:
+          breakdowns.reduce((s, b) => s + b.recency, 0) / breakdowns.length,
+      }
+    : null;
 
   return (
     <div className="space-y-6">
@@ -1051,7 +1085,114 @@ function ReputationSection() {
         </SectionCard>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      {/* What's driving the score */}
+      <SectionCard
+        title="O que está movendo o seu score"
+        subtitle="Composição do score de reputação (0-100), média entre suas unidades"
+      >
+        {!avgBreakdown ? (
+          <EmptyState
+            title="Ainda sem dados de composição"
+            hint="Calcule o score real de uma unidade no Overview para ver os fatores aqui."
+          />
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                label: "Rating médio",
+                value: avgBreakdown.rating,
+                max: 50,
+                desc: "Peso de 50 pontos — quanto maior a nota média (0-5★), mais pontos aqui.",
+              },
+              {
+                label: "Volume de reviews",
+                value: avgBreakdown.volume,
+                max: 30,
+                desc: "Peso de 30 pontos — escala logarítmica, satura perto de 1.000 avaliações.",
+              },
+              {
+                label: "Recência",
+                value: avgBreakdown.recency,
+                max: 20,
+                desc: "Peso de 20 pontos — reviews recentes (últimos meses) valem mais que antigas.",
+              },
+            ].map((f) => (
+              <div
+                key={f.label}
+                className="rounded-lg border border-border bg-muted/20 p-4"
+              >
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xs font-medium text-foreground">
+                    {f.label}
+                  </span>
+                  <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                    {f.value.toFixed(1)}/{f.max}
+                  </span>
+                </div>
+                <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-accent transition-all"
+                    style={{ width: `${(f.value / f.max) * 100}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  {f.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <SectionCard
+          title="Últimos reviews capturados"
+          subtitle="Mais recentes primeiro"
+        >
+          {latestReviews.length === 0 ? (
+            <EmptyState title="Nenhum review capturado ainda" />
+          ) : (
+            <div className="space-y-2.5">
+              {latestReviews.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-start justify-between gap-3 border-b border-border/50 pb-2.5 last:border-0"
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium truncate">
+                        {r.author ?? "Anônimo"}
+                      </span>
+                      <SentimentChip sentiment={r.sentiment ?? "neutral"} />
+                    </div>
+                    {r.comment && (
+                      <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                        {r.comment}
+                      </p>
+                    )}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className="flex justify-end">
+                      {Array.from({ length: 5 }).map((_, s) => (
+                        <Star
+                          key={s}
+                          className={`h-2.5 w-2.5 ${s < (r.rating ?? 0) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                        />
+                      ))}
+                    </div>
+                    <div className="mt-0.5 text-[10px] text-muted-foreground">
+                      {r.source ?? "—"} ·{" "}
+                      {r.posted_at
+                        ? new Date(r.posted_at).toLocaleDateString("pt-BR")
+                        : "—"}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </SectionCard>
+
         <SectionCard
           title="Insights recentes"
           subtitle="O que está movendo o score"
@@ -1065,8 +1206,8 @@ function ReputationSection() {
                   key={d.id}
                   className="flex items-center justify-between border-b border-border/50 pb-2 last:border-0"
                 >
-                  <span>{d.title}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="truncate pr-2">{d.title}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
                     {d.category ?? "—"}
                   </span>
                 </li>
@@ -1075,7 +1216,10 @@ function ReputationSection() {
           )}
         </SectionCard>
 
-        <SectionCard title="Reviews por fonte" subtitle="Últimos capturados">
+        <SectionCard
+          title="Reviews por fonte"
+          subtitle="Distribuição por canal"
+        >
           {sources.length === 0 ? (
             <EmptyState title="Sem reviews por fonte" />
           ) : (
@@ -1128,12 +1272,243 @@ function statusForScore(score: number | null): string {
   return "risk";
 }
 
+type LocationRow = {
+  id: string;
+  name: string;
+  city: string | null;
+  address: string | null;
+  category: string | null;
+  score: number | null;
+  rating: number | null;
+  review_count: number | null;
+  google_url: string | null;
+  last_scraped_at: string | null;
+  score_breakdown: unknown;
+};
+
+function LocationDetailModal({
+  location,
+  onClose,
+}: {
+  location: LocationRow;
+  onClose: () => void;
+}) {
+  const { data } = useDashboard();
+  const reviews = (data?.reviews ?? []).filter(
+    (r) => r.location_id === location.id,
+  );
+  const competitors = (data?.competitors ?? []).filter(
+    (c) => c.location_id === location.id,
+  );
+  const breakdown = location.score_breakdown as {
+    rating: number;
+    volume: number;
+    recency: number;
+    inputs?: { rating: number; reviewCount: number; recentSample: number };
+  } | null;
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{location.name}</DialogTitle>
+          <DialogDescription>
+            {[location.address, location.city].filter(Boolean).join(", ") ||
+              "Sem endereço cadastrado"}
+            {location.category ? ` · ${location.category}` : ""}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-5 mt-2">
+          {/* Top KPIs */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Score
+              </div>
+              <div className="mt-1 font-display text-xl font-semibold tabular-nums">
+                {location.score !== null
+                  ? Number(location.score).toFixed(1)
+                  : "—"}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Rating
+              </div>
+              <div className="mt-1 font-display text-xl font-semibold tabular-nums">
+                {location.rating !== null
+                  ? Number(location.rating).toFixed(1)
+                  : "—"}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Reviews
+              </div>
+              <div className="mt-1 font-display text-xl font-semibold tabular-nums">
+                {(location.review_count ?? 0).toLocaleString()}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border bg-muted/30 p-3">
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                Status
+              </div>
+              <div className="mt-1.5">
+                <StatusPill
+                  status={statusForScore(
+                    location.score !== null ? Number(location.score) : null,
+                  )}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Score breakdown */}
+          {breakdown && (
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">
+                O que está movendo este score
+              </div>
+              <div className="space-y-2.5">
+                {[
+                  {
+                    label: "Rating (peso 50)",
+                    value: breakdown.rating,
+                    max: 50,
+                  },
+                  {
+                    label: "Volume de reviews (peso 30)",
+                    value: breakdown.volume,
+                    max: 30,
+                  },
+                  {
+                    label: "Recência (peso 20)",
+                    value: breakdown.recency,
+                    max: 20,
+                  },
+                ].map((b) => (
+                  <div key={b.label}>
+                    <div className="mb-1 flex justify-between text-xs">
+                      <span className="text-muted-foreground">{b.label}</span>
+                      <span className="tabular-nums">{b.value.toFixed(1)}</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-accent"
+                        style={{ width: `${(b.value / b.max) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Meta */}
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="rounded-lg border border-border p-3">
+              <div className="text-muted-foreground">Última atualização</div>
+              <div className="mt-1 font-medium">
+                {location.last_scraped_at
+                  ? new Date(location.last_scraped_at).toLocaleString("pt-BR")
+                  : "—"}
+              </div>
+            </div>
+            <div className="rounded-lg border border-border p-3">
+              <div className="text-muted-foreground">Google Maps</div>
+              <div className="mt-1 font-medium">
+                {location.google_url ? (
+                  <a
+                    href={location.google_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-accent hover:underline"
+                  >
+                    Ver perfil <ExternalLink className="h-3 w-3" />
+                  </a>
+                ) : (
+                  "—"
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Competitors linked to this location */}
+          {competitors.length > 0 && (
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">
+                Concorrentes desta unidade
+              </div>
+              <div className="space-y-1.5">
+                {competitors.map((c) => (
+                  <div
+                    key={c.id}
+                    className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
+                  >
+                    <span>{c.name}</span>
+                    <span className="text-xs text-muted-foreground tabular-nums">
+                      ★ {c.rating !== null ? Number(c.rating).toFixed(1) : "—"}{" "}
+                      · {(c.review_count ?? 0).toLocaleString()} rev.
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Reviews for this location */}
+          <div>
+            <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">
+              Reviews desta unidade ({reviews.length})
+            </div>
+            {reviews.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Nenhum review vinculado diretamente a esta unidade ainda.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {reviews.slice(0, 8).map((r) => (
+                  <div
+                    key={r.id}
+                    className="rounded-lg border border-border bg-muted/20 p-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium">
+                        {r.author ?? "Anônimo"}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">
+                        {r.source ?? "—"} ·{" "}
+                        {r.posted_at
+                          ? new Date(r.posted_at).toLocaleDateString("pt-BR")
+                          : "—"}
+                      </span>
+                    </div>
+                    {r.comment && (
+                      <p className="mt-1.5 text-xs text-muted-foreground">
+                        {r.comment}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function LocationsSection() {
   const { data } = useDashboard();
   const locs = data?.locations ?? [];
   const k = data?.kpis;
   const { requireFeature, limits } = usePlan();
   const [modalOpen, setModalOpen] = useState(false);
+  const [detailLocation, setDetailLocation] = useState<LocationRow | null>(
+    null,
+  );
   const used = locs.length;
   const onAdd = () => {
     if (requireFeature("locations", used + 1)) setModalOpen(true);
@@ -1153,6 +1528,12 @@ function LocationsSection() {
         }
       />
       <AddLocationModal open={modalOpen} onOpenChange={setModalOpen} />
+      {detailLocation && (
+        <LocationDetailModal
+          location={detailLocation}
+          onClose={() => setDetailLocation(null)}
+        />
+      )}
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <KpiCard
@@ -1225,7 +1606,8 @@ function LocationsSection() {
               {locs.map((l) => (
                 <tr
                   key={l.id}
-                  className="border-b border-border/60 last:border-0 hover:bg-muted/30"
+                  onClick={() => setDetailLocation(l as LocationRow)}
+                  className="cursor-pointer border-b border-border/60 last:border-0 hover:bg-muted/30"
                 >
                   <td className="px-4 py-3">
                     <div className="font-medium">{l.name}</div>
@@ -1256,7 +1638,10 @@ function LocationsSection() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <button
-                      onClick={() => act(`Opening ${l.name}…`)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDetailLocation(l as LocationRow);
+                      }}
                       className="text-muted-foreground hover:text-foreground"
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -1727,21 +2112,41 @@ function CompetitorsSection() {
       {/* Benchmark summary cards */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-border bg-card p-5">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Seu Rating</div>
-          <div className="mt-2 font-display text-3xl font-semibold tabular-nums">{myRating > 0 ? myRating.toFixed(1) : "—"}</div>
-          <div className="mt-1 text-xs text-muted-foreground">média das unidades</div>
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Seu Rating
+          </div>
+          <div className="mt-2 font-display text-3xl font-semibold tabular-nums">
+            {myRating > 0 ? myRating.toFixed(1) : "—"}
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            média das unidades
+          </div>
         </div>
         <div className="rounded-xl border border-border bg-card p-5">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Benchmark</div>
-          <div className="mt-2 font-display text-3xl font-semibold tabular-nums">{benchmarkRating.toFixed(1)}</div>
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Benchmark
+          </div>
+          <div className="mt-2 font-display text-3xl font-semibold tabular-nums">
+            {benchmarkRating.toFixed(1)}
+          </div>
           <div className="mt-1 text-xs text-muted-foreground">
             {comps.length ? "média dos concorrentes" : "padrão do setor"}
           </div>
         </div>
-        <div className={`rounded-xl border p-5 ${ratingGap >= 0 ? "border-emerald-500/30 bg-emerald-500/5" : "border-rose-500/30 bg-rose-500/5"}`}>
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Gap</div>
-          <div className={`mt-2 flex items-baseline gap-1.5 font-display text-3xl font-semibold tabular-nums ${ratingGap >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-            {ratingGap >= 0 ? <ArrowUp className="h-5 w-5" /> : <ArrowDown className="h-5 w-5" />}
+        <div
+          className={`rounded-xl border p-5 ${ratingGap >= 0 ? "border-emerald-500/30 bg-emerald-500/5" : "border-rose-500/30 bg-rose-500/5"}`}
+        >
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+            Gap
+          </div>
+          <div
+            className={`mt-2 flex items-baseline gap-1.5 font-display text-3xl font-semibold tabular-nums ${ratingGap >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}
+          >
+            {ratingGap >= 0 ? (
+              <ArrowUp className="h-5 w-5" />
+            ) : (
+              <ArrowDown className="h-5 w-5" />
+            )}
             {Math.abs(ratingGap).toFixed(1)}
           </div>
           <div className="mt-1 text-xs text-muted-foreground">
@@ -1753,12 +2158,16 @@ function CompetitorsSection() {
       {/* Visual bar comparison */}
       {myRating > 0 && (
         <div className="rounded-xl border border-border bg-card p-5">
-          <div className="mb-4 font-display text-sm font-semibold">Comparativo visual</div>
+          <div className="mb-4 font-display text-sm font-semibold">
+            Comparativo visual
+          </div>
           <div className="space-y-3">
             <div>
               <div className="mb-1 flex items-center justify-between text-xs">
                 <span className="font-medium">Você</span>
-                <span className="tabular-nums text-muted-foreground">{myRating.toFixed(1)}</span>
+                <span className="tabular-nums text-muted-foreground">
+                  {myRating.toFixed(1)}
+                </span>
               </div>
               <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
                 <div
@@ -1770,7 +2179,9 @@ function CompetitorsSection() {
             <div>
               <div className="mb-1 flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Benchmark</span>
-                <span className="tabular-nums text-muted-foreground">{benchmarkRating.toFixed(1)}</span>
+                <span className="tabular-nums text-muted-foreground">
+                  {benchmarkRating.toFixed(1)}
+                </span>
               </div>
               <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
                 <div
@@ -1782,13 +2193,22 @@ function CompetitorsSection() {
             {comps.slice(0, 5).map((c) => (
               <div key={c.id}>
                 <div className="mb-1 flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground truncate max-w-[60%]">{c.name}</span>
-                  <span className="tabular-nums text-muted-foreground">{c.rating !== null ? Number(c.rating).toFixed(1) : "—"}</span>
+                  <span className="text-muted-foreground truncate max-w-[60%]">
+                    {c.name}
+                  </span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {c.rating !== null ? Number(c.rating).toFixed(1) : "—"}
+                  </span>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                   <div
                     className="h-full rounded-full bg-accent/60 transition-all"
-                    style={{ width: c.rating !== null ? `${(Number(c.rating) / 5) * 100}%` : "0%" }}
+                    style={{
+                      width:
+                        c.rating !== null
+                          ? `${(Number(c.rating) / 5) * 100}%`
+                          : "0%",
+                    }}
                   />
                 </div>
               </div>
@@ -1821,7 +2241,8 @@ function CompetitorsSection() {
             <tbody>
               {comps.map((c) => {
                 const cRating = c.rating !== null ? Number(c.rating) : null;
-                const diff = cRating !== null && myRating > 0 ? myRating - cRating : null;
+                const diff =
+                  cRating !== null && myRating > 0 ? myRating - cRating : null;
                 return (
                   <tr
                     key={c.id}
@@ -1836,11 +2257,19 @@ function CompetitorsSection() {
                     </td>
                     <td className="px-4 py-3">
                       {diff !== null ? (
-                        <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${diff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`}>
-                          {diff >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                        <span
+                          className={`inline-flex items-center gap-0.5 text-xs font-medium ${diff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`}
+                        >
+                          {diff >= 0 ? (
+                            <ArrowUp className="h-3 w-3" />
+                          ) : (
+                            <ArrowDown className="h-3 w-3" />
+                          )}
                           {Math.abs(diff).toFixed(1)}
                         </span>
-                      ) : "—"}
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -1853,7 +2282,10 @@ function CompetitorsSection() {
                           />
                         </div>
                         <span className="text-xs text-muted-foreground tabular-nums">
-                          {Math.round(((c.review_count ?? 0) / totalReviews) * 100)}%
+                          {Math.round(
+                            ((c.review_count ?? 0) / totalReviews) * 100,
+                          )}
+                          %
                         </span>
                         <button
                           onClick={() => onDelete(c.id)}
@@ -1877,13 +2309,22 @@ function CompetitorsSection() {
         <div className="rounded-xl border border-border bg-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <Target className="h-4 w-4 text-accent" />
-            <span className="font-display text-sm font-semibold">Dicas para superar o benchmark</span>
+            <span className="font-display text-sm font-semibold">
+              Dicas para superar o benchmark
+            </span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {ratingTips.map((tip, i) => (
-              <div key={i} className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/30 p-3">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[10px] font-semibold text-accent">{i + 1}</span>
-                <p className="text-xs text-muted-foreground leading-relaxed">{tip}</p>
+              <div
+                key={i}
+                className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/30 p-3"
+              >
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[10px] font-semibold text-accent">
+                  {i + 1}
+                </span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {tip}
+                </p>
               </div>
             ))}
           </div>
@@ -2047,6 +2488,145 @@ function FacebookConnectionCard() {
   );
 }
 
+function ManualReviewModal({
+  source,
+  open,
+  onOpenChange,
+}: {
+  source: "TikTok" | "Pinterest";
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const queryClient = useQueryClient();
+  const fn = useServerFn(addManualReview);
+  const [form, setForm] = useState({ author: "", rating: "5", comment: "" });
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await fn({
+        data: {
+          source,
+          author: form.author || undefined,
+          rating: form.rating ? Number(form.rating) : null,
+          comment: form.comment || undefined,
+        },
+      });
+      toast.success(`Avaliação do ${source} adicionada`);
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      onOpenChange(false);
+      setForm({ author: "", rating: "5", comment: "" });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Adicionar avaliação do {source}</DialogTitle>
+          <DialogDescription>
+            {source} ainda não possui integração automática — registre a
+            avaliação manualmente para incluí-la nas suas métricas.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <input
+            placeholder="Autor (opcional)"
+            value={form.author}
+            onChange={(e) => setForm({ ...form, author: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
+          <select
+            value={form.rating}
+            onChange={(e) => setForm({ ...form, rating: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          >
+            {[5, 4, 3, 2, 1].map((n) => (
+              <option key={n} value={n}>
+                {n} estrelas
+              </option>
+            ))}
+          </select>
+          <textarea
+            placeholder="Comentário (opcional)"
+            value={form.comment}
+            onChange={(e) => setForm({ ...form, comment: e.target.value })}
+            rows={3}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="rounded-md border border-border bg-card px-3 py-2 text-xs"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={submit}
+            disabled={loading}
+            className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Plus className="h-3 w-3" />
+            )}{" "}
+            Adicionar
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ManualSourceConnectionCard({
+  source,
+  icon: Icon,
+  color,
+}: {
+  source: "TikTok" | "Pinterest";
+  icon: typeof Music2;
+  color: string;
+}) {
+  const { data } = useDashboard();
+  const count = (data?.reviews ?? []).filter((r) => r.source === source).length;
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card p-4">
+      <ManualReviewModal source={source} open={open} onOpenChange={setOpen} />
+      <div className="flex items-center gap-3">
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-full"
+          style={{ background: `${color}1a`, color }}
+        >
+          <Icon className="h-4.5 w-4.5" />
+        </div>
+        <div>
+          <div className="text-sm font-medium text-foreground">{source}</div>
+          <div className="text-xs text-muted-foreground">
+            {count > 0
+              ? `${count} avaliações registradas`
+              : "Nenhuma avaliação ainda"}
+          </div>
+        </div>
+      </div>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted"
+      >
+        <Plus className="h-3.5 w-3.5" /> Adicionar
+      </button>
+    </div>
+  );
+}
+
 function ReviewsSection() {
   const { data } = useDashboard();
   const all = data?.reviews ?? [];
@@ -2155,7 +2735,19 @@ function ReviewsSection() {
         }
       />
 
-      <FacebookConnectionCard />
+      <div className="grid gap-3 lg:grid-cols-3">
+        <FacebookConnectionCard />
+        <ManualSourceConnectionCard
+          source="TikTok"
+          icon={Music2}
+          color="#000000"
+        />
+        <ManualSourceConnectionCard
+          source="Pinterest"
+          icon={Pin}
+          color="#E60023"
+        />
+      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         {(
@@ -2299,12 +2891,36 @@ function SentimentChip({ sentiment }: { sentiment: string }) {
 /* ------------------------------- Insights ------------------------------ */
 
 const RATING_TIPS = [
-  { icon: "⚡", title: "Responda rápido", body: "Responda todas as avaliações em até 24 horas. A velocidade de resposta é um dos fatores que o Google usa para ranquear negócios locais." },
-  { icon: "📱", title: "Use o QR Code", body: "Coloque o QR code no balcão, mesa ou embalagem. Clientes satisfeitos raramente avaliam por iniciativa própria — facilite o caminho." },
-  { icon: "🎯", title: "Peça no momento certo", body: "O melhor momento para pedir avaliação é logo após a entrega do serviço, quando a experiência está fresca na memória do cliente." },
-  { icon: "🔍", title: "Resolva reclamações publicamente", body: "Uma resposta empática a uma avaliação negativa pode converter detratores em promotores e demonstra comprometimento para novos clientes." },
-  { icon: "📊", title: "Monitore tópicos recorrentes", body: "Use os insights de IA para identificar o que mais irrita os clientes. Um problema recorrente corrigido pode elevar o rating em 0,2-0,5★." },
-  { icon: "🤝", title: "Treine sua equipe", body: "Compartilhe as avaliações negativas com a equipe regularmente. Colaboradores que conhecem os problemas têm mais incentivo para corrigi-los." },
+  {
+    icon: "⚡",
+    title: "Responda rápido",
+    body: "Responda todas as avaliações em até 24 horas. A velocidade de resposta é um dos fatores que o Google usa para ranquear negócios locais.",
+  },
+  {
+    icon: "📱",
+    title: "Use o QR Code",
+    body: "Coloque o QR code no balcão, mesa ou embalagem. Clientes satisfeitos raramente avaliam por iniciativa própria — facilite o caminho.",
+  },
+  {
+    icon: "🎯",
+    title: "Peça no momento certo",
+    body: "O melhor momento para pedir avaliação é logo após a entrega do serviço, quando a experiência está fresca na memória do cliente.",
+  },
+  {
+    icon: "🔍",
+    title: "Resolva reclamações publicamente",
+    body: "Uma resposta empática a uma avaliação negativa pode converter detratores em promotores e demonstra comprometimento para novos clientes.",
+  },
+  {
+    icon: "📊",
+    title: "Monitore tópicos recorrentes",
+    body: "Use os insights de IA para identificar o que mais irrita os clientes. Um problema recorrente corrigido pode elevar o rating em 0,2-0,5★.",
+  },
+  {
+    icon: "🤝",
+    title: "Treine sua equipe",
+    body: "Compartilhe as avaliações negativas com a equipe regularmente. Colaboradores que conhecem os problemas têm mais incentivo para corrigi-los.",
+  },
 ];
 
 function InsightsSection() {
@@ -2329,15 +2945,24 @@ function InsightsSection() {
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <Target className="h-4 w-4 text-accent" />
-          <span className="font-display text-sm font-semibold">Dicas para subir a nota média</span>
+          <span className="font-display text-sm font-semibold">
+            Dicas para subir a nota média
+          </span>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {RATING_TIPS.map((tip) => (
-            <div key={tip.title} className="flex items-start gap-3 rounded-lg border border-border bg-muted/30 p-3.5">
+            <div
+              key={tip.title}
+              className="flex items-start gap-3 rounded-lg border border-border bg-muted/30 p-3.5"
+            >
               <span className="text-lg leading-none mt-0.5">{tip.icon}</span>
               <div>
-                <div className="text-xs font-semibold text-foreground mb-1">{tip.title}</div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">{tip.body}</p>
+                <div className="text-xs font-semibold text-foreground mb-1">
+                  {tip.title}
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {tip.body}
+                </p>
               </div>
             </div>
           ))}
@@ -2419,24 +3044,35 @@ function QRCodeSection() {
             <div className="flex items-start gap-3 mb-4">
               <QrCode className="h-5 w-5 text-accent shrink-0 mt-0.5" />
               <div>
-                <div className="font-display text-sm font-semibold">Como usar</div>
+                <div className="font-display text-sm font-semibold">
+                  Como usar
+                </div>
                 <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                  Imprima o QR code e exiba-o no balcão, mesa ou recibo. Ao escanear, o cliente é direcionado diretamente para a página de avaliação do Google. Quanto mais avaliações, maior a visibilidade da sua unidade nas buscas locais.
+                  Imprima o QR code e exiba-o no balcão, mesa ou recibo. Ao
+                  escanear, o cliente é direcionado diretamente para a página de
+                  avaliação do Google. Quanto mais avaliações, maior a
+                  visibilidade da sua unidade nas buscas locais.
                 </p>
               </div>
             </div>
             <div className="grid gap-2 sm:grid-cols-3 text-xs">
               <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2.5">
                 <span className="font-semibold text-accent">1.</span>
-                <span className="text-muted-foreground">Baixe o PNG da unidade desejada</span>
+                <span className="text-muted-foreground">
+                  Baixe o PNG da unidade desejada
+                </span>
               </div>
               <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2.5">
                 <span className="font-semibold text-accent">2.</span>
-                <span className="text-muted-foreground">Imprima e coloque em local visível</span>
+                <span className="text-muted-foreground">
+                  Imprima e coloque em local visível
+                </span>
               </div>
               <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2.5">
                 <span className="font-semibold text-accent">3.</span>
-                <span className="text-muted-foreground">Peça ao cliente escanear após o atendimento</span>
+                <span className="text-muted-foreground">
+                  Peça ao cliente escanear após o atendimento
+                </span>
               </div>
             </div>
           </div>
@@ -2468,42 +3104,104 @@ function ReportViewModal({
   const cj = report.content_json as Record<string, unknown> | null;
   const kpis = (cj?.kpis ?? {}) as Record<string, number>;
   const sentiment = (cj?.sentiment ?? {}) as Record<string, number>;
-  const topLocs = (cj?.topLocations ?? []) as { name: string; city: string; score: number; rating: number; reviewCount: number }[];
-  const competitors = (cj?.competitors ?? []) as { name: string; rating: number; reviewCount: number }[];
-  const topInsights = (cj?.topInsights ?? []) as { title: string; body: string; severity: string; category: string }[];
+  const topLocs = (cj?.topLocations ?? []) as {
+    name: string;
+    city: string;
+    score: number;
+    rating: number;
+    reviewCount: number;
+  }[];
+  const competitors = (cj?.competitors ?? []) as {
+    name: string;
+    rating: number;
+    reviewCount: number;
+  }[];
+  const topInsights = (cj?.topInsights ?? []) as {
+    title: string;
+    body: string;
+    severity: string;
+    category: string;
+  }[];
 
   return (
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{String(report.name ?? "Relatório")}</DialogTitle>
-          <DialogDescription>
-            {String(report.period ?? "")} · Gerado em{" "}
-            {cj?.generatedAt
-              ? new Date(String(cj.generatedAt)).toLocaleDateString("pt-BR")
-              : new Date(String(report.created_at)).toLocaleDateString("pt-BR")}
-          </DialogDescription>
+          <div className="flex items-start justify-between gap-3 pr-6">
+            <div>
+              <DialogTitle>{String(report.name ?? "Relatório")}</DialogTitle>
+              <DialogDescription>
+                {String(report.period ?? "")} · Gerado em{" "}
+                {cj?.generatedAt
+                  ? new Date(String(cj.generatedAt)).toLocaleDateString("pt-BR")
+                  : new Date(String(report.created_at)).toLocaleDateString(
+                      "pt-BR",
+                    )}
+              </DialogDescription>
+            </div>
+            {cj && (
+              <button
+                onClick={() => downloadReportHtml(report)}
+                className="flex shrink-0 items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs text-muted-foreground transition hover:text-foreground"
+              >
+                <Download className="h-3 w-3" /> Baixar
+              </button>
+            )}
+          </div>
         </DialogHeader>
 
         {!cj ? (
-          <p className="text-sm text-muted-foreground">Este relatório não possui dados de KPI (gerado antes da atualização).</p>
+          <p className="text-sm text-muted-foreground">
+            Este relatório não possui dados de KPI (gerado antes da
+            atualização).
+          </p>
         ) : (
           <div className="space-y-5 mt-2">
             {/* KPIs */}
             <div>
-              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">KPIs do período</div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">
+                KPIs do período
+              </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {[
-                  { label: "Nota média", value: kpis.avgRating?.toFixed(1) ?? "—" },
-                  { label: "Score médio", value: kpis.avgScore?.toFixed(1) ?? "—" },
-                  { label: "Total reviews", value: kpis.totalReviews?.toLocaleString() ?? "—" },
-                  { label: "Taxa resposta", value: kpis.responseRate !== undefined ? `${kpis.responseRate}%` : "—" },
-                  { label: "Unidades ativas", value: String(kpis.activeLocations ?? "—") },
-                  { label: "Benchmark", value: kpis.benchmarkRating?.toFixed(1) ?? "—" },
+                  {
+                    label: "Nota média",
+                    value: kpis.avgRating?.toFixed(1) ?? "—",
+                  },
+                  {
+                    label: "Score médio",
+                    value: kpis.avgScore?.toFixed(1) ?? "—",
+                  },
+                  {
+                    label: "Total reviews",
+                    value: kpis.totalReviews?.toLocaleString() ?? "—",
+                  },
+                  {
+                    label: "Taxa resposta",
+                    value:
+                      kpis.responseRate !== undefined
+                        ? `${kpis.responseRate}%`
+                        : "—",
+                  },
+                  {
+                    label: "Unidades ativas",
+                    value: String(kpis.activeLocations ?? "—"),
+                  },
+                  {
+                    label: "Benchmark",
+                    value: kpis.benchmarkRating?.toFixed(1) ?? "—",
+                  },
                 ].map((k) => (
-                  <div key={k.label} className="rounded-lg border border-border bg-muted/30 p-3">
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{k.label}</div>
-                    <div className="mt-1 font-display text-xl font-semibold tabular-nums">{k.value}</div>
+                  <div
+                    key={k.label}
+                    className="rounded-lg border border-border bg-muted/30 p-3"
+                  >
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {k.label}
+                    </div>
+                    <div className="mt-1 font-display text-xl font-semibold tabular-nums">
+                      {k.value}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2512,19 +3210,40 @@ function ReportViewModal({
             {/* Sentiment */}
             {Object.keys(sentiment).length > 0 && (
               <div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">Sentimento</div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">
+                  Sentimento
+                </div>
                 <div className="space-y-2">
                   {[
-                    { label: "Positivo", value: sentiment.positive ?? 0, color: "bg-emerald-500" },
-                    { label: "Neutro", value: sentiment.neutral ?? 0, color: "bg-muted-foreground/40" },
-                    { label: "Negativo", value: sentiment.negative ?? 0, color: "bg-rose-500" },
+                    {
+                      label: "Positivo",
+                      value: sentiment.positive ?? 0,
+                      color: "bg-emerald-500",
+                    },
+                    {
+                      label: "Neutro",
+                      value: sentiment.neutral ?? 0,
+                      color: "bg-muted-foreground/40",
+                    },
+                    {
+                      label: "Negativo",
+                      value: sentiment.negative ?? 0,
+                      color: "bg-rose-500",
+                    },
                   ].map((s) => (
                     <div key={s.label} className="flex items-center gap-3">
-                      <span className="w-16 text-xs text-muted-foreground">{s.label}</span>
+                      <span className="w-16 text-xs text-muted-foreground">
+                        {s.label}
+                      </span>
                       <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                        <div className={`h-full rounded-full ${s.color}`} style={{ width: `${s.value}%` }} />
+                        <div
+                          className={`h-full rounded-full ${s.color}`}
+                          style={{ width: `${s.value}%` }}
+                        />
                       </div>
-                      <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">{s.value}%</span>
+                      <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">
+                        {s.value}%
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -2534,10 +3253,15 @@ function ReportViewModal({
             {/* Top locations */}
             {topLocs.length > 0 && (
               <div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">Top unidades</div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">
+                  Top unidades
+                </div>
                 <div className="space-y-1.5">
                   {topLocs.map((l, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
+                    <div
+                      key={i}
+                      className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
+                    >
                       <span className="font-medium">{l.name}</span>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
                         <span>★ {Number(l.rating).toFixed(1)}</span>
@@ -2552,12 +3276,20 @@ function ReportViewModal({
             {/* Competitors */}
             {competitors.length > 0 && (
               <div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">Concorrentes</div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">
+                  Concorrentes
+                </div>
                 <div className="space-y-1.5">
                   {competitors.map((c, i) => (
-                    <div key={i} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
+                    <div
+                      key={i}
+                      className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
+                    >
                       <span className="text-muted-foreground">{c.name}</span>
-                      <span className="text-xs tabular-nums">★ {Number(c.rating).toFixed(1)} · {(c.reviewCount ?? 0).toLocaleString()} rev.</span>
+                      <span className="text-xs tabular-nums">
+                        ★ {Number(c.rating).toFixed(1)} ·{" "}
+                        {(c.reviewCount ?? 0).toLocaleString()} rev.
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -2567,12 +3299,21 @@ function ReportViewModal({
             {/* Insights */}
             {topInsights.length > 0 && (
               <div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">Top insights</div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">
+                  Top insights
+                </div>
                 <div className="space-y-2">
                   {topInsights.map((ins, i) => (
-                    <div key={i} className="rounded-lg border border-border bg-muted/30 p-3">
+                    <div
+                      key={i}
+                      className="rounded-lg border border-border bg-muted/30 p-3"
+                    >
                       <div className="text-xs font-semibold">{ins.title}</div>
-                      {ins.body && <p className="mt-1 text-[11px] text-muted-foreground">{ins.body}</p>}
+                      {ins.body && (
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          {ins.body}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -2585,12 +3326,120 @@ function ReportViewModal({
   );
 }
 
+function downloadReportHtml(report: Record<string, unknown>) {
+  const cj = report.content_json as Record<string, unknown> | null;
+  const kpis = (cj?.kpis ?? {}) as Record<string, number>;
+  const sentiment = (cj?.sentiment ?? {}) as Record<string, number>;
+  const topLocs = (cj?.topLocations ?? []) as {
+    name: string;
+    city: string;
+    score: number;
+    rating: number;
+    reviewCount: number;
+  }[];
+  const competitors = (cj?.competitors ?? []) as {
+    name: string;
+    rating: number;
+    reviewCount: number;
+  }[];
+  const topInsights = (cj?.topInsights ?? []) as {
+    title: string;
+    body: string;
+  }[];
+  const name = String(report.name ?? "Relatório");
+  const period = String(report.period ?? "");
+  const generatedAt = cj?.generatedAt
+    ? new Date(String(cj.generatedAt)).toLocaleString("pt-BR")
+    : new Date(String(report.created_at)).toLocaleString("pt-BR");
+
+  const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${name}</title>
+<style>
+body{font-family:-apple-system,Segoe UI,sans-serif;max-width:820px;margin:40px auto;padding:0 20px;color:#1a1a1a}
+h1{font-size:24px;margin-bottom:4px}.sub{color:#666;margin-bottom:28px;font-size:13px}
+h2{font-size:15px;margin-top:32px;border-bottom:1px solid #e5e5e5;padding-bottom:8px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.kpi{border:1px solid #e5e5e5;border-radius:8px;padding:12px}
+.kpi .l{font-size:11px;text-transform:uppercase;color:#888}.kpi .v{font-size:22px;font-weight:600;margin-top:4px}
+table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid #eee}
+th{color:#888;font-size:11px;text-transform:uppercase}
+.tag{display:inline-block;background:#f0f0f0;border-radius:12px;padding:2px 8px;font-size:11px}
+</style></head><body>
+<h1>${name}</h1>
+<div class="sub">${period} · Gerado em ${generatedAt} · Branchly</div>
+
+<h2>KPIs</h2>
+<div class="kpis">
+${[
+  ["Nota média", kpis.avgRating?.toFixed?.(1) ?? "—"],
+  ["Score médio", kpis.avgScore?.toFixed?.(1) ?? "—"],
+  ["Total reviews", String(kpis.totalReviews ?? "—")],
+  [
+    "Taxa de resposta",
+    kpis.responseRate !== undefined ? `${kpis.responseRate}%` : "—",
+  ],
+  ["Unidades ativas", String(kpis.activeLocations ?? "—")],
+  ["Benchmark", kpis.benchmarkRating?.toFixed?.(1) ?? "—"],
+]
+  .map(
+    ([l, v]) =>
+      `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`,
+  )
+  .join("")}
+</div>
+
+${
+  Object.keys(sentiment).length
+    ? `<h2>Sentimento</h2><table><tr><th>Positivo</th><th>Neutro</th><th>Negativo</th></tr><tr><td>${sentiment.positive ?? 0}%</td><td>${sentiment.neutral ?? 0}%</td><td>${sentiment.negative ?? 0}%</td></tr></table>`
+    : ""
+}
+
+${
+  topLocs.length
+    ? `<h2>Top unidades</h2><table><tr><th>Nome</th><th>Cidade</th><th>Score</th><th>Rating</th><th>Reviews</th></tr>${topLocs
+        .map(
+          (l) =>
+            `<tr><td>${l.name}</td><td>${l.city ?? "—"}</td><td>${l.score}</td><td>${Number(l.rating).toFixed(1)}</td><td>${l.reviewCount ?? 0}</td></tr>`,
+        )
+        .join("")}</table>`
+    : ""
+}
+
+${
+  competitors.length
+    ? `<h2>Concorrentes</h2><table><tr><th>Nome</th><th>Rating</th><th>Reviews</th></tr>${competitors
+        .map(
+          (c) =>
+            `<tr><td>${c.name}</td><td>${Number(c.rating).toFixed(1)}</td><td>${c.reviewCount ?? 0}</td></tr>`,
+        )
+        .join("")}</table>`
+    : ""
+}
+
+${
+  topInsights.length
+    ? `<h2>Top insights</h2>${topInsights.map((i) => `<p><strong>${i.title}</strong><br><span style="color:#666;font-size:13px">${i.body ?? ""}</span></p>`).join("")}`
+    : ""
+}
+</body></html>`;
+
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${name.toLowerCase().replace(/\s+/g, "-")}.html`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function ReportsSection() {
   const { data } = useDashboard();
   const reports = data?.reports ?? [];
   const { requireFeature, limits } = usePlan();
   const [modalOpen, setModalOpen] = useState(false);
-  const [viewReport, setViewReport] = useState<Record<string, unknown> | null>(null);
+  const [viewReport, setViewReport] = useState<Record<string, unknown> | null>(
+    null,
+  );
   const onAdd = () => {
     if (requireFeature("reports", reports.length + 1)) setModalOpen(true);
   };
@@ -2609,7 +3458,12 @@ function ReportsSection() {
         }
       />
       <NewReportModal open={modalOpen} onOpenChange={setModalOpen} />
-      {viewReport && <ReportViewModal report={viewReport} onClose={() => setViewReport(null)} />}
+      {viewReport && (
+        <ReportViewModal
+          report={viewReport}
+          onClose={() => setViewReport(null)}
+        />
+      )}
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {reports.length === 0 ? (
@@ -2642,8 +3496,14 @@ function ReportsSection() {
                       {r.period ?? "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${r.status === "ready" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>
-                        {r.status === "ready" ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${r.status === "ready" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}
+                      >
+                        {r.status === "ready" ? (
+                          <CheckCircle2 className="h-3 w-3" />
+                        ) : (
+                          <Clock className="h-3 w-3" />
+                        )}
                         {r.status ?? "—"}
                       </span>
                     </td>
@@ -2653,14 +3513,23 @@ function ReportsSection() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
                         {hasContent && (
-                          <button
-                            onClick={() => setViewReport(rr)}
-                            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
-                          >
-                            Ver KPIs
-                          </button>
+                          <>
+                            <button
+                              onClick={() => setViewReport(rr)}
+                              className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+                            >
+                              Ver KPIs
+                            </button>
+                            <button
+                              onClick={() => downloadReportHtml(rr)}
+                              title="Baixar relatório"
+                              className="flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+                            >
+                              <Download className="h-3 w-3" />
+                            </button>
+                          </>
                         )}
-                        {r.file_url && (
+                        {!hasContent && r.file_url && (
                           <a
                             href={r.file_url}
                             target="_blank"
@@ -2685,12 +3554,53 @@ function ReportsSection() {
 
 /* -------------------------------- Billing ------------------------------ */
 
+const PLAN_BENEFITS: Record<PlanKey, string[]> = {
+  starter: [
+    "1 unidade cadastrada",
+    "Até 3 concorrentes rastreados (benchmarking)",
+    "10 relatórios por mês",
+    "50 respostas com IA por mês",
+    "Captura de reviews até 5x por dia",
+    "QR Code de captação de avaliações",
+    "Score de reputação (IA + Google)",
+    "Dashboard de KPIs e sentimento",
+    "Suporte por e-mail",
+  ],
+  pro: [
+    "Até 5 unidades cadastradas",
+    "Até 10 concorrentes rastreados (benchmarking)",
+    "Relatórios ilimitados",
+    "Respostas com IA ilimitadas",
+    "Captura de reviews até 50x por dia",
+    "QR Code de captação por unidade",
+    "Benchmarking avançado com comparação de unidades",
+    "Conexão com Facebook e Instagram",
+    "Pixel de atribuição e rastreamento",
+    "Gestão de equipe (múltiplos usuários)",
+    "Suporte prioritário",
+  ],
+  premium: [
+    "Até 15 unidades cadastradas",
+    "Concorrentes ilimitados (benchmarking)",
+    "Relatórios ilimitados com histórico completo",
+    "Respostas com IA ilimitadas",
+    "Captura de reviews ilimitada",
+    "QR Code de captação por unidade",
+    "Benchmarking avançado com comparação de unidades",
+    "Conexão com Facebook, Instagram, TikTok e Pinterest",
+    "Pixel de atribuição e rastreamento avançado",
+    "Gestão de equipe ilimitada",
+    "Acesso antecipado a novos recursos",
+    "Suporte prioritário dedicado",
+  ],
+};
+
 function BillingSection() {
   const [email, setEmail] = useState("");
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) =>
-      setEmail(data.session?.user?.email ?? ""),
-    );
+    supabase.auth
+      .getSession()
+      .then(({ data }) => setEmail(data.session?.user?.email ?? ""));
   }, []);
   const queryClient = useQueryClient();
   const checkSub = useServerFn(checkSubscription);
@@ -2781,10 +3691,11 @@ function BillingSection() {
           {(Object.entries(PLANS) as [PlanKey, (typeof PLANS)[PlanKey]][]).map(
             ([key, plan]) => {
               const isActive = activePlan === key;
+              const benefits = PLAN_BENEFITS[key] ?? [];
               return (
                 <div
                   key={key}
-                  className={`rounded-xl border p-4 transition ${isActive ? "border-accent bg-accent/5" : "border-border bg-card"}`}
+                  className={`flex flex-col rounded-xl border p-4 transition ${isActive ? "border-accent bg-accent/5" : "border-border bg-card"}`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="font-display text-base font-semibold">
@@ -2804,6 +3715,17 @@ function BillingSection() {
                       / month
                     </span>
                   </div>
+                  <ul className="mt-4 flex-1 space-y-2">
+                    {benefits.map((b) => (
+                      <li
+                        key={b}
+                        className="flex items-start gap-2 text-xs text-muted-foreground"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-500 mt-0.5" />
+                        <span>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
                   <button
                     onClick={() =>
                       isActive ? handlePortal() : handleSubscribe(key)
@@ -3323,13 +4245,10 @@ function AttributionSection() {
     }
   }, [sites]);
 
-  const baseUrl =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : "https://branchly.com.br";
+  const baseUrl = "https://branchly.com.br";
 
   function snippet(pixelId: string) {
-    return `<script src="${baseUrl}/api/pixel/${pixelId}" async></script>`;
+    return `<script src="${baseUrl}/api/pixel/${pixelId}" async defer></script>`;
   }
 
   async function handleCopy(text: string, key: string) {
@@ -3724,17 +4643,15 @@ function AttributionSection() {
                 </div>
               )}
 
-              {stats &&
-                stats.totalSessions === 0 &&
-                !loadingStats && (
-                  <div className="rounded-lg border border-dashed border-border p-8 text-center">
-                    <Activity className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      Nenhum dado ainda. Instale o pixel no seu site para
-                      começar a capturar sessões.
-                    </p>
-                  </div>
-                )}
+              {stats && stats.totalSessions === 0 && !loadingStats && (
+                <div className="rounded-lg border border-dashed border-border p-8 text-center">
+                  <Activity className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum dado ainda. Instale o pixel no seu site para começar
+                    a capturar sessões.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>

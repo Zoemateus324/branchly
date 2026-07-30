@@ -1,5 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, Zap, Plug, GitBranch, HelpCircle, ArrowRight } from "lucide-react";
+import {
+  BookOpen,
+  Zap,
+  Plug,
+  GitBranch,
+  HelpCircle,
+  ArrowRight,
+} from "lucide-react";
 import { StaticPage } from "@/components/site/StaticPage";
 import { useApp } from "@/lib/providers";
 
@@ -7,7 +14,8 @@ const content = {
   en: {
     eyebrow: "Documentation",
     title: "Branchly Docs",
-    subtitle: "Everything you need to monitor, benchmark and grow your local reputation.",
+    subtitle:
+      "Everything you need to monitor, benchmark and grow your local reputation.",
     search: "Search documentation…",
     gettingStarted: "Getting Started",
     sections: [
@@ -15,45 +23,46 @@ const content = {
         icon: "zap",
         title: "Quickstart",
         desc: "Connect your Google Business Profile and get your first reputation score in under 5 minutes.",
-        href: "/docs",
+        href: "/docs/inicio-rapido",
       },
       {
         icon: "plug",
         title: "Integrations",
         desc: "Connect Google, Facebook, Instagram and WhatsApp to unify your review data.",
-        href: "/docs",
+        href: "/docs/integracoes",
       },
       {
         icon: "git",
         title: "Attribution Pixel",
         desc: "Track which channels drive reviews and conversions with the Branchly pixel.",
-        href: "/docs",
+        href: "/docs/pixel-atribuicao",
       },
       {
         icon: "book",
         title: "API Reference",
         desc: "Programmatic access to your reputation data and AI insights via REST API.",
-        href: "/docs",
+        href: "/docs/api",
       },
       {
         icon: "help",
         title: "Guides",
         desc: "Step-by-step guides for common workflows: QR codes, AI replies, PDF reports.",
-        href: "/docs",
+        href: "/docs/guias",
       },
       {
         icon: "help",
         title: "FAQ",
         desc: "Answers to the most common questions from Branchly users.",
-        href: "/docs",
+        href: "/docs/faq",
       },
     ],
-    comingSoon: "Full documentation is coming soon. For now, reach us at",
+    comingSoon: "Have another question? Reach us at",
   },
   pt: {
     eyebrow: "Documentação",
     title: "Docs do Branchly",
-    subtitle: "Tudo que você precisa para monitorar, comparar e crescer sua reputação local.",
+    subtitle:
+      "Tudo que você precisa para monitorar, comparar e crescer sua reputação local.",
     search: "Buscar na documentação…",
     gettingStarted: "Primeiros Passos",
     sections: [
@@ -61,40 +70,40 @@ const content = {
         icon: "zap",
         title: "Início Rápido",
         desc: "Conecte seu Google Meu Negócio e receba seu primeiro score de reputação em menos de 5 minutos.",
-        href: "/docs",
+        href: "/docs/inicio-rapido",
       },
       {
         icon: "plug",
         title: "Integrações",
         desc: "Conecte Google, Facebook, Instagram e WhatsApp para unificar seus dados de avaliações.",
-        href: "/docs",
+        href: "/docs/integracoes",
       },
       {
         icon: "git",
         title: "Pixel de Atribuição",
         desc: "Rastreie quais canais geram avaliações e conversões com o pixel do Branchly.",
-        href: "/docs",
+        href: "/docs/pixel-atribuicao",
       },
       {
         icon: "book",
         title: "Referência da API",
         desc: "Acesso programático aos seus dados de reputação e insights de IA via API REST.",
-        href: "/docs",
+        href: "/docs/api",
       },
       {
         icon: "help",
         title: "Guias",
         desc: "Tutoriais passo a passo para fluxos comuns: QR codes, respostas com IA, relatórios PDF.",
-        href: "/docs",
+        href: "/docs/guias",
       },
       {
         icon: "help",
         title: "Perguntas Frequentes",
         desc: "Respostas para as dúvidas mais comuns dos usuários do Branchly.",
-        href: "/docs",
+        href: "/docs/faq",
       },
     ],
-    comingSoon: "A documentação completa está a caminho. Por enquanto, fale conosco em",
+    comingSoon: "Tem outra dúvida? Fale conosco em",
   },
 };
 
@@ -110,7 +119,11 @@ export const Route = createFileRoute("/docs")({
   head: () => ({
     meta: [
       { title: "Documentation — Branchly" },
-      { name: "description", content: "Branchly documentation: quickstart, integrations, API reference and guides." },
+      {
+        name: "description",
+        content:
+          "Branchly documentation: quickstart, integrations, API reference and guides.",
+      },
     ],
     links: [{ rel: "canonical", href: "https://branchly.com.br/docs" }],
   }),
@@ -162,7 +175,10 @@ function DocsPage() {
 
       <p className="mt-12 text-sm text-muted-foreground">
         {c.comingSoon}{" "}
-        <a href="mailto:contato@branchly.com.br" className="text-accent hover:underline">
+        <a
+          href="mailto:contato@branchly.com.br"
+          className="text-accent hover:underline"
+        >
           contato@branchly.com.br
         </a>
         .

@@ -18,7 +18,8 @@ export function QRCodeCard({ locationName, city, googleReviewUrl }: Props) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const reviewUrl = googleReviewUrl || buildGoogleReviewUrl(locationName, city);
+    const reviewUrl =
+      googleReviewUrl || buildGoogleReviewUrl(locationName, city);
     setUrl(reviewUrl);
 
     import("qrcode").then((QRCode) => {
