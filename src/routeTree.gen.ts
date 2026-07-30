@@ -11,7 +11,21 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as BranchlyVsTintimRouteImport } from './routes/branchly-vs-tintim'
+import { Route as CareersRouteImport } from './routes/careers'
+import { Route as ChangelogRouteImport } from './routes/changelog'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CustomersRouteImport } from './routes/customers'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as LgpdRouteImport } from './routes/lgpd'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as SecurityRouteImport } from './routes/security'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ApiCollectRouteImport } from './routes/api.collect'
@@ -32,6 +46,7 @@ import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as ApiPixelPixelIdRouteImport } from './routes/api.pixel.$pixelId'
+import { Route as ApiWhatsappWebhookRouteImport } from './routes/api.whatsapp.webhook'
 import { Route as IntegrationsFacebookCallbackRouteImport } from './routes/integrations.facebook.callback'
 
 const IndexRoute = IndexRouteImport.update({
@@ -43,9 +58,79 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BranchlyVsTintimRoute = BranchlyVsTintimRouteImport.update({
+  id: '/branchly-vs-tintim',
+  path: '/branchly-vs-tintim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CareersRoute = CareersRouteImport.update({
+  id: '/careers',
+  path: '/careers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangelogRoute = ChangelogRouteImport.update({
+  id: '/changelog',
+  path: '/changelog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CustomersRoute = CustomersRouteImport.update({
+  id: '/customers',
+  path: '/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LgpdRoute = LgpdRouteImport.update({
+  id: '/lgpd',
+  path: '/lgpd',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoadmapRoute = RoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
@@ -156,6 +241,11 @@ const ApiPixelPixelIdRoute = ApiPixelPixelIdRouteImport.update({
   path: '/api/pixel/$pixelId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWhatsappWebhookRoute = ApiWhatsappWebhookRouteImport.update({
+  id: '/api/whatsapp/webhook',
+  path: '/api/whatsapp/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntegrationsFacebookCallbackRoute =
   IntegrationsFacebookCallbackRouteImport.update({
     id: '/integrations/facebook/callback',
@@ -165,7 +255,21 @@ const IntegrationsFacebookCallbackRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/branchly-vs-tintim': typeof BranchlyVsTintimRoute
+  '/careers': typeof CareersRoute
+  '/changelog': typeof ChangelogRoute
+  '/contact': typeof ContactRoute
+  '/customers': typeof CustomersRoute
+  '/docs': typeof DocsRoute
+  '/features': typeof FeaturesRoute
+  '/lgpd': typeof LgpdRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/roadmap': typeof RoadmapRoute
+  '/security': typeof SecurityRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/api/collect': typeof ApiCollectRoute
@@ -185,12 +289,27 @@ export interface FileRoutesByFullPath {
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
+  '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
   '/integrations/facebook/callback': typeof IntegrationsFacebookCallbackRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/branchly-vs-tintim': typeof BranchlyVsTintimRoute
+  '/careers': typeof CareersRoute
+  '/changelog': typeof ChangelogRoute
+  '/contact': typeof ContactRoute
+  '/customers': typeof CustomersRoute
+  '/docs': typeof DocsRoute
+  '/features': typeof FeaturesRoute
+  '/lgpd': typeof LgpdRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/roadmap': typeof RoadmapRoute
+  '/security': typeof SecurityRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/api/collect': typeof ApiCollectRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
@@ -209,6 +328,7 @@ export interface FileRoutesByTo {
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
+  '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
   '/integrations/facebook/callback': typeof IntegrationsFacebookCallbackRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
@@ -216,7 +336,21 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
+  '/branchly-vs-tintim': typeof BranchlyVsTintimRoute
+  '/careers': typeof CareersRoute
+  '/changelog': typeof ChangelogRoute
+  '/contact': typeof ContactRoute
+  '/customers': typeof CustomersRoute
+  '/docs': typeof DocsRoute
+  '/features': typeof FeaturesRoute
+  '/lgpd': typeof LgpdRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
+  '/roadmap': typeof RoadmapRoute
+  '/security': typeof SecurityRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/api/collect': typeof ApiCollectRoute
@@ -236,6 +370,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
+  '/api/whatsapp/webhook': typeof ApiWhatsappWebhookRoute
   '/integrations/facebook/callback': typeof IntegrationsFacebookCallbackRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -243,7 +378,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
+    | '/branchly-vs-tintim'
+    | '/careers'
+    | '/changelog'
+    | '/contact'
+    | '/customers'
+    | '/docs'
+    | '/features'
+    | '/lgpd'
+    | '/pricing'
+    | '/privacy'
+    | '/roadmap'
+    | '/security'
     | '/sitemap.xml'
+    | '/terms'
     | '/admin'
     | '/dashboard'
     | '/api/collect'
@@ -263,12 +412,27 @@ export interface FileRouteTypes {
     | '/admin/seo'
     | '/admin/users'
     | '/api/pixel/$pixelId'
+    | '/api/whatsapp/webhook'
     | '/integrations/facebook/callback'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
+    | '/branchly-vs-tintim'
+    | '/careers'
+    | '/changelog'
+    | '/contact'
+    | '/customers'
+    | '/docs'
+    | '/features'
+    | '/lgpd'
+    | '/pricing'
+    | '/privacy'
+    | '/roadmap'
+    | '/security'
     | '/sitemap.xml'
+    | '/terms'
     | '/dashboard'
     | '/api/collect'
     | '/guia/aparecer-nas-primeiras-paginas-do-google'
@@ -287,13 +451,28 @@ export interface FileRouteTypes {
     | '/admin/seo'
     | '/admin/users'
     | '/api/pixel/$pixelId'
+    | '/api/whatsapp/webhook'
     | '/integrations/facebook/callback'
     | '/admin'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/about'
+    | '/branchly-vs-tintim'
+    | '/careers'
+    | '/changelog'
+    | '/contact'
+    | '/customers'
+    | '/docs'
+    | '/features'
+    | '/lgpd'
+    | '/pricing'
+    | '/privacy'
+    | '/roadmap'
+    | '/security'
     | '/sitemap.xml'
+    | '/terms'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/api/collect'
@@ -313,6 +492,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/seo'
     | '/_authenticated/admin/users'
     | '/api/pixel/$pixelId'
+    | '/api/whatsapp/webhook'
     | '/integrations/facebook/callback'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
@@ -320,7 +500,21 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
+  BranchlyVsTintimRoute: typeof BranchlyVsTintimRoute
+  CareersRoute: typeof CareersRoute
+  ChangelogRoute: typeof ChangelogRoute
+  ContactRoute: typeof ContactRoute
+  CustomersRoute: typeof CustomersRoute
+  DocsRoute: typeof DocsRoute
+  FeaturesRoute: typeof FeaturesRoute
+  LgpdRoute: typeof LgpdRoute
+  PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
+  RoadmapRoute: typeof RoadmapRoute
+  SecurityRoute: typeof SecurityRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
   ApiCollectRoute: typeof ApiCollectRoute
   GuiaAparecerNasPrimeirasPaginasDoGoogleRoute: typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   GuiaMelhorarReputacaoNoGoogleRoute: typeof GuiaMelhorarReputacaoNoGoogleRoute
@@ -329,6 +523,7 @@ export interface RootRouteChildren {
   SignInSplatRoute: typeof SignInSplatRoute
   SignUpSplatRoute: typeof SignUpSplatRoute
   ApiPixelPixelIdRoute: typeof ApiPixelPixelIdRoute
+  ApiWhatsappWebhookRoute: typeof ApiWhatsappWebhookRoute
   IntegrationsFacebookCallbackRoute: typeof IntegrationsFacebookCallbackRoute
 }
 
@@ -348,11 +543,109 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/branchly-vs-tintim': {
+      id: '/branchly-vs-tintim'
+      path: '/branchly-vs-tintim'
+      fullPath: '/branchly-vs-tintim'
+      preLoaderRoute: typeof BranchlyVsTintimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/careers': {
+      id: '/careers'
+      path: '/careers'
+      fullPath: '/careers'
+      preLoaderRoute: typeof CareersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changelog': {
+      id: '/changelog'
+      path: '/changelog'
+      fullPath: '/changelog'
+      preLoaderRoute: typeof ChangelogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/customers': {
+      id: '/customers'
+      path: '/customers'
+      fullPath: '/customers'
+      preLoaderRoute: typeof CustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lgpd': {
+      id: '/lgpd'
+      path: '/lgpd'
+      fullPath: '/lgpd'
+      preLoaderRoute: typeof LgpdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roadmap': {
+      id: '/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof RoadmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -495,6 +788,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPixelPixelIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/whatsapp/webhook': {
+      id: '/api/whatsapp/webhook'
+      path: '/api/whatsapp/webhook'
+      fullPath: '/api/whatsapp/webhook'
+      preLoaderRoute: typeof ApiWhatsappWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integrations/facebook/callback': {
       id: '/integrations/facebook/callback'
       path: '/integrations/facebook/callback'
@@ -553,7 +853,21 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
+  BranchlyVsTintimRoute: BranchlyVsTintimRoute,
+  CareersRoute: CareersRoute,
+  ChangelogRoute: ChangelogRoute,
+  ContactRoute: ContactRoute,
+  CustomersRoute: CustomersRoute,
+  DocsRoute: DocsRoute,
+  FeaturesRoute: FeaturesRoute,
+  LgpdRoute: LgpdRoute,
+  PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
+  RoadmapRoute: RoadmapRoute,
+  SecurityRoute: SecurityRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
   ApiCollectRoute: ApiCollectRoute,
   GuiaAparecerNasPrimeirasPaginasDoGoogleRoute:
     GuiaAparecerNasPrimeirasPaginasDoGoogleRoute,
@@ -563,6 +877,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInSplatRoute: SignInSplatRoute,
   SignUpSplatRoute: SignUpSplatRoute,
   ApiPixelPixelIdRoute: ApiPixelPixelIdRoute,
+  ApiWhatsappWebhookRoute: ApiWhatsappWebhookRoute,
   IntegrationsFacebookCallbackRoute: IntegrationsFacebookCallbackRoute,
 }
 export const routeTree = rootRouteImport
