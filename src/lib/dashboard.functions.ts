@@ -77,6 +77,15 @@ export const getDashboardData = createServerFn({ method: "POST" })
       ? Math.round((repliedCount / reviews.length) * 100)
       : 0;
 
+    // Benchmark: average competitor rating, or 4.5 as industry standard
+    const compRatings = competitors
+      .map((c) => Number(c.rating))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    const benchmarkRating =
+      compRatings.length
+        ? Math.round((compRatings.reduce((a, b) => a + b, 0) / compRatings.length) * 10) / 10
+        : 4.5;
+
     // Sentiment mix
     const sentCounts = { positive: 0, neutral: 0, negative: 0 };
     for (const r of reviews) {
@@ -144,6 +153,8 @@ export const getDashboardData = createServerFn({ method: "POST" })
         responseRate,
         activeLocations: locations.length,
         atRisk: locations.filter((l) => Number(l.score) < 75).length,
+        benchmarkRating,
+        ratingGap: Math.round((Math.round(avgRating * 10) / 10 - benchmarkRating) * 10) / 10,
       },
       sentiment,
       dist,
