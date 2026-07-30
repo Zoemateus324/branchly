@@ -681,6 +681,20 @@ export function CTA() {
   );
 }
 
+const PRODUCT_LINKS: { label: string; to: string }[] = [
+  { label: "Features", to: "/features" },
+  { label: "Pricing", to: "/pricing" },
+  { label: "Changelog", to: "/changelog" },
+  { label: "Roadmap", to: "/roadmap" },
+];
+
+const COMPANY_LINKS: { label: string; to: string }[] = [
+  { label: "About", to: "/about" },
+  { label: "Customers", to: "/customers" },
+  { label: "Careers", to: "/careers" },
+  { label: "Contact", to: "/contact" },
+];
+
 export function Footer() {
   const { t } = useApp();
   return (
@@ -693,29 +707,26 @@ export function Footer() {
               {t.footer.tagline}
             </p>
           </div>
-          <FooterCol
-            title={t.footer.product}
-            links={["Features", "Pricing", "Changelog", "Roadmap"]}
-          />
-          <FooterCol
-            title={t.footer.company}
-            links={["About", "Customers", "Careers", "Contact"]}
-          />
+          <FooterCol title={t.footer.product} links={PRODUCT_LINKS} />
+          <FooterCol title={t.footer.company} links={COMPANY_LINKS} />
         </div>
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground">
           <div>
             © {new Date().getFullYear()} Branchly. {t.footer.rights}
           </div>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-foreground">
+            <Link to="/privacy" className="hover:text-foreground">
               Privacy
-            </a>
-            <a href="#" className="hover:text-foreground">
+            </Link>
+            <Link to="/terms" className="hover:text-foreground">
               Terms
-            </a>
-            <a href="#" className="hover:text-foreground">
+            </Link>
+            <Link to="/security" className="hover:text-foreground">
               Security
-            </a>
+            </Link>
+            <Link to="/lgpd" className="hover:text-foreground">
+              LGPD
+            </Link>
           </div>
         </div>
       </div>
@@ -723,7 +734,13 @@ export function Footer() {
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: string[] }) {
+function FooterCol({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; to: string }[];
+}) {
   return (
     <div>
       <div className="text-xs font-semibold uppercase tracking-wider text-foreground">
@@ -731,10 +748,10 @@ function FooterCol({ title, links }: { title: string; links: string[] }) {
       </div>
       <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
         {links.map((l) => (
-          <li key={l}>
-            <a href="#" className="hover:text-foreground">
-              {l}
-            </a>
+          <li key={l.to}>
+            <Link to={l.to} className="hover:text-foreground">
+              {l.label}
+            </Link>
           </li>
         ))}
       </ul>
