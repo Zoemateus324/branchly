@@ -1,15 +1,33 @@
-import { Link } from "@tanstack/react-router";
-import { Moon, Sun, Globe, ChevronDown } from "lucide-react";
-import { useState } from "react";
-import { useAuth, UserButton } from "@clerk/clerk-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Moon, Sun, Globe, ChevronDown, LogOut } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "./Logo";
 import { useApp } from "@/lib/providers";
+import type { User } from "@supabase/supabase-js";
 
 export function Header() {
   const { t, locale, setLocale, currency, setCurrency, theme, setTheme } =
     useApp();
-  const { isSignedIn } = useAuth();
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setUser(s?.user ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    navigate({ to: "/" });
+  }
+
+  const isSignedIn = !!user;
+  const initials = user?.email?.slice(0, 2).toUpperCase() ?? "?";
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -95,14 +113,13 @@ export function Header() {
           </button>
 
           {isSignedIn ? (
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: "h-8 w-8 rounded-full",
-                },
-              }}
-            />
+            <button
+              onClick={handleSignOut}
+              title={user?.email ?? "Sign out"}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground transition hover:opacity-80"
+            >
+              {initials}
+            </button>
           ) : (
             <>
               <Link

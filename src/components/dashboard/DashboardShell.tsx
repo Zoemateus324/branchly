@@ -5,8 +5,8 @@ import {
   createContext,
   useContext,
 } from "react";
-import { Link } from "@tanstack/react-router";
-import { useUser, UserButton } from "@clerk/clerk-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -92,8 +92,21 @@ import {
   Facebook,
   Instagram,
   Unlink,
+  Activity,
+  Copy,
+  CheckCheck,
+  Globe,
+  MousePointerClick,
+  PhoneCall,
+  MessageCircle,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
+import {
+  createPixelSite,
+  listPixelSites,
+  deletePixelSite,
+  getAttributionStats,
+} from "@/lib/attribution/attribution.functions";
 
 const act = (msg: string) => toast.success(msg);
 
@@ -175,7 +188,8 @@ type SectionId =
   | "insights"
   | "reports"
   | "team"
-  | "billing";
+  | "billing"
+  | "attribution";
 
 const NAV: { id: SectionId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -187,6 +201,7 @@ const NAV: { id: SectionId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "reports", label: "Reports", icon: FileBarChart },
   { id: "team", label: "Equipe", icon: UserPlus },
   { id: "billing", label: "Billing", icon: CreditCard },
+  { id: "attribution", label: "Rastreamento", icon: Activity },
 ];
 
 /* ---------------- language + theme toggles ---------------- */
@@ -273,10 +288,21 @@ function ThemeToggle() {
 }
 
 export function DashboardShell() {
-  const { user } = useUser();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [section, setSection] = useState<SectionId>("overview");
   const [days, setDays] = useState<DaysFilter>(30);
   const active = NAV.find((n) => n.id === section)!;
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) =>
+      setUserEmail(data.session?.user?.email ?? null),
+    );
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setUserEmail(s?.user?.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const handler = () => setSection("billing");
@@ -360,9 +386,7 @@ export function DashboardShell() {
                   </h1>
                   <span className="hidden text-xs text-muted-foreground sm:inline">
                     · Welcome back,{" "}
-                    {user?.firstName ||
-                      user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] ||
-                      "there"}
+                    {userEmail?.split("@")[0] || "there"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -385,12 +409,15 @@ export function DashboardShell() {
                   />
                   <LanguageSelector />
                   <ThemeToggle />
-                  <UserButton
-                    afterSignOutUrl="/"
-                    appearance={{
-                      elements: { avatarBox: "h-8 w-8 rounded-full" },
+                  <button
+                    onClick={() => {
+                      supabase.auth.signOut().then(() => navigate({ to: "/" }));
                     }}
-                  />
+                    title={userEmail ?? "Sign out"}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground transition hover:opacity-80"
+                  >
+                    {(userEmail?.slice(0, 2) ?? "?").toUpperCase()}
+                  </button>
                 </div>
               </header>
 
@@ -421,6 +448,7 @@ export function DashboardShell() {
                 {section === "reports" && <ReportsSection />}
                 {section === "team" && <TeamSection />}
                 {section === "billing" && <BillingSection />}
+                {section === "attribution" && <AttributionSection />}
               </main>
             </div>
           </div>
@@ -2306,11 +2334,12 @@ function ReportsSection() {
 /* -------------------------------- Billing ------------------------------ */
 
 function BillingSection() {
-  const { user } = useUser();
-  const email =
-    user?.primaryEmailAddress?.emailAddress ??
-    user?.emailAddresses?.[0]?.emailAddress ??
-    "";
+  const [email, setEmail] = useState("");
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) =>
+      setEmail(data.session?.user?.email ?? ""),
+    );
+  }, []);
   const queryClient = useQueryClient();
   const checkSub = useServerFn(checkSubscription);
   const createCheckoutFn = useServerFn(createCheckout);
@@ -2890,5 +2919,474 @@ export function NewReportModal({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ─────────────────────────── Attribution ─────────────────────────── */
+
+type PixelSite = {
+  id: string;
+  name: string;
+  domain: string;
+  pixel_id: string;
+  created_at: string;
+};
+
+type AttrStats = Awaited<ReturnType<typeof getAttributionStats>>;
+
+function AttributionSection() {
+  const listFn = useServerFn(listPixelSites);
+  const createFn = useServerFn(createPixelSite);
+  const deleteFn = useServerFn(deletePixelSite);
+  const statsFn = useServerFn(getAttributionStats);
+  const qc = useQueryClient();
+
+  const { data: sitesData } = useQuery({
+    queryKey: ["pixel-sites"],
+    queryFn: () => listFn(),
+  });
+  const sites: PixelSite[] = (sitesData?.sites ?? []) as PixelSite[];
+
+  const [selectedSite, setSelectedSite] = useState<PixelSite | null>(null);
+  const [statsDays, setStatsDays] = useState<7 | 15 | 30>(7);
+  const [stats, setStats] = useState<AttrStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ name: "", domain: "" });
+  const [showCreate, setShowCreate] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedSite) return;
+    setLoadingStats(true);
+    statsFn({ data: { siteId: selectedSite.id, days: statsDays } })
+      .then((s) => setStats(s))
+      .catch(() => setStats(null))
+      .finally(() => setLoadingStats(false));
+  }, [selectedSite, statsDays]);
+
+  useEffect(() => {
+    if (sites.length > 0 && !selectedSite) {
+      setSelectedSite(sites[0]);
+    }
+  }, [sites]);
+
+  const baseUrl =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "https://branchly.com.br";
+
+  function snippet(pixelId: string) {
+    return `<script src="${baseUrl}/api/pixel/${pixelId}" async></script>`;
+  }
+
+  async function handleCopy(text: string, key: string) {
+    await navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  async function handleCreate() {
+    if (!form.name || !form.domain) return;
+    setCreating(true);
+    try {
+      await createFn({ data: { name: form.name, domain: form.domain } });
+      qc.invalidateQueries({ queryKey: ["pixel-sites"] });
+      setForm({ name: "", domain: "" });
+      setShowCreate(false);
+      act("Pixel criado com sucesso");
+    } catch {
+      toast.error("Não foi possível criar o pixel.");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function handleDelete(siteId: string) {
+    try {
+      await deleteFn({ data: { siteId } });
+      qc.invalidateQueries({ queryKey: ["pixel-sites"] });
+      if (selectedSite?.id === siteId) setSelectedSite(null);
+      act("Pixel removido");
+    } catch {
+      toast.error("Não foi possível remover.");
+    }
+  }
+
+  const statCard = (
+    label: string,
+    value: number | undefined,
+    icon: React.ReactNode,
+  ) => (
+    <div className="rounded-lg border border-border bg-card p-4">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+        {icon}
+        {label}
+      </div>
+      <div className="text-2xl font-bold tabular-nums">
+        {loadingStats ? (
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        ) : (
+          (value ?? 0).toLocaleString()
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold">Rastreamento</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Pixel de atribuição · Sessions · Conversões por origem
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background hover:opacity-90"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Novo site
+        </button>
+      </div>
+
+      {/* Create form inline */}
+      {showCreate && (
+        <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+          <p className="text-sm font-medium">Novo site rastreado</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">
+                Nome do site
+              </label>
+              <input
+                className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-foreground"
+                placeholder="ex: Landing Page Dezembro"
+                value={form.name}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, name: e.target.value }))
+                }
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Domínio</label>
+              <input
+                className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm outline-none focus:ring-1 focus:ring-foreground"
+                placeholder="ex: meusite.com.br"
+                value={form.domain}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, domain: e.target.value }))
+                }
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCreate}
+              disabled={creating || !form.name || !form.domain}
+              className="flex items-center gap-2 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background disabled:opacity-50"
+            >
+              {creating ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Plus className="h-3 w-3" />
+              )}
+              Criar
+            </button>
+            <button
+              onClick={() => setShowCreate(false)}
+              className="rounded-md px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {sites.length === 0 && !showCreate && (
+        <div className="rounded-lg border border-dashed border-border bg-card/50 p-10 text-center">
+          <Activity className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+          <p className="text-sm font-medium mb-1">
+            Nenhum site rastreado ainda
+          </p>
+          <p className="text-xs text-muted-foreground max-w-xs mx-auto">
+            Adicione seu primeiro site para gerar o pixel e começar a capturar
+            sessions, UTMs e eventos de conversão.
+          </p>
+        </div>
+      )}
+
+      {sites.length > 0 && (
+        <div className="grid grid-cols-[220px_1fr] gap-4 items-start">
+          {/* Site list */}
+          <div className="space-y-1">
+            {sites.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setSelectedSite(s)}
+                className={`w-full text-left rounded-md px-3 py-2.5 text-sm transition-colors ${
+                  selectedSite?.id === s.id
+                    ? "bg-accent/10 text-foreground font-medium"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <div className="font-medium truncate">{s.name}</div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {s.domain}
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Site detail */}
+          {selectedSite && (
+            <div className="space-y-4 min-w-0">
+              {/* Pixel snippet */}
+              <div className="rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-semibold">{selectedSite.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedSite.domain} · ID:{" "}
+                      <span className="font-mono">{selectedSite.pixel_id}</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(selectedSite.id)}
+                    className="rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <p className="text-xs text-muted-foreground mb-2">
+                  Cole antes do{" "}
+                  <code className="font-mono bg-muted px-1 rounded">
+                    &lt;/head&gt;
+                  </code>{" "}
+                  do seu site:
+                </p>
+
+                <div className="relative rounded-md bg-muted font-mono text-xs p-3 pr-10 text-muted-foreground overflow-x-auto whitespace-pre-wrap break-all">
+                  {snippet(selectedSite.pixel_id)}
+                  <button
+                    onClick={() =>
+                      handleCopy(snippet(selectedSite.pixel_id), "snippet")
+                    }
+                    className="absolute right-2 top-2 rounded p-1 hover:bg-border"
+                  >
+                    {copied === "snippet" ? (
+                      <CheckCheck className="h-3.5 w-3.5 text-green-500" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    Pageview automático
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    UTMs persistentes
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    WhatsApp &amp; telefone
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    Scroll depth
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    Formulários
+                  </span>
+                </div>
+              </div>
+
+              {/* Period picker */}
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground mr-1">Período:</p>
+                {([7, 15, 30] as const).map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setStatsDays(d)}
+                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      statsDays === d
+                        ? "bg-foreground text-background"
+                        : "bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {d}d
+                  </button>
+                ))}
+              </div>
+
+              {/* Stats cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {statCard(
+                  "Sessions",
+                  stats?.totalSessions,
+                  <Globe className="h-3.5 w-3.5" />,
+                )}
+                {statCard(
+                  "Visitantes únicos",
+                  stats?.uniqueVisitors,
+                  <Users className="h-3.5 w-3.5" />,
+                )}
+                {statCard(
+                  "Pageviews",
+                  stats?.totalPageviews,
+                  <ExternalLink className="h-3.5 w-3.5" />,
+                )}
+                {statCard(
+                  "WhatsApp",
+                  stats?.whatsappClicks,
+                  <MessageCircle className="h-3.5 w-3.5" />,
+                )}
+                {statCard(
+                  "Ligações",
+                  stats?.phoneClicks,
+                  <PhoneCall className="h-3.5 w-3.5" />,
+                )}
+                {statCard(
+                  "Formulários",
+                  stats?.formSubmits,
+                  <MousePointerClick className="h-3.5 w-3.5" />,
+                )}
+              </div>
+
+              {/* Traffic by source */}
+              {stats && stats.bySource.length > 0 && (
+                <div className="rounded-lg border border-border bg-card">
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="text-sm font-semibold">Tráfego por origem</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="text-left text-xs font-medium text-muted-foreground px-4 py-2">
+                            Origem
+                          </th>
+                          <th className="text-right text-xs font-medium text-muted-foreground px-4 py-2">
+                            Sessions
+                          </th>
+                          <th className="text-right text-xs font-medium text-muted-foreground px-4 py-2">
+                            Pageviews
+                          </th>
+                          <th className="text-right text-xs font-medium text-muted-foreground px-4 py-2">
+                            WhatsApp
+                          </th>
+                          <th className="text-right text-xs font-medium text-muted-foreground px-4 py-2">
+                            Forms
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {stats.bySource.map((row) => (
+                          <tr
+                            key={row.source}
+                            className="border-b border-border last:border-0 hover:bg-muted/50"
+                          >
+                            <td className="px-4 py-2.5 font-medium">
+                              {row.source}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+                              {row.sessions.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+                              {row.pageviews.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+                              {row.whatsapp > 0 ? (
+                                <span className="text-green-500 font-medium">
+                                  {row.whatsapp}
+                                </span>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                            <td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+                              {row.forms > 0 ? (
+                                <span className="text-blue-500 font-medium">
+                                  {row.forms}
+                                </span>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Recent sessions */}
+              {stats && stats.recentSessions.length > 0 && (
+                <div className="rounded-lg border border-border bg-card">
+                  <div className="px-4 py-3 border-b border-border">
+                    <p className="text-sm font-semibold">Sessions recentes</p>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {stats.recentSessions.map((s) => (
+                      <div
+                        key={s.id}
+                        className="px-4 py-2.5 flex items-center justify-between gap-4"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-xs font-medium bg-muted rounded px-1.5 py-0.5 shrink-0">
+                            {s.source}
+                          </span>
+                          {s.campaign && (
+                            <span className="text-xs text-muted-foreground truncate">
+                              {s.campaign}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          {s.device && (
+                            <span className="text-xs text-muted-foreground capitalize">
+                              {s.device}
+                            </span>
+                          )}
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(s.at).toLocaleDateString("pt-BR", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {stats &&
+                stats.totalSessions === 0 &&
+                !loadingStats && (
+                  <div className="rounded-lg border border-dashed border-border p-8 text-center">
+                    <Activity className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum dado ainda. Instale o pixel no seu site para
+                      começar a capturar sessões.
+                    </p>
+                  </div>
+                )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

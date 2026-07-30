@@ -1,34 +1,13 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { useAuth } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    // ssr: false ensures this runs only in the browser, where Clerk is
-    // initialised on window. Wait for it to load, then enforce auth before
-    // the protected subtree mounts — this prevents the page shell from
-    // flashing if Clerk hasn't hydrated yet and makes the guard explicit
-    // rather than relying on the component-level useAuth() check alone.
     if (typeof window === "undefined") return {};
-    const clerk = (
-      window as unknown as {
-        Clerk?: {
-          loaded?: boolean;
-          load?: () => Promise<void>;
-          session?: unknown;
-        };
-      }
-    ).Clerk;
-
-    if (clerk && !clerk.loaded && clerk.load) {
-      try {
-        await clerk.load();
-      } catch {
-        // fall through — component-level guard will redirect
-      }
-    }
-
-    if (clerk?.loaded && !clerk.session) {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) {
       throw redirect({ to: "/sign-in/$", params: { _splat: "" } });
     }
     return {};
@@ -37,9 +16,21 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function AuthenticatedLayout() {
-  const { isSignedIn, isLoaded } = useAuth();
+  const [loaded, setLoaded] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
 
-  if (!isLoaded) {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSignedIn(!!data.session);
+      setLoaded(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSignedIn(!!session);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  if (!loaded) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -50,7 +41,7 @@ function AuthenticatedLayout() {
     );
   }
 
-  if (!isSignedIn) {
+  if (!signedIn) {
     throw redirect({ to: "/sign-in/$", params: { _splat: "" } });
   }
 

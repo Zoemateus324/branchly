@@ -7,17 +7,12 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppProviders } from "../lib/providers";
 import { Toaster } from "@/components/ui/sonner";
-
-const CLERK_KEY =
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
-  import.meta.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 function NotFoundComponent() {
   return (
@@ -166,50 +161,16 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function ConfigErrorScreen() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold text-foreground">
-          Configuração ausente
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          A variável de ambiente <code>VITE_CLERK_PUBLISHABLE_KEY</code> não
-          está configurada neste ambiente. Configure-a nas variáveis de ambiente
-          do projeto para que o site funcione.
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  if (!CLERK_KEY) {
-    // Never let a missing env var crash SSR for every route (including
-    // public pages) — fail loud but gracefully instead.
-    console.error(
-      "[config] VITE_CLERK_PUBLISHABLE_KEY (or NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) is not set. " +
-        "Set it in the deployment's environment variables.",
-    );
-    return <ConfigErrorScreen />;
-  }
-
   return (
-    <ClerkProvider
-      publishableKey={CLERK_KEY}
-      afterSignOutUrl="/"
-      signInUrl="/sign-in/$"
-      signUpUrl="/sign-up/$"
-    >
-      <QueryClientProvider client={queryClient}>
-        <AppProviders>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-          <Toaster position="top-right" richColors />
-        </AppProviders>
-      </QueryClientProvider>
-    </ClerkProvider>
+    <QueryClientProvider client={queryClient}>
+      <AppProviders>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster position="top-right" richColors />
+      </AppProviders>
+    </QueryClientProvider>
   );
 }

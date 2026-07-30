@@ -14,36 +14,31 @@ export const listAllUsers = createServerFn({ method: "POST" })
       .parse(i ?? {}),
   )
   .handler(async ({ data }) => {
-    const { createClerkClient } = await import("@clerk/backend");
-    const secretKey = process.env.CLERK_SECRET_KEY;
-    if (!secretKey) throw new Error("CLERK_SECRET_KEY missing");
-    const clerk = createClerkClient({ secretKey });
-    const res = await clerk.users.getUserList({
-      limit: data.limit,
-      offset: data.offset,
-      query: data.query || undefined,
-      orderBy: "-created_at",
-    });
-
-    const users = res.data.map((u) => {
-      const primary =
-        u.emailAddresses.find((e) => e.id === u.primaryEmailAddressId) ??
-        u.emailAddresses[0];
-      return {
-        id: u.id,
-        email: primary?.emailAddress ?? null,
-        firstName: u.firstName,
-        lastName: u.lastName,
-        imageUrl: u.imageUrl,
-        createdAt: u.createdAt,
-        lastSignInAt: u.lastSignInAt,
-        banned: u.banned,
-      };
-    });
-
-    // Augment with override + counts
     const { supabaseAdmin } =
       await import("@/integrations/supabase/client.server");
+    const { data: listData, error } = await supabaseAdmin.auth.admin.listUsers({
+      page: Math.floor(data.offset / data.limit) + 1,
+      perPage: data.limit,
+    });
+    if (error) throw new Error(error.message);
+
+    const allUsers = listData.users.filter((u) => {
+      if (!data.query) return true;
+      const q = data.query.toLowerCase();
+      return u.email?.toLowerCase().includes(q) || u.id.toLowerCase().includes(q);
+    });
+
+    const users = allUsers.map((u) => ({
+      id: u.id,
+      email: u.email ?? null,
+      firstName: null as string | null,
+      lastName: null as string | null,
+      imageUrl: null as string | null,
+      createdAt: new Date(u.created_at).getTime(),
+      lastSignInAt: u.last_sign_in_at ? new Date(u.last_sign_in_at).getTime() : null,
+      banned: u.banned_until ? new Date(u.banned_until) > new Date() : false,
+    }));
+
     const ids = users.map((u) => u.id);
     const emails = users.map((u) => u.email).filter(Boolean) as string[];
     const [{ data: overrides }, { data: locs }] = await Promise.all([
@@ -71,7 +66,7 @@ export const listAllUsers = createServerFn({ method: "POST" })
           : null,
         locationCount: locCount.get(u.id) ?? 0,
       })),
-      totalCount: res.totalCount,
+      totalCount: listData.total ?? allUsers.length,
     };
   });
 
@@ -117,12 +112,12 @@ export const banUser = createServerFn({ method: "POST" })
     z.object({ userId: z.string().min(1), ban: z.boolean() }).parse(i),
   )
   .handler(async ({ data, context }) => {
-    const { createClerkClient } = await import("@clerk/backend");
-    const clerk = createClerkClient({
-      secretKey: process.env.CLERK_SECRET_KEY!,
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
+      ban_duration: data.ban ? "87600h" : "none",
     });
-    if (data.ban) await clerk.users.banUser(data.userId);
-    else await clerk.users.unbanUser(data.userId);
+    if (error) throw new Error(error.message);
     await logAdminAction(context.email, data.ban ? "user.ban" : "user.unban", {
       userId: data.userId,
     });

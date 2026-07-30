@@ -31,6 +31,8 @@ import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
 import { Route as IntegrationsFacebookCallbackRouteImport } from './routes/integrations.facebook.callback'
+import { Route as ApiCollectRouteImport } from './routes/api.collect'
+import { Route as ApiPixelPixelIdRouteImport } from './routes/api.pixel.$pixelId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -150,10 +152,22 @@ const IntegrationsFacebookCallbackRoute =
     path: '/integrations/facebook/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiCollectRoute = ApiCollectRouteImport.update({
+  id: '/api/collect',
+  path: '/api/collect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPixelPixelIdRoute = ApiPixelPixelIdRouteImport.update({
+  id: '/api/pixel/$pixelId',
+  path: '/api/pixel/$pixelId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/collect': typeof ApiCollectRoute
+  '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
@@ -177,6 +191,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/collect': typeof ApiCollectRoute
+  '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   '/guia/melhorar-reputacao-no-google': typeof GuiaMelhorarReputacaoNoGoogleRoute
@@ -201,6 +217,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/collect': typeof ApiCollectRoute
+  '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
@@ -226,6 +244,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/sitemap.xml'
+    | '/api/collect'
+    | '/api/pixel/$pixelId'
     | '/admin'
     | '/dashboard'
     | '/guia/aparecer-nas-primeiras-paginas-do-google'
@@ -249,6 +269,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/sitemap.xml'
+    | '/api/collect'
+    | '/api/pixel/$pixelId'
     | '/dashboard'
     | '/guia/aparecer-nas-primeiras-paginas-do-google'
     | '/guia/melhorar-reputacao-no-google'
@@ -291,12 +313,16 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/users'
     | '/integrations/facebook/callback'
     | '/_authenticated/admin/'
+    | '/api/collect'
+    | '/api/pixel/$pixelId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiCollectRoute: typeof ApiCollectRoute
+  ApiPixelPixelIdRoute: typeof ApiPixelPixelIdRoute
   GuiaAparecerNasPrimeirasPaginasDoGoogleRoute: typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   GuiaMelhorarReputacaoNoGoogleRoute: typeof GuiaMelhorarReputacaoNoGoogleRoute
   GuideImproveGoogleReputationRoute: typeof GuideImproveGoogleReputationRoute
@@ -327,6 +353,20 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/collect': {
+      id: '/api/collect'
+      path: '/api/collect'
+      fullPath: '/api/collect'
+      preLoaderRoute: typeof ApiCollectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pixel/$pixelId': {
+      id: '/api/pixel/$pixelId'
+      path: '/api/pixel/$pixelId'
+      fullPath: '/api/pixel/$pixelId'
+      preLoaderRoute: typeof ApiPixelPixelIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin': {
@@ -514,6 +554,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiCollectRoute: ApiCollectRoute,
+  ApiPixelPixelIdRoute: ApiPixelPixelIdRoute,
   GuiaAparecerNasPrimeirasPaginasDoGoogleRoute:
     GuiaAparecerNasPrimeirasPaginasDoGoogleRoute,
   GuiaMelhorarReputacaoNoGoogleRoute: GuiaMelhorarReputacaoNoGoogleRoute,
