@@ -161,46 +161,34 @@ export const captureFacebookReviews = createServerFn({ method: "POST" })
     return { captured: ratings.length, pageName: conn.page_name };
   });
 
-/**
- * Classifies comment sentiment via the same Lovable AI gateway already
- * used for AI insights and AI reply drafting elsewhere in this app.
- * Falls back to "neutral" for any comment the model call fails on
- * rather than aborting the whole batch.
- */
 async function classifySentiment(texts: string[]): Promise<string[]> {
   if (texts.length === 0) return [];
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return texts.map(() => "neutral");
 
   const numbered = texts.map((t, i) => `${i}: ${t.slice(0, 300)}`).join("\n");
   const prompt = `Classifique o sentimento de cada comentário do Instagram abaixo como "positive", "negative" ou "neutral". Responda APENAS com JSON válido no formato {"sentiments": ["positive", "negative", ...]}, na mesma ordem e quantidade dos comentários.\n\nComentários:\n${numbered}`;
 
   try {
-    const res = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content: "Você responde apenas com JSON válido.",
-            },
-            { role: "user", content: prompt },
-          ],
-        }),
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
       },
-    );
-    if (!res.ok) throw new Error(`AI gateway ${res.status}`);
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 512,
+        system: "Você responde apenas com JSON válido.",
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!res.ok) throw new Error(`Anthropic API ${res.status}`);
     const json = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
+      content?: { type: string; text: string }[];
     };
-    const content = json.choices?.[0]?.message?.content ?? "";
+    const content = json.content?.find((c) => c.type === "text")?.text ?? "";
     const match = content.match(/\{[\s\S]*\}/);
     if (!match) throw new Error("no JSON in AI response");
     const parsed = JSON.parse(match[0]) as { sentiments?: string[] };
