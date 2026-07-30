@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { Header } from "./Header";
 import { Footer } from "./Sections";
+import { Analytics } from "@vercel/analytics/next"
 
 interface StaticPageProps {
   eyebrow?: string;
@@ -12,6 +13,7 @@ interface StaticPageProps {
 export function StaticPage({ eyebrow, title, subtitle, children }: StaticPageProps) {
   return (
     <div className="min-h-screen bg-background">
+      <Analytics />
       <Header />
       <main>
         <div className="border-b border-border bg-muted/30 py-16 md:py-20">
