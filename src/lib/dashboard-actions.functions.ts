@@ -160,17 +160,84 @@ export const createReport = createServerFn({ method: "POST" })
       .gte("created_at", sinceMonth);
     if ((count ?? 0) >= PLAN_LIMITS[plan].reports)
       throw new PlanError("reports", plan);
-    const { error, data: row } = await supabaseAdmin
-      .from("reports")
+
+    // Snapshot KPI data at report creation time
+    const [locsRes, revsRes, compsRes, insRes] = await Promise.all([
+      supabaseAdmin.from("locations").select("*").eq("owner_id", context.userId),
+      supabaseAdmin
+        .from("reviews")
+        .select("*")
+        .eq("owner_id", context.userId)
+        .gte("posted_at", sinceMonth)
+        .limit(500),
+      supabaseAdmin.from("competitors").select("*").eq("owner_id", context.userId),
+      supabaseAdmin
+        .from("insights")
+        .select("*")
+        .eq("owner_id", context.userId)
+        .order("created_at", { ascending: false })
+        .limit(10),
+    ]);
+    const locs = locsRes.data ?? [];
+    const revs = revsRes.data ?? [];
+    const comps = compsRes.data ?? [];
+    const topInsights = (insRes.data ?? []).slice(0, 5);
+
+    const scores = locs.map((l) => Number(l.score)).filter(Number.isFinite);
+    const ratings = locs.map((l) => Number(l.rating)).filter(Number.isFinite);
+    const avgScore = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+    const avgRating = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+    const totalReviews = locs.reduce((s, l) => s + (l.review_count ?? 0), 0);
+    const replied = revs.filter((r) => !!r.reply).length;
+    const responseRate = revs.length ? Math.round((replied / revs.length) * 100) : 0;
+    const compRatings = comps.map((c) => Number(c.rating)).filter(Number.isFinite);
+    const benchmarkRating = compRatings.length
+      ? Math.round((compRatings.reduce((a, b) => a + b, 0) / compRatings.length) * 10) / 10
+      : 4.5;
+    const sentCounts = { positive: 0, neutral: 0, negative: 0 };
+    for (const r of revs) {
+      const s = (r.sentiment ?? "").toLowerCase() as keyof typeof sentCounts;
+      if (s in sentCounts) sentCounts[s]++;
+    }
+    const sentTotal = sentCounts.positive + sentCounts.neutral + sentCounts.negative || 1;
+
+    const content_json = {
+      generatedAt: new Date().toISOString(),
+      period: data.period,
+      kpis: {
+        avgScore: Math.round(avgScore * 10) / 10,
+        avgRating: Math.round(avgRating * 10) / 10,
+        totalReviews,
+        responseRate,
+        activeLocations: locs.length,
+        benchmarkRating,
+        ratingGap: Math.round((avgRating - benchmarkRating) * 10) / 10,
+      },
+      sentiment: {
+        positive: Math.round((sentCounts.positive / sentTotal) * 100),
+        neutral: Math.round((sentCounts.neutral / sentTotal) * 100),
+        negative: Math.round((sentCounts.negative / sentTotal) * 100),
+      },
+      topLocations: locs
+        .sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0))
+        .slice(0, 5)
+        .map((l) => ({ name: l.name, city: l.city, score: l.score, rating: l.rating, reviewCount: l.review_count })),
+      competitors: comps.slice(0, 5).map((c) => ({ name: c.name, rating: c.rating, reviewCount: c.review_count })),
+      topInsights: topInsights.map((i) => ({ title: i.title, body: i.body, severity: i.severity, category: i.category })),
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error, data: row } = await (supabaseAdmin.from("reports") as any)
       .insert({
         owner_id: context.userId,
         name: data.name,
         period: data.period,
         status: "ready",
+        content_json,
       })
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) throw new Error((error as { message: string }).message);
     return row;
   });
 

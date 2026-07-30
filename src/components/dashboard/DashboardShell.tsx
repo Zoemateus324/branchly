@@ -98,8 +98,13 @@ import {
   MousePointerClick,
   PhoneCall,
   MessageCircle,
+  QrCode,
+  Target,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
+import { QRCodeCard } from "@/components/dashboard/QRCodeCard";
 import {
   createPixelSite,
   listPixelSites,
@@ -186,6 +191,7 @@ type SectionId =
   | "reviews"
   | "insights"
   | "reports"
+  | "qr-code"
   | "team"
   | "billing"
   | "attribution";
@@ -198,6 +204,7 @@ const NAV: { id: SectionId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "reviews", label: "Reviews", icon: MessageSquare },
   { id: "insights", label: "AI Insights", icon: Sparkles },
   { id: "reports", label: "Reports", icon: FileBarChart },
+  { id: "qr-code", label: "QR Captação", icon: QrCode },
   { id: "team", label: "Equipe", icon: UserPlus },
   { id: "billing", label: "Billing", icon: CreditCard },
   { id: "attribution", label: "Rastreamento", icon: Activity },
@@ -445,6 +452,7 @@ export function DashboardShell() {
                 {section === "reviews" && <ReviewsSection />}
                 {section === "insights" && <InsightsSection />}
                 {section === "reports" && <ReportsSection />}
+                {section === "qr-code" && <QRCodeSection />}
                 {section === "team" && <TeamSection />}
                 {section === "billing" && <BillingSection />}
                 {section === "attribution" && <AttributionSection />}
@@ -758,8 +766,12 @@ function OverviewSection() {
         <KpiCard
           label="Avg Rating"
           value={k ? k.avgRating.toFixed(1) : "—"}
-          delta="Google"
-          trend="neutral"
+          delta={
+            k
+              ? `${k.ratingGap >= 0 ? "+" : ""}${k.ratingGap.toFixed(1)} vs benchmark ${k.benchmarkRating.toFixed(1)}`
+              : "Google"
+          }
+          trend={k ? (k.ratingGap >= 0 ? "up" : "down") : "neutral"}
         />
         <KpiCard
           label="Response Rate"
@@ -1664,6 +1676,9 @@ function StatusPill({ status }: { status: string }) {
 function CompetitorsSection() {
   const { data } = useDashboard();
   const comps = data?.competitors ?? [];
+  const myRating = data?.kpis.avgRating ?? 0;
+  const benchmarkRating = data?.kpis.benchmarkRating ?? 4.5;
+  const ratingGap = data?.kpis.ratingGap ?? 0;
   const totalReviews =
     comps.reduce((s, c) => s + (c.review_count ?? 0), 0) || 1;
   const queryClient = useQueryClient();
@@ -1682,10 +1697,21 @@ function CompetitorsSection() {
       toast.error((e as Error).message);
     }
   };
+
+  // Tips to improve rating (shown when below benchmark)
+  const ratingTips = [
+    "Responda todas as avaliações em até 24 horas para aumentar o engajamento.",
+    "Peça ao cliente satisfeito uma avaliação logo após a visita usando o QR Code.",
+    "Resolva reclamações publicamente — isso mostra comprometimento para novos clientes.",
+    "Compartilhe avaliações positivas nas redes sociais para atrair mais clientes.",
+    "Melhore pontos frequentemente mencionados negativamente nos reviews.",
+    "Crie um processo de pós-atendimento para solicitar feedback proativamente.",
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Competitors"
+        title="Benchmarking"
         subtitle={`Compare-se com a categoria · ${comps.length}/${limits.competitors === 9999 ? "∞" : limits.competitors} rastreados`}
         action={
           <button
@@ -1698,69 +1724,171 @@ function CompetitorsSection() {
       />
       <AddCompetitorModal open={modalOpen} onOpenChange={setModalOpen} />
 
+      {/* Benchmark summary cards */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Seu Rating</div>
+          <div className="mt-2 font-display text-3xl font-semibold tabular-nums">{myRating > 0 ? myRating.toFixed(1) : "—"}</div>
+          <div className="mt-1 text-xs text-muted-foreground">média das unidades</div>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Benchmark</div>
+          <div className="mt-2 font-display text-3xl font-semibold tabular-nums">{benchmarkRating.toFixed(1)}</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {comps.length ? "média dos concorrentes" : "padrão do setor"}
+          </div>
+        </div>
+        <div className={`rounded-xl border p-5 ${ratingGap >= 0 ? "border-emerald-500/30 bg-emerald-500/5" : "border-rose-500/30 bg-rose-500/5"}`}>
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Gap</div>
+          <div className={`mt-2 flex items-baseline gap-1.5 font-display text-3xl font-semibold tabular-nums ${ratingGap >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+            {ratingGap >= 0 ? <ArrowUp className="h-5 w-5" /> : <ArrowDown className="h-5 w-5" />}
+            {Math.abs(ratingGap).toFixed(1)}
+          </div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {ratingGap >= 0 ? "acima do benchmark" : "abaixo do benchmark"}
+          </div>
+        </div>
+      </div>
+
+      {/* Visual bar comparison */}
+      {myRating > 0 && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="mb-4 font-display text-sm font-semibold">Comparativo visual</div>
+          <div className="space-y-3">
+            <div>
+              <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="font-medium">Você</span>
+                <span className="tabular-nums text-muted-foreground">{myRating.toFixed(1)}</span>
+              </div>
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-foreground transition-all"
+                  style={{ width: `${(myRating / 5) * 100}%` }}
+                />
+              </div>
+            </div>
+            <div>
+              <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Benchmark</span>
+                <span className="tabular-nums text-muted-foreground">{benchmarkRating.toFixed(1)}</span>
+              </div>
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-muted-foreground/50 transition-all"
+                  style={{ width: `${(benchmarkRating / 5) * 100}%` }}
+                />
+              </div>
+            </div>
+            {comps.slice(0, 5).map((c) => (
+              <div key={c.id}>
+                <div className="mb-1 flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground truncate max-w-[60%]">{c.name}</span>
+                  <span className="tabular-nums text-muted-foreground">{c.rating !== null ? Number(c.rating).toFixed(1) : "—"}</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-accent/60 transition-all"
+                    style={{ width: c.rating !== null ? `${(Number(c.rating) / 5) * 100}%` : "0%" }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Competitor table */}
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         <div className="border-b border-border p-4 font-display text-sm font-semibold">
-          Tracked competitors
+          Concorrentes rastreados
         </div>
         {comps.length === 0 ? (
           <EmptyState
             title="Sem concorrentes rastreados"
-            hint="Adicione concorrentes para comparar seu rating."
+            hint="Adicione concorrentes para comparar seu rating e identificar oportunidades."
           />
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                <th className="px-4 py-2.5 font-medium">Competitor</th>
+                <th className="px-4 py-2.5 font-medium">Concorrente</th>
                 <th className="px-4 py-2.5 font-medium">Rating</th>
                 <th className="px-4 py-2.5 font-medium">Reviews</th>
+                <th className="px-4 py-2.5 font-medium">vs você</th>
                 <th className="px-4 py-2.5 font-medium">Share</th>
               </tr>
             </thead>
             <tbody>
-              {comps.map((c) => (
-                <tr
-                  key={c.id}
-                  className="border-b border-border/60 last:border-0"
-                >
-                  <td className="px-4 py-3 font-medium">{c.name}</td>
-                  <td className="px-4 py-3 font-mono tabular-nums">
-                    {c.rating !== null ? Number(c.rating).toFixed(1) : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {(c.review_count ?? 0).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-foreground/70"
-                          style={{
-                            width: `${((c.review_count ?? 0) / totalReviews) * 100}%`,
-                          }}
-                        />
+              {comps.map((c) => {
+                const cRating = c.rating !== null ? Number(c.rating) : null;
+                const diff = cRating !== null && myRating > 0 ? myRating - cRating : null;
+                return (
+                  <tr
+                    key={c.id}
+                    className="border-b border-border/60 last:border-0"
+                  >
+                    <td className="px-4 py-3 font-medium">{c.name}</td>
+                    <td className="px-4 py-3 font-mono tabular-nums">
+                      {cRating !== null ? cRating.toFixed(1) : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {(c.review_count ?? 0).toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      {diff !== null ? (
+                        <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${diff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500"}`}>
+                          {diff >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                          {Math.abs(diff).toFixed(1)}
+                        </span>
+                      ) : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-20 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className="h-full rounded-full bg-foreground/60"
+                            style={{
+                              width: `${((c.review_count ?? 0) / totalReviews) * 100}%`,
+                            }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                          {Math.round(((c.review_count ?? 0) / totalReviews) * 100)}%
+                        </span>
+                        <button
+                          onClick={() => onDelete(c.id)}
+                          className="ml-1 rounded-md border border-border bg-card p-1.5 text-muted-foreground hover:text-rose-500"
+                          aria-label="Remover"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
                       </div>
-                      <span className="text-xs text-muted-foreground tabular-nums">
-                        {Math.round(
-                          ((c.review_count ?? 0) / totalReviews) * 100,
-                        )}
-                        %
-                      </span>
-                      <button
-                        onClick={() => onDelete(c.id)}
-                        className="ml-2 rounded-md border border-border bg-card p-1.5 text-muted-foreground hover:text-rose-500"
-                        aria-label="Remover"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
       </div>
+
+      {/* Tips to improve rating */}
+      {ratingGap < 0 && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="h-4 w-4 text-accent" />
+            <span className="font-display text-sm font-semibold">Dicas para superar o benchmark</span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {ratingTips.map((tip, i) => (
+              <div key={i} className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/30 p-3">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 text-[10px] font-semibold text-accent">{i + 1}</span>
+                <p className="text-xs text-muted-foreground leading-relaxed">{tip}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2170,6 +2298,15 @@ function SentimentChip({ sentiment }: { sentiment: string }) {
 
 /* ------------------------------- Insights ------------------------------ */
 
+const RATING_TIPS = [
+  { icon: "⚡", title: "Responda rápido", body: "Responda todas as avaliações em até 24 horas. A velocidade de resposta é um dos fatores que o Google usa para ranquear negócios locais." },
+  { icon: "📱", title: "Use o QR Code", body: "Coloque o QR code no balcão, mesa ou embalagem. Clientes satisfeitos raramente avaliam por iniciativa própria — facilite o caminho." },
+  { icon: "🎯", title: "Peça no momento certo", body: "O melhor momento para pedir avaliação é logo após a entrega do serviço, quando a experiência está fresca na memória do cliente." },
+  { icon: "🔍", title: "Resolva reclamações publicamente", body: "Uma resposta empática a uma avaliação negativa pode converter detratores em promotores e demonstra comprometimento para novos clientes." },
+  { icon: "📊", title: "Monitore tópicos recorrentes", body: "Use os insights de IA para identificar o que mais irrita os clientes. Um problema recorrente corrigido pode elevar o rating em 0,2-0,5★." },
+  { icon: "🤝", title: "Treine sua equipe", body: "Compartilhe as avaliações negativas com a equipe regularmente. Colaboradores que conhecem os problemas têm mais incentivo para corrigi-los." },
+];
+
 function InsightsSection() {
   const { data } = useDashboard();
   const ins = data?.insights ?? [];
@@ -2187,6 +2324,25 @@ function InsightsSection() {
           </button>
         }
       />
+
+      {/* Rating tips — always visible */}
+      <div className="rounded-xl border border-border bg-card p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Target className="h-4 w-4 text-accent" />
+          <span className="font-display text-sm font-semibold">Dicas para subir a nota média</span>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {RATING_TIPS.map((tip) => (
+            <div key={tip.title} className="flex items-start gap-3 rounded-lg border border-border bg-muted/30 p-3.5">
+              <span className="text-lg leading-none mt-0.5">{tip.icon}</span>
+              <div>
+                <div className="text-xs font-semibold text-foreground mb-1">{tip.title}</div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">{tip.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {ins.length === 0 ? (
         <EmptyState
@@ -2241,13 +2397,200 @@ function InsightsSection() {
   );
 }
 
+/* -------------------------------- QR Code ------------------------------ */
+
+function QRCodeSection() {
+  const { data } = useDashboard();
+  const locs = data?.locations ?? [];
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="QR Captação"
+        subtitle="Gere QR codes para captar avaliações Google direto no ponto de atendimento."
+      />
+      {locs.length === 0 ? (
+        <EmptyState
+          title="Sem unidades cadastradas"
+          hint="Adicione uma unidade em Locations para gerar os QR codes."
+        />
+      ) : (
+        <>
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="flex items-start gap-3 mb-4">
+              <QrCode className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+              <div>
+                <div className="font-display text-sm font-semibold">Como usar</div>
+                <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                  Imprima o QR code e exiba-o no balcão, mesa ou recibo. Ao escanear, o cliente é direcionado diretamente para a página de avaliação do Google. Quanto mais avaliações, maior a visibilidade da sua unidade nas buscas locais.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3 text-xs">
+              <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2.5">
+                <span className="font-semibold text-accent">1.</span>
+                <span className="text-muted-foreground">Baixe o PNG da unidade desejada</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2.5">
+                <span className="font-semibold text-accent">2.</span>
+                <span className="text-muted-foreground">Imprima e coloque em local visível</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2.5">
+                <span className="font-semibold text-accent">3.</span>
+                <span className="text-muted-foreground">Peça ao cliente escanear após o atendimento</span>
+              </div>
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {locs.map((l) => (
+              <QRCodeCard
+                key={l.id}
+                locationName={l.name}
+                city={l.city ?? ""}
+                googleReviewUrl={null}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* -------------------------------- Reports ------------------------------ */
+
+function ReportViewModal({
+  report,
+  onClose,
+}: {
+  report: Record<string, unknown>;
+  onClose: () => void;
+}) {
+  const cj = report.content_json as Record<string, unknown> | null;
+  const kpis = (cj?.kpis ?? {}) as Record<string, number>;
+  const sentiment = (cj?.sentiment ?? {}) as Record<string, number>;
+  const topLocs = (cj?.topLocations ?? []) as { name: string; city: string; score: number; rating: number; reviewCount: number }[];
+  const competitors = (cj?.competitors ?? []) as { name: string; rating: number; reviewCount: number }[];
+  const topInsights = (cj?.topInsights ?? []) as { title: string; body: string; severity: string; category: string }[];
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{String(report.name ?? "Relatório")}</DialogTitle>
+          <DialogDescription>
+            {String(report.period ?? "")} · Gerado em{" "}
+            {cj?.generatedAt
+              ? new Date(String(cj.generatedAt)).toLocaleDateString("pt-BR")
+              : new Date(String(report.created_at)).toLocaleDateString("pt-BR")}
+          </DialogDescription>
+        </DialogHeader>
+
+        {!cj ? (
+          <p className="text-sm text-muted-foreground">Este relatório não possui dados de KPI (gerado antes da atualização).</p>
+        ) : (
+          <div className="space-y-5 mt-2">
+            {/* KPIs */}
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">KPIs do período</div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {[
+                  { label: "Nota média", value: kpis.avgRating?.toFixed(1) ?? "—" },
+                  { label: "Score médio", value: kpis.avgScore?.toFixed(1) ?? "—" },
+                  { label: "Total reviews", value: kpis.totalReviews?.toLocaleString() ?? "—" },
+                  { label: "Taxa resposta", value: kpis.responseRate !== undefined ? `${kpis.responseRate}%` : "—" },
+                  { label: "Unidades ativas", value: String(kpis.activeLocations ?? "—") },
+                  { label: "Benchmark", value: kpis.benchmarkRating?.toFixed(1) ?? "—" },
+                ].map((k) => (
+                  <div key={k.label} className="rounded-lg border border-border bg-muted/30 p-3">
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{k.label}</div>
+                    <div className="mt-1 font-display text-xl font-semibold tabular-nums">{k.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Sentiment */}
+            {Object.keys(sentiment).length > 0 && (
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">Sentimento</div>
+                <div className="space-y-2">
+                  {[
+                    { label: "Positivo", value: sentiment.positive ?? 0, color: "bg-emerald-500" },
+                    { label: "Neutro", value: sentiment.neutral ?? 0, color: "bg-muted-foreground/40" },
+                    { label: "Negativo", value: sentiment.negative ?? 0, color: "bg-rose-500" },
+                  ].map((s) => (
+                    <div key={s.label} className="flex items-center gap-3">
+                      <span className="w-16 text-xs text-muted-foreground">{s.label}</span>
+                      <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                        <div className={`h-full rounded-full ${s.color}`} style={{ width: `${s.value}%` }} />
+                      </div>
+                      <span className="w-8 text-right text-xs tabular-nums text-muted-foreground">{s.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top locations */}
+            {topLocs.length > 0 && (
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">Top unidades</div>
+                <div className="space-y-1.5">
+                  {topLocs.map((l, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
+                      <span className="font-medium">{l.name}</span>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground tabular-nums">
+                        <span>★ {Number(l.rating).toFixed(1)}</span>
+                        <span>Score {l.score}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Competitors */}
+            {competitors.length > 0 && (
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">Concorrentes</div>
+                <div className="space-y-1.5">
+                  {competitors.map((c, i) => (
+                    <div key={i} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
+                      <span className="text-muted-foreground">{c.name}</span>
+                      <span className="text-xs tabular-nums">★ {Number(c.rating).toFixed(1)} · {(c.reviewCount ?? 0).toLocaleString()} rev.</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Insights */}
+            {topInsights.length > 0 && (
+              <div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-3">Top insights</div>
+                <div className="space-y-2">
+                  {topInsights.map((ins, i) => (
+                    <div key={i} className="rounded-lg border border-border bg-muted/30 p-3">
+                      <div className="text-xs font-semibold">{ins.title}</div>
+                      {ins.body && <p className="mt-1 text-[11px] text-muted-foreground">{ins.body}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function ReportsSection() {
   const { data } = useDashboard();
   const reports = data?.reports ?? [];
   const { requireFeature, limits } = usePlan();
   const [modalOpen, setModalOpen] = useState(false);
+  const [viewReport, setViewReport] = useState<Record<string, unknown> | null>(null);
   const onAdd = () => {
     if (requireFeature("reports", reports.length + 1)) setModalOpen(true);
   };
@@ -2255,7 +2598,7 @@ function ReportsSection() {
     <div className="space-y-6">
       <PageHeader
         title="Reports"
-        subtitle={`Relatórios deste mês · ${reports.length}/${limits.reports === 9999 ? "∞" : limits.reports}`}
+        subtitle={`Relatórios mensais com KPIs e benchmarks · ${reports.length}/${limits.reports === 9999 ? "∞" : limits.reports}`}
         action={
           <button
             onClick={onAdd}
@@ -2266,12 +2609,13 @@ function ReportsSection() {
         }
       />
       <NewReportModal open={modalOpen} onOpenChange={setModalOpen} />
+      {viewReport && <ReportViewModal report={viewReport} onClose={() => setViewReport(null)} />}
 
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {reports.length === 0 ? (
           <EmptyState
             title="Sem relatórios"
-            hint="Agende um novo relatório para começar."
+            hint="Crie um novo relatório para capturar KPIs e benchmarks do mês."
           />
         ) : (
           <table className="w-full text-sm">
@@ -2285,43 +2629,52 @@ function ReportsSection() {
               </tr>
             </thead>
             <tbody>
-              {reports.map((r) => (
-                <tr
-                  key={r.id}
-                  className="border-b border-border/60 last:border-0 hover:bg-muted/30"
-                >
-                  <td className="px-4 py-3 font-medium">{r.name}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {r.period ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {r.status ?? "—"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {new Date(r.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => act(`Editing ${r.name}`)}
-                        className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
-                      >
-                        Edit
-                      </button>
-                      {r.file_url && (
-                        <a
-                          href={r.file_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
-                        >
-                          <Download className="h-3 w-3" />
-                        </a>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {reports.map((r) => {
+                const rr = r as Record<string, unknown>;
+                const hasContent = !!rr.content_json;
+                return (
+                  <tr
+                    key={r.id}
+                    className="border-b border-border/60 last:border-0 hover:bg-muted/30"
+                  >
+                    <td className="px-4 py-3 font-medium">{r.name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {r.period ?? "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] ${r.status === "ready" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                        {r.status === "ready" ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                        {r.status ?? "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {new Date(r.created_at).toLocaleDateString("pt-BR")}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-2">
+                        {hasContent && (
+                          <button
+                            onClick={() => setViewReport(rr)}
+                            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+                          >
+                            Ver KPIs
+                          </button>
+                        )}
+                        {r.file_url && (
+                          <a
+                            href={r.file_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+                          >
+                            <Download className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
