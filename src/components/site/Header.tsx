@@ -37,18 +37,18 @@ export function Header() {
             <Logo />
           </Link>
           <nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
-            <a href="#solution" className="transition hover:text-foreground">
+            <Link to="/features" className="transition hover:text-foreground">
               {t.nav.product}
-            </a>
-            <a href="#pricing" className="transition hover:text-foreground">
+            </Link>
+            <Link to="/pricing" className="transition hover:text-foreground">
               {t.nav.pricing}
-            </a>
-            <a href="#stats" className="transition hover:text-foreground">
+            </Link>
+            <Link to="/customers" className="transition hover:text-foreground">
               {t.nav.customers}
-            </a>
-            <a href="#" className="transition hover:text-foreground">
+            </Link>
+            <Link to="/docs" className="transition hover:text-foreground">
               {t.nav.docs}
-            </a>
+            </Link>
           </nav>
         </div>
 
