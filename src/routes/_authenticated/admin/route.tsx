@@ -4,7 +4,8 @@ import {
   useRouterState,
   redirect,
 } from "@tanstack/react-router";
-import { useUser } from "@clerk/clerk-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard,
   Users,
@@ -58,17 +59,22 @@ const NAV: NavItem[] = [
 ];
 
 function AdminLayout() {
-  const { user, isLoaded } = useUser();
+  const [email, setEmail] = useState<string | null | undefined>(undefined);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  if (!isLoaded) {
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) =>
+      setEmail(data.session?.user?.email?.toLowerCase() ?? null),
+    );
+  }, []);
+
+  if (email === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Loading…
       </div>
     );
   }
-  const email = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
   if (!email || !DEVELOPER_EMAILS.has(email)) {
     throw redirect({ to: "/dashboard" });
   }

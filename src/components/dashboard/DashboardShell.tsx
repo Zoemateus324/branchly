@@ -5,8 +5,8 @@ import {
   createContext,
   useContext,
 } from "react";
-import { Link } from "@tanstack/react-router";
-import { useUser, UserButton } from "@clerk/clerk-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -288,10 +288,21 @@ function ThemeToggle() {
 }
 
 export function DashboardShell() {
-  const { user } = useUser();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const navigate = useNavigate();
   const [section, setSection] = useState<SectionId>("overview");
   const [days, setDays] = useState<DaysFilter>(30);
   const active = NAV.find((n) => n.id === section)!;
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) =>
+      setUserEmail(data.session?.user?.email ?? null),
+    );
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setUserEmail(s?.user?.email ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const handler = () => setSection("billing");
@@ -375,9 +386,7 @@ export function DashboardShell() {
                   </h1>
                   <span className="hidden text-xs text-muted-foreground sm:inline">
                     · Welcome back,{" "}
-                    {user?.firstName ||
-                      user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] ||
-                      "there"}
+                    {userEmail?.split("@")[0] || "there"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -400,12 +409,15 @@ export function DashboardShell() {
                   />
                   <LanguageSelector />
                   <ThemeToggle />
-                  <UserButton
-                    afterSignOutUrl="/"
-                    appearance={{
-                      elements: { avatarBox: "h-8 w-8 rounded-full" },
+                  <button
+                    onClick={() => {
+                      supabase.auth.signOut().then(() => navigate({ to: "/" }));
                     }}
-                  />
+                    title={userEmail ?? "Sign out"}
+                    className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground transition hover:opacity-80"
+                  >
+                    {(userEmail?.slice(0, 2) ?? "?").toUpperCase()}
+                  </button>
                 </div>
               </header>
 
@@ -2322,11 +2334,12 @@ function ReportsSection() {
 /* -------------------------------- Billing ------------------------------ */
 
 function BillingSection() {
-  const { user } = useUser();
-  const email =
-    user?.primaryEmailAddress?.emailAddress ??
-    user?.emailAddresses?.[0]?.emailAddress ??
-    "";
+  const [email, setEmail] = useState("");
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) =>
+      setEmail(data.session?.user?.email ?? ""),
+    );
+  }, []);
   const queryClient = useQueryClient();
   const checkSub = useServerFn(checkSubscription);
   const createCheckoutFn = useServerFn(createCheckout);
