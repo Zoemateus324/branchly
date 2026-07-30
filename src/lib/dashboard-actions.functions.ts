@@ -163,14 +163,20 @@ export const createReport = createServerFn({ method: "POST" })
 
     // Snapshot KPI data at report creation time
     const [locsRes, revsRes, compsRes, insRes] = await Promise.all([
-      supabaseAdmin.from("locations").select("*").eq("owner_id", context.userId),
+      supabaseAdmin
+        .from("locations")
+        .select("*")
+        .eq("owner_id", context.userId),
       supabaseAdmin
         .from("reviews")
         .select("*")
         .eq("owner_id", context.userId)
         .gte("posted_at", sinceMonth)
         .limit(500),
-      supabaseAdmin.from("competitors").select("*").eq("owner_id", context.userId),
+      supabaseAdmin
+        .from("competitors")
+        .select("*")
+        .eq("owner_id", context.userId),
       supabaseAdmin
         .from("insights")
         .select("*")
@@ -185,21 +191,32 @@ export const createReport = createServerFn({ method: "POST" })
 
     const scores = locs.map((l) => Number(l.score)).filter(Number.isFinite);
     const ratings = locs.map((l) => Number(l.rating)).filter(Number.isFinite);
-    const avgScore = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-    const avgRating = ratings.length ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+    const avgScore = scores.length
+      ? scores.reduce((a, b) => a + b, 0) / scores.length
+      : 0;
+    const avgRating = ratings.length
+      ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+      : 0;
     const totalReviews = locs.reduce((s, l) => s + (l.review_count ?? 0), 0);
     const replied = revs.filter((r) => !!r.reply).length;
-    const responseRate = revs.length ? Math.round((replied / revs.length) * 100) : 0;
-    const compRatings = comps.map((c) => Number(c.rating)).filter(Number.isFinite);
+    const responseRate = revs.length
+      ? Math.round((replied / revs.length) * 100)
+      : 0;
+    const compRatings = comps
+      .map((c) => Number(c.rating))
+      .filter(Number.isFinite);
     const benchmarkRating = compRatings.length
-      ? Math.round((compRatings.reduce((a, b) => a + b, 0) / compRatings.length) * 10) / 10
+      ? Math.round(
+          (compRatings.reduce((a, b) => a + b, 0) / compRatings.length) * 10,
+        ) / 10
       : 4.5;
     const sentCounts = { positive: 0, neutral: 0, negative: 0 };
     for (const r of revs) {
       const s = (r.sentiment ?? "").toLowerCase() as keyof typeof sentCounts;
       if (s in sentCounts) sentCounts[s]++;
     }
-    const sentTotal = sentCounts.positive + sentCounts.neutral + sentCounts.negative || 1;
+    const sentTotal =
+      sentCounts.positive + sentCounts.neutral + sentCounts.negative || 1;
 
     const content_json = {
       generatedAt: new Date().toISOString(),
@@ -221,9 +238,24 @@ export const createReport = createServerFn({ method: "POST" })
       topLocations: locs
         .sort((a, b) => Number(b.score ?? 0) - Number(a.score ?? 0))
         .slice(0, 5)
-        .map((l) => ({ name: l.name, city: l.city, score: l.score, rating: l.rating, reviewCount: l.review_count })),
-      competitors: comps.slice(0, 5).map((c) => ({ name: c.name, rating: c.rating, reviewCount: c.review_count })),
-      topInsights: topInsights.map((i) => ({ title: i.title, body: i.body, severity: i.severity, category: i.category })),
+        .map((l) => ({
+          name: l.name,
+          city: l.city,
+          score: l.score,
+          rating: l.rating,
+          reviewCount: l.review_count,
+        })),
+      competitors: comps.slice(0, 5).map((c) => ({
+        name: c.name,
+        rating: c.rating,
+        reviewCount: c.review_count,
+      })),
+      topInsights: topInsights.map((i) => ({
+        title: i.title,
+        body: i.body,
+        severity: i.severity,
+        category: i.category,
+      })),
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -238,6 +270,50 @@ export const createReport = createServerFn({ method: "POST" })
       .select("*")
       .single();
     if (error) throw new Error((error as { message: string }).message);
+    return row;
+  });
+
+/* ---------------- Manual reviews (TikTok, Pinterest, etc.) ---------------- */
+
+export const addManualReview = createServerFn({ method: "POST" })
+  .middleware([requireClerkAuth])
+  .inputValidator((i) =>
+    z
+      .object({
+        source: z.enum(["TikTok", "Pinterest"]),
+        author: z.string().trim().max(200).optional(),
+        rating: z.number().min(1).max(5).nullable().optional(),
+        comment: z.string().trim().max(2000).optional(),
+        posted_at: z.string().optional(),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } =
+      await import("@/integrations/supabase/client.server");
+    const rating = data.rating ?? null;
+    const sentiment =
+      rating === null
+        ? "neutral"
+        : rating >= 4
+          ? "positive"
+          : rating <= 2
+            ? "negative"
+            : "neutral";
+    const { error, data: row } = await supabaseAdmin
+      .from("reviews")
+      .insert({
+        owner_id: context.userId,
+        author: data.author?.trim() || null,
+        rating,
+        comment: data.comment?.trim() || null,
+        source: data.source,
+        sentiment,
+        posted_at: data.posted_at || new Date().toISOString(),
+      })
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
     return row;
   });
 
@@ -305,7 +381,8 @@ export const generateReplyForReview = createServerFn({ method: "POST" })
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
         max_tokens: 256,
-        system: "Você é um gerente cordial e objetivo respondendo avaliações públicas.",
+        system:
+          "Você é um gerente cordial e objetivo respondendo avaliações públicas.",
         messages: [{ role: "user", content: userPrompt }],
       }),
     });
@@ -313,7 +390,9 @@ export const generateReplyForReview = createServerFn({ method: "POST" })
     const json = (await res.json()) as {
       content?: { type: string; text: string }[];
     };
-    const reply = (json.content?.find((c) => c.type === "text")?.text ?? "").trim();
+    const reply = (
+      json.content?.find((c) => c.type === "text")?.text ?? ""
+    ).trim();
     if (!reply) throw new Error("Resposta vazia");
 
     await supabaseAdmin
