@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as ApiCollectRouteImport } from './routes/api.collect'
 import { Route as GuiaAparecerNasPrimeirasPaginasDoGoogleRouteImport } from './routes/guia.aparecer-nas-primeiras-paginas-do-google'
 import { Route as GuiaMelhorarReputacaoNoGoogleRouteImport } from './routes/guia.melhorar-reputacao-no-google'
 import { Route as GuideImproveGoogleReputationRouteImport } from './routes/guide.improve-google-reputation'
@@ -30,9 +31,8 @@ import { Route as AuthenticatedAdminLogsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin/reports'
 import { Route as AuthenticatedAdminSeoRouteImport } from './routes/_authenticated/admin/seo'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin/users'
-import { Route as IntegrationsFacebookCallbackRouteImport } from './routes/integrations.facebook.callback'
-import { Route as ApiCollectRouteImport } from './routes/api.collect'
 import { Route as ApiPixelPixelIdRouteImport } from './routes/api.pixel.$pixelId'
+import { Route as IntegrationsFacebookCallbackRouteImport } from './routes/integrations.facebook.callback'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -57,6 +57,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiCollectRoute = ApiCollectRouteImport.update({
+  id: '/api/collect',
+  path: '/api/collect',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const GuiaAparecerNasPrimeirasPaginasDoGoogleRoute =
   GuiaAparecerNasPrimeirasPaginasDoGoogleRouteImport.update({
@@ -146,30 +151,24 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const ApiPixelPixelIdRoute = ApiPixelPixelIdRouteImport.update({
+  id: '/api/pixel/$pixelId',
+  path: '/api/pixel/$pixelId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntegrationsFacebookCallbackRoute =
   IntegrationsFacebookCallbackRouteImport.update({
     id: '/integrations/facebook/callback',
     path: '/integrations/facebook/callback',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiCollectRoute = ApiCollectRouteImport.update({
-  id: '/api/collect',
-  path: '/api/collect',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPixelPixelIdRoute = ApiPixelPixelIdRouteImport.update({
-  id: '/api/pixel/$pixelId',
-  path: '/api/pixel/$pixelId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/api/collect': typeof ApiCollectRoute
-  '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/collect': typeof ApiCollectRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   '/guia/melhorar-reputacao-no-google': typeof GuiaMelhorarReputacaoNoGoogleRoute
   '/guide/improve-google-reputation': typeof GuideImproveGoogleReputationRoute
@@ -185,15 +184,15 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
   '/integrations/facebook/callback': typeof IntegrationsFacebookCallbackRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/api/collect': typeof ApiCollectRoute
-  '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/collect': typeof ApiCollectRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   '/guia/melhorar-reputacao-no-google': typeof GuiaMelhorarReputacaoNoGoogleRoute
   '/guide/improve-google-reputation': typeof GuideImproveGoogleReputationRoute
@@ -209,6 +208,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
   '/integrations/facebook/callback': typeof IntegrationsFacebookCallbackRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
@@ -217,10 +217,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/api/collect': typeof ApiCollectRoute
-  '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/api/collect': typeof ApiCollectRoute
   '/guia/aparecer-nas-primeiras-paginas-do-google': typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   '/guia/melhorar-reputacao-no-google': typeof GuiaMelhorarReputacaoNoGoogleRoute
   '/guide/improve-google-reputation': typeof GuideImproveGoogleReputationRoute
@@ -236,6 +235,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/seo': typeof AuthenticatedAdminSeoRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/api/pixel/$pixelId': typeof ApiPixelPixelIdRoute
   '/integrations/facebook/callback': typeof IntegrationsFacebookCallbackRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -244,10 +244,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/sitemap.xml'
-    | '/api/collect'
-    | '/api/pixel/$pixelId'
     | '/admin'
     | '/dashboard'
+    | '/api/collect'
     | '/guia/aparecer-nas-primeiras-paginas-do-google'
     | '/guia/melhorar-reputacao-no-google'
     | '/guide/improve-google-reputation'
@@ -263,15 +262,15 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/seo'
     | '/admin/users'
+    | '/api/pixel/$pixelId'
     | '/integrations/facebook/callback'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/sitemap.xml'
-    | '/api/collect'
-    | '/api/pixel/$pixelId'
     | '/dashboard'
+    | '/api/collect'
     | '/guia/aparecer-nas-primeiras-paginas-do-google'
     | '/guia/melhorar-reputacao-no-google'
     | '/guide/improve-google-reputation'
@@ -287,6 +286,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/seo'
     | '/admin/users'
+    | '/api/pixel/$pixelId'
     | '/integrations/facebook/callback'
     | '/admin'
   id:
@@ -296,6 +296,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/api/collect'
     | '/guia/aparecer-nas-primeiras-paginas-do-google'
     | '/guia/melhorar-reputacao-no-google'
     | '/guide/improve-google-reputation'
@@ -311,10 +312,9 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/seo'
     | '/_authenticated/admin/users'
+    | '/api/pixel/$pixelId'
     | '/integrations/facebook/callback'
     | '/_authenticated/admin/'
-    | '/api/collect'
-    | '/api/pixel/$pixelId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -322,13 +322,13 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiCollectRoute: typeof ApiCollectRoute
-  ApiPixelPixelIdRoute: typeof ApiPixelPixelIdRoute
   GuiaAparecerNasPrimeirasPaginasDoGoogleRoute: typeof GuiaAparecerNasPrimeirasPaginasDoGoogleRoute
   GuiaMelhorarReputacaoNoGoogleRoute: typeof GuiaMelhorarReputacaoNoGoogleRoute
   GuideImproveGoogleReputationRoute: typeof GuideImproveGoogleReputationRoute
   GuideRankFirstPageGoogleRoute: typeof GuideRankFirstPageGoogleRoute
   SignInSplatRoute: typeof SignInSplatRoute
   SignUpSplatRoute: typeof SignUpSplatRoute
+  ApiPixelPixelIdRoute: typeof ApiPixelPixelIdRoute
   IntegrationsFacebookCallbackRoute: typeof IntegrationsFacebookCallbackRoute
 }
 
@@ -355,20 +355,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/collect': {
-      id: '/api/collect'
-      path: '/api/collect'
-      fullPath: '/api/collect'
-      preLoaderRoute: typeof ApiCollectRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/pixel/$pixelId': {
-      id: '/api/pixel/$pixelId'
-      path: '/api/pixel/$pixelId'
-      fullPath: '/api/pixel/$pixelId'
-      preLoaderRoute: typeof ApiPixelPixelIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -382,6 +368,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/collect': {
+      id: '/api/collect'
+      path: '/api/collect'
+      fullPath: '/api/collect'
+      preLoaderRoute: typeof ApiCollectRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/guia/aparecer-nas-primeiras-paginas-do-google': {
       id: '/guia/aparecer-nas-primeiras-paginas-do-google'
@@ -495,6 +488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/api/pixel/$pixelId': {
+      id: '/api/pixel/$pixelId'
+      path: '/api/pixel/$pixelId'
+      fullPath: '/api/pixel/$pixelId'
+      preLoaderRoute: typeof ApiPixelPixelIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integrations/facebook/callback': {
       id: '/integrations/facebook/callback'
       path: '/integrations/facebook/callback'
@@ -555,7 +555,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiCollectRoute: ApiCollectRoute,
-  ApiPixelPixelIdRoute: ApiPixelPixelIdRoute,
   GuiaAparecerNasPrimeirasPaginasDoGoogleRoute:
     GuiaAparecerNasPrimeirasPaginasDoGoogleRoute,
   GuiaMelhorarReputacaoNoGoogleRoute: GuiaMelhorarReputacaoNoGoogleRoute,
@@ -563,6 +562,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuideRankFirstPageGoogleRoute: GuideRankFirstPageGoogleRoute,
   SignInSplatRoute: SignInSplatRoute,
   SignUpSplatRoute: SignUpSplatRoute,
+  ApiPixelPixelIdRoute: ApiPixelPixelIdRoute,
   IntegrationsFacebookCallbackRoute: IntegrationsFacebookCallbackRoute,
 }
 export const routeTree = rootRouteImport
