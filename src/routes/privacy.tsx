@@ -13,7 +13,7 @@ const content = {
     sections: [
       {
         title: "1. Who We Are",
-        body: "Branchly is a reputation intelligence platform operated by Branchly Tecnologia Ltda., headquartered in Brazil. We provide review monitoring, competitive benchmarking and AI-powered insights for local and multi-location businesses. References to "Branchly", "we", "us" or "our" in this policy refer to that entity.",
+        body: "Branchly is a reputation intelligence platform operated by Branchly Tecnologia Ltda., headquartered in Brazil. We provide review monitoring, competitive benchmarking and AI-powered insights for local and multi-location businesses. References to 'Branchly', 'we', 'us' or 'our' in this policy refer to that entity.",
       },
       {
         title: "2. Information We Collect",
@@ -64,7 +64,7 @@ const content = {
     sections: [
       {
         title: "1. Quem Somos",
-        body: "O Branchly é uma plataforma de inteligência de reputação operada pela Branchly Tecnologia Ltda., sediada no Brasil. Fornecemos monitoramento de avaliações, benchmarking competitivo e insights com IA para negócios locais e multi-unidade. Referências a "Branchly", "nós" ou "nosso" nesta política se referem a essa entidade.",
+        body: "O Branchly é uma plataforma de inteligência de reputação operada pela Branchly Tecnologia Ltda., sediada no Brasil. Fornecemos monitoramento de avaliações, benchmarking competitivo e insights com IA para negócios locais e multi-unidade. Referências a 'Branchly', 'nós' ou 'nosso' nesta política se referem a essa entidade.",
       },
       {
         title: "2. Informações que Coletamos",
