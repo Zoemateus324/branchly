@@ -10,7 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportError } from "../lib/lovable-error-reporting";
 import { AppProviders } from "../lib/providers";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -42,7 +42,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
@@ -94,18 +94,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { property: "og:locale", content: "en_US" },
         { property: "og:locale:alternate", content: "pt_BR" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:site", content: "@branchly" },
+        { name: "twitter:site", content: "@branchlyapp" },
         { title: "Branchly" },
         { property: "og:title", content: "Branchly" },
         { name: "twitter:title", content: "Branchly" },
-        { name: "description", content: "Transforming customer Reviews" },
+        {
+          name: "description",
+          content:
+            "Reputation intelligence platform for multi-location businesses. Monitor Google reviews, benchmark competitors and grow ratings with AI.",
+        },
         {
           property: "og:description",
-          content: "Transforming customer Reviews",
+          content:
+            "Reputation intelligence platform for multi-location businesses. Monitor Google reviews, benchmark competitors and grow ratings with AI.",
         },
         {
           name: "twitter:description",
-          content: "Transforming customer Reviews",
+          content:
+            "Reputation intelligence platform for multi-location businesses. Monitor Google reviews, benchmark competitors and grow ratings with AI.",
         },
         {
           property: "og:image",
@@ -131,11 +137,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "@context": "https://schema.org",
             "@type": "Organization",
             name: "Branchly",
-            url: "/",
-            logo: "/favicon.ico",
+            url: "https://branchly.com.br",
+            logo: {
+              "@type": "ImageObject",
+              url: "https://branchly.com.br/favicon.ico",
+            },
             description:
-              "Reputation intelligence and competitive benchmarking platform for local and multi-location businesses.",
-            sameAs: [],
+              "Reputation intelligence and competitive benchmarking platform for local and multi-location businesses. Monitor Google reviews, benchmark competitors and grow ratings with AI.",
+            sameAs: [
+              "https://www.linkedin.com/company/branchlyapp",
+              "https://twitter.com/branchlyapp",
+              "https://www.instagram.com/branchlyapp",
+            ],
+            contactPoint: {
+              "@type": "ContactPoint",
+              contactType: "customer support",
+              email: "contato@branchly.com.br",
+              availableLanguage: ["English", "Portuguese"],
+            },
           }),
         },
       ],

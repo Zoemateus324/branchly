@@ -1,4 +1,32 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /admin
+
+# AI search crawlers — allow citation
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Training-only crawlers — block
+User-agent: CCBot
+Disallow: /
 
 Sitemap: https://branchly.com.br/sitemap.xml

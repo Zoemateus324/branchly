@@ -4,11 +4,44 @@
 
 Branchly centralizes reviews, ratings, and competitor data across every physical location so chains, franchises, and multi-unit operators can grow their reputation in one place.
 
-## Pages
+## What Branchly Does
 
-- [Home](/): Product overview, pricing, simulator, and customer stats.
+- **Review monitoring**: Aggregates Google reviews across all business locations in real time.
+- **Competitive benchmarking**: Compares each location's rating and review volume against nearby competitors in the same category.
+- **AI-powered responses**: Generates professional, on-brand replies to reviews — positive and negative — in seconds.
+- **Location-by-location insights**: Surfaces which units are underperforming, what competitors are doing better, and the specific actions to close the gap.
+- **Multi-location dashboard**: Single pane for chains, franchises, and multi-unit operators to manage reputation across 1 to 1,000+ locations.
 
-## Optional
+## Pricing (as of 2026)
 
-- [Sign up](/sign-up): Create a Branchly account.
-- [Sign in](/sign-in): Log in to the Branchly dashboard.
+- **Free**: $0/month — 1 location, basic review monitoring, limited AI replies
+- **Starter**: $19/month — up to 3 locations, full AI responses, competitor tracking
+- **Pro**: $29/month — up to 10 locations, advanced benchmarking, priority support, 14-day trial
+- **Premium**: $49/month — up to 50 locations, white-label reports, dedicated account manager
+
+All paid plans billed monthly. Annual billing available at a discount. Enterprise pricing for 50+ locations — contact sales.
+
+## Target Customers
+
+Multi-location restaurant groups, retail chains, healthcare networks, hospitality brands, franchise operators, and any business managing reputation across 2+ physical locations.
+
+## Competitors
+
+Branchly competes with reputation management tools in the Brazilian and global market, including Tintim and similar platforms. Branchly differentiates through multi-location competitive benchmarking and AI-driven insights by location.
+
+## Key Pages
+
+- [Home](https://branchly.com.br/): Product overview, pricing simulator, customer stats.
+- [Pricing](https://branchly.com.br/#pricing): Plan comparison and feature breakdown.
+- [Branchly vs Tintim](https://branchly.com.br/branchly-vs-tintim): Feature-by-feature comparison.
+- [Sign up](https://branchly.com.br/sign-up): Create a Branchly account (free plan available).
+
+## Guides — English
+
+- [How to rank on the first page of Google](https://branchly.com.br/guide/rank-first-page-google)
+- [How to improve your Google reputation in 2026](https://branchly.com.br/guide/improve-google-reputation)
+
+## Guides — Portuguese (pt-BR)
+
+- [Como aparecer nas primeiras páginas do Google](https://branchly.com.br/guia/aparecer-nas-primeiras-paginas-do-google)
+- [Como melhorar a reputação no Google em 2026](https://branchly.com.br/guia/melhorar-reputacao-no-google)

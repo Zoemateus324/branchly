@@ -23,7 +23,24 @@ export const Route = createFileRoute("/guide/rank-first-page-google")({
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESCRIPTION },
     ],
-    links: [{ rel: "canonical", href: URL }],
+    links: [
+      { rel: "canonical", href: URL },
+      {
+        rel: "alternate",
+        hreflang: "en",
+        href: "https://branchly.com.br/guide/rank-first-page-google",
+      },
+      {
+        rel: "alternate",
+        hreflang: "pt-BR",
+        href: "https://branchly.com.br/guia/aparecer-nas-primeiras-paginas-do-google",
+      },
+      {
+        rel: "alternate",
+        hreflang: "x-default",
+        href: "https://branchly.com.br/guide/rank-first-page-google",
+      },
+    ],
     scripts: [
       {
         type: "application/ld+json",
@@ -33,6 +50,8 @@ export const Route = createFileRoute("/guide/rank-first-page-google")({
           headline: TITLE,
           description: DESCRIPTION,
           inLanguage: "en-US",
+          datePublished: "2026-01-15",
+          dateModified: "2026-07-30",
           author: { "@type": "Organization", name: "Branchly" },
           publisher: {
             "@type": "Organization",
