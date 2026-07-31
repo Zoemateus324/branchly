@@ -470,9 +470,11 @@ export type Database = {
           error_data: Json | null;
           failed_at: string | null;
           id: string;
+          lead_source: string | null;
           metadata: Json;
           owner_id: string;
           read_at: string | null;
+          referral_data: Json | null;
           sent_at: string;
           status: string;
           template_name: string | null;
@@ -487,9 +489,11 @@ export type Database = {
           error_data?: Json | null;
           failed_at?: string | null;
           id?: string;
+          lead_source?: string | null;
           metadata?: Json;
           owner_id: string;
           read_at?: string | null;
+          referral_data?: Json | null;
           sent_at?: string;
           status?: string;
           template_name?: string | null;
@@ -504,14 +508,46 @@ export type Database = {
           error_data?: Json | null;
           failed_at?: string | null;
           id?: string;
+          lead_source?: string | null;
           metadata?: Json;
           owner_id?: string;
           read_at?: string | null;
+          referral_data?: Json | null;
           sent_at?: string;
           status?: string;
           template_name?: string | null;
           to_phone?: string;
           wa_message_id?: string | null;
+        };
+        Relationships: [];
+      };
+      whatsapp_tracked_links: {
+        Row: {
+          created_at: string;
+          id: string;
+          label: string;
+          owner_id: string;
+          source: string;
+          tracking_code: string;
+          wa_link: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          label: string;
+          owner_id: string;
+          source: string;
+          tracking_code: string;
+          wa_link: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          label?: string;
+          owner_id?: string;
+          source?: string;
+          tracking_code?: string;
+          wa_link?: string;
         };
         Relationships: [];
       };

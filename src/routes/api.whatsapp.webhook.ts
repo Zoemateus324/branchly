@@ -22,13 +22,27 @@ interface WebhookStatusUpdate {
   errors?: { code: number; title: string }[];
 }
 
+interface WebhookReferral {
+  source_url?: string;
+  source_type?: string;
+  source_id?: string;
+  headline?: string;
+  body?: string;
+  ctwa_clid?: string;
+}
+
 interface WebhookInboundMessage {
   from: string;
   id: string;
   timestamp: string;
   type: string;
   text?: { body: string };
+  referral?: WebhookReferral;
 }
+
+// Matches the tracking code embedded in prefilled wa.me link text, e.g.
+// "Olá! Cheguei através de Google Ads. (cód: A1B2C3)"
+const TRACKING_CODE_RE = /\(c[oó]d:\s*([A-Z0-9]{6,10})\)/i;
 
 interface WebhookContact {
   wa_id: string;
@@ -109,19 +123,45 @@ async function handleInboundMessages(
         : `[mensagem recebida: ${m.type}]`;
     const sentAt = new Date(Number(m.timestamp) * 1000).toISOString();
 
-    // Attribute this inbound message to the Branchly account that most
-    // recently messaged this phone number — there's no per-tenant WABA
-    // number in this design, so ownership can only be inferred this way.
-    const { data: prior } = await supabaseAdmin
-      .from("whatsapp_messages")
-      .select("owner_id")
-      .eq("to_phone", phone)
-      .eq("direction", "outbound")
-      .order("sent_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    let ownerId: string | null = null;
+    let leadSource: string | null = null;
 
-    if (!prior) {
+    // 1. Tracked link: the prefilled wa.me message carries our own tracking
+    // code, which resolves both the owner and the channel directly — this
+    // works even for a lead's very first message, before any prior contact.
+    const codeMatch = body.match(TRACKING_CODE_RE);
+    if (codeMatch) {
+      const { data: link } = await supabaseAdmin
+        .from("whatsapp_tracked_links")
+        .select("owner_id, source")
+        .eq("tracking_code", codeMatch[1].toUpperCase())
+        .maybeSingle();
+      if (link) {
+        ownerId = link.owner_id;
+        leadSource = link.source;
+      }
+    }
+
+    // 2. Meta's own referral object is attached when the lead came from a
+    // click-to-WhatsApp ad on Facebook or Instagram.
+    if (!leadSource && m.referral) leadSource = "meta";
+
+    // 3. Fall back to the Branchly account that most recently messaged this
+    // phone number — there's no per-tenant WABA number in this design, so
+    // ownership can only be inferred this way once no tracked link matches.
+    if (!ownerId) {
+      const { data: prior } = await supabaseAdmin
+        .from("whatsapp_messages")
+        .select("owner_id")
+        .eq("to_phone", phone)
+        .eq("direction", "outbound")
+        .order("sent_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (prior) ownerId = prior.owner_id;
+    }
+
+    if (!ownerId) {
       console.warn(
         `[whatsapp.webhook] inbound message from unattributed phone ${phone} — skipping`,
       );
@@ -129,7 +169,7 @@ async function handleInboundMessages(
     }
 
     const { error } = await supabaseAdmin.from("whatsapp_messages").insert({
-      owner_id: prior.owner_id,
+      owner_id: ownerId,
       to_phone: phone,
       template_name: null,
       body_text: body,
@@ -137,6 +177,8 @@ async function handleInboundMessages(
       status: "received",
       direction: "inbound",
       contact_name: nameByPhone.get(phone) ?? null,
+      lead_source: leadSource ?? "direct",
+      referral_data: m.referral ?? null,
       sent_at: sentAt,
       metadata: { type: m.type },
     });

@@ -61,7 +61,12 @@ import {
   listWhatsAppConversations,
   listWhatsAppMessages,
   sendWhatsAppReply,
+  getWhatsAppLeadStats,
+  createTrackedWhatsAppLink,
+  listTrackedWhatsAppLinks,
+  deleteTrackedWhatsAppLink,
 } from "@/lib/whatsapp.functions";
+import { getTopGoogleAdsCampaigns } from "@/lib/google-ads.functions";
 import { UpgradeDialog } from "./UpgradeDialog";
 import {
   Dialog,
@@ -113,6 +118,9 @@ import {
   Music2,
   Pin,
   Send,
+  Link2,
+  Megaphone,
+  Store,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { QRCodeCard } from "@/components/dashboard/QRCodeCard";
@@ -204,6 +212,8 @@ type SectionId =
   | "reports"
   | "qr-code"
   | "whatsapp"
+  | "google-ads"
+  | "google-business"
   | "team"
   | "billing"
   | "attribution";
@@ -218,6 +228,8 @@ const NAV: { id: SectionId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "reports", label: "Reports", icon: FileBarChart },
   { id: "qr-code", label: "QR Captação", icon: QrCode },
   { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { id: "google-ads", label: "Google Ads", icon: Megaphone },
+  { id: "google-business", label: "Google Meu Negócio", icon: Store },
   { id: "team", label: "Equipe", icon: UserPlus },
   { id: "billing", label: "Billing", icon: CreditCard },
   { id: "attribution", label: "Rastreamento", icon: Activity },
@@ -466,6 +478,8 @@ export function DashboardShell() {
                 {section === "reports" && <ReportsSection />}
                 {section === "qr-code" && <QRCodeSection />}
                 {section === "whatsapp" && <WhatsAppSection />}
+                {section === "google-ads" && <GoogleAdsSection />}
+                {section === "google-business" && <GoogleBusinessSection />}
                 {section === "team" && <TeamSection />}
                 {section === "billing" && <BillingSection />}
                 {section === "attribution" && <AttributionSection />}
@@ -3112,7 +3126,51 @@ type WaConversation = {
   lastDirection: string;
   lastAt: string;
   unread: number;
+  leadSource: string | null;
+  awaitingReply: boolean;
 };
+
+const WA_SOURCE_META: Record<string, { label: string; className: string }> = {
+  meta: {
+    label: "Meta",
+    className: "bg-[#1877F2]/10 text-[#1877F2]",
+  },
+  google_ads: {
+    label: "Google Ads",
+    className: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  },
+  site: {
+    label: "Site",
+    className: "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+  },
+  pinterest: {
+    label: "Pinterest",
+    className: "bg-[#E60023]/10 text-[#E60023]",
+  },
+  bling: {
+    label: "Bling",
+    className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  },
+  other: {
+    label: "Outro",
+    className: "bg-muted text-muted-foreground",
+  },
+  direct: {
+    label: "Direto",
+    className: "bg-muted text-muted-foreground",
+  },
+};
+
+function WaSourceBadge({ source }: { source: string | null }) {
+  const meta = WA_SOURCE_META[source ?? "direct"] ?? WA_SOURCE_META.direct;
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide ${meta.className}`}
+    >
+      {meta.label}
+    </span>
+  );
+}
 
 function NewWhatsAppConversationModal({
   open,
@@ -3303,9 +3361,169 @@ function WhatsAppConversationThread({ phone }: { phone: string }) {
   );
 }
 
+const WA_LINK_SOURCE_OPTIONS: {
+  value: "google_ads" | "site" | "pinterest" | "bling" | "other";
+  label: string;
+}[] = [
+  { value: "google_ads", label: "Google Ads" },
+  { value: "site", label: "Site" },
+  { value: "pinterest", label: "Pinterest" },
+  { value: "bling", label: "Bling" },
+  { value: "other", label: "Outro" },
+];
+
+function TrackedLinksPanel() {
+  const listFn = useServerFn(listTrackedWhatsAppLinks);
+  const createFn = useServerFn(createTrackedWhatsAppLink);
+  const deleteFn = useServerFn(deleteTrackedWhatsAppLink);
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState<{
+    label: string;
+    source: (typeof WA_LINK_SOURCE_OPTIONS)[number]["value"];
+  }>({
+    label: "",
+    source: "google_ads",
+  });
+  const [creating, setCreating] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const { data } = useQuery({
+    queryKey: ["whatsapp-tracked-links"],
+    queryFn: () => listFn(),
+  });
+  const links = data?.links ?? [];
+
+  const onCreate = async () => {
+    if (!form.label.trim() || creating) return;
+    setCreating(true);
+    try {
+      await createFn({
+        data: { label: form.label.trim(), source: form.source },
+      });
+      toast.success("Link criado");
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-tracked-links"] });
+      setForm({ label: "", source: "google_ads" });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const onDelete = async (id: string) => {
+    await deleteFn({ data: { id } });
+    queryClient.invalidateQueries({ queryKey: ["whatsapp-tracked-links"] });
+  };
+
+  const onCopy = async (link: string, id: string) => {
+    await navigator.clipboard.writeText(link);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="flex items-center gap-2 mb-1">
+        <Link2 className="h-4 w-4 text-accent" />
+        <span className="font-display text-sm font-semibold">
+          Links rastreáveis
+        </span>
+      </div>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Gere um link do WhatsApp por canal (Google Ads, site, Pinterest,
+        Bling…). Quando o lead manda a mensagem pré-preenchida, o Branchly
+        identifica a origem automaticamente. Anúncios do Meta
+        (Facebook/Instagram) são atribuídos direto, sem precisar de link.
+      </p>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        <input
+          placeholder="Nome do link (ex: Campanha Black Friday)"
+          value={form.label}
+          onChange={(e) => setForm({ ...form, label: e.target.value })}
+          className="min-w-[220px] flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+        />
+        <select
+          value={form.source}
+          onChange={(e) =>
+            setForm({ ...form, source: e.target.value as typeof form.source })
+          }
+          className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+        >
+          {WA_LINK_SOURCE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={onCreate}
+          disabled={!form.label.trim() || creating}
+          className="flex items-center gap-1.5 rounded-lg bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+        >
+          {creating ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Plus className="h-3 w-3" />
+          )}{" "}
+          Gerar link
+        </button>
+      </div>
+
+      {links.length === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          Nenhum link gerado ainda.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {links.map((l) => (
+            <div
+              key={l.id}
+              className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/20 p-3"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm font-medium text-foreground">
+                    {l.label}
+                  </span>
+                  <WaSourceBadge source={l.source} />
+                </div>
+                <p className="truncate text-xs text-muted-foreground">
+                  {l.wa_link}
+                </p>
+              </div>
+              <div className="flex shrink-0 gap-1.5">
+                <button
+                  onClick={() => onCopy(l.wa_link, l.id)}
+                  className="rounded-md border border-border bg-card p-1.5 text-muted-foreground hover:text-foreground"
+                  aria-label="Copiar"
+                >
+                  {copied === l.id ? (
+                    <CheckCheck className="h-3.5 w-3.5 text-emerald-500" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </button>
+                <button
+                  onClick={() => onDelete(l.id)}
+                  className="rounded-md border border-border bg-card p-1.5 text-muted-foreground hover:text-rose-500"
+                  aria-label="Remover"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function WhatsAppSection() {
   const infoFn = useServerFn(getWhatsAppInfo);
   const convFn = useServerFn(listWhatsAppConversations);
+  const statsFn = useServerFn(getWhatsAppLeadStats);
   const [modalOpen, setModalOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -3319,13 +3537,18 @@ function WhatsAppSection() {
     queryFn: () => convFn(),
     refetchInterval: 20_000,
   });
+  const { data: statsData } = useQuery({
+    queryKey: ["whatsapp-lead-stats"],
+    queryFn: () => statsFn(),
+    refetchInterval: 20_000,
+  });
   const conversations: WaConversation[] = convData?.conversations ?? [];
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="WhatsApp"
-        subtitle="Rastreie conversas e envie solicitações de avaliação por WhatsApp."
+        subtitle="Rastreie de onde vêm seus leads e converse direto pelo dashboard."
         action={
           <button
             onClick={() => setModalOpen(true)}
@@ -3365,6 +3588,58 @@ function WhatsAppSection() {
         )
       )}
 
+      {/* Lead KPIs */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+        <KpiCard
+          label="Total de leads"
+          value={String(statsData?.totalLeads ?? 0)}
+          delta="contatos únicos"
+          trend="neutral"
+        />
+        <KpiCard
+          label="Mensagens recebidas"
+          value={String(statsData?.totalReceived ?? 0)}
+          delta="total"
+          trend="neutral"
+        />
+        <KpiCard
+          label="Aguardando resposta"
+          value={String(statsData?.awaitingReply ?? 0)}
+          delta={
+            statsData && statsData.awaitingReply > 0
+              ? "responda agora"
+              : "em dia"
+          }
+          trend={statsData && statsData.awaitingReply > 0 ? "down" : "neutral"}
+        />
+      </div>
+
+      {/* By source breakdown */}
+      {statsData && statsData.bySource.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="mb-4 font-display text-sm font-semibold">
+            De onde vêm seus leads
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {statsData.bySource.map((s) => (
+              <div
+                key={s.source}
+                className="flex items-center justify-between rounded-lg border border-border bg-muted/20 p-3"
+              >
+                <div className="flex items-center gap-2">
+                  <WaSourceBadge source={s.source} />
+                </div>
+                <span className="font-mono text-sm font-semibold tabular-nums">
+                  {s.count}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <TrackedLinksPanel />
+
       <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
         <div className="overflow-hidden rounded-xl border border-border bg-card">
           <div className="border-b border-border p-4 font-display text-sm font-semibold">
@@ -3395,7 +3670,15 @@ function WhatsAppSection() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  <div className="mt-1 flex items-center gap-1.5">
+                    <WaSourceBadge source={c.leadSource} />
+                    {c.awaitingReply && (
+                      <span className="text-[9px] font-medium uppercase tracking-wide text-rose-500">
+                        Aguardando resposta
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
                     {c.lastDirection === "inbound" ? "" : "Você: "}
                     {c.lastMessage}
                   </p>
@@ -3420,6 +3703,293 @@ function WhatsAppSection() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ Google Ads ------------------------------ */
+
+function formatBRL(micros: number): string {
+  return (micros / 1_000_000).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+function GoogleAdsSection() {
+  const fn = useServerFn(getTopGoogleAdsCampaigns);
+  const { data, error, isLoading } = useQuery({
+    queryKey: ["google-ads-campaigns"],
+    queryFn: () => fn(),
+    retry: false,
+  });
+  const campaigns = data?.campaigns ?? [];
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Google Ads"
+        subtitle="Suas melhores campanhas dos últimos 30 dias, por conversões."
+      />
+
+      {error ? (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-muted-foreground">
+          Google Ads ainda não configurado para esta conta. Configure as
+          variáveis de ambiente (GOOGLE_ADS_DEVELOPER_TOKEN,
+          GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CLIENT_SECRET,
+          GOOGLE_ADS_REFRESH_TOKEN, GOOGLE_ADS_CUSTOMER_ID) para ver suas
+          campanhas reais aqui.
+        </div>
+      ) : isLoading ? (
+        <div className="rounded-xl border border-border bg-card p-8 text-center text-xs text-muted-foreground">
+          Carregando campanhas…
+        </div>
+      ) : campaigns.length === 0 ? (
+        <EmptyState
+          title="Nenhuma campanha encontrada"
+          hint="Sem dados de campanha nos últimos 30 dias para esta conta do Google Ads."
+        />
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="border-b border-border p-4 font-display text-sm font-semibold">
+            Melhores campanhas
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-2.5 font-medium">Campanha</th>
+                <th className="px-4 py-2.5 font-medium">Status</th>
+                <th className="px-4 py-2.5 font-medium">Cliques</th>
+                <th className="px-4 py-2.5 font-medium">Impressões</th>
+                <th className="px-4 py-2.5 font-medium">CTR</th>
+                <th className="px-4 py-2.5 font-medium">Custo</th>
+                <th className="px-4 py-2.5 font-medium">Conversões</th>
+              </tr>
+            </thead>
+            <tbody>
+              {campaigns.map((c) => (
+                <tr
+                  key={c.id}
+                  className="border-b border-border/60 last:border-0"
+                >
+                  <td className="px-4 py-3 font-medium">{c.name}</td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${c.status === "ENABLED" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}
+                    >
+                      {c.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 font-mono tabular-nums">
+                    {c.clicks.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 font-mono tabular-nums text-muted-foreground">
+                    {c.impressions.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3 font-mono tabular-nums">
+                    {(c.ctr * 100).toFixed(2)}%
+                  </td>
+                  <td className="px-4 py-3 font-mono tabular-nums text-muted-foreground">
+                    {formatBRL(c.costMicros)}
+                  </td>
+                  <td className="px-4 py-3 font-mono tabular-nums font-semibold">
+                    {c.conversions.toFixed(1)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* --------------------------- Google Meu Negócio -------------------------- */
+
+function GoogleBusinessSection() {
+  const { data } = useDashboard();
+  const locs = data?.locations ?? [];
+  const googleReviews = (data?.reviews ?? []).filter(
+    (r) => (r.source ?? "").toLowerCase() === "google",
+  );
+  const generateFn = useServerFn(generateReplyForReview);
+  const queryClient = useQueryClient();
+  const [genLoading, setGenLoading] = useState<Record<string, boolean>>({});
+  const [copied, setCopied] = useState<string | null>(null);
+
+  const onGenerate = async (id: string) => {
+    setGenLoading((s) => ({ ...s, [id]: true }));
+    try {
+      await generateFn({ data: { id } });
+      toast.success("Resposta gerada");
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setGenLoading((s) => ({ ...s, [id]: false }));
+    }
+  };
+
+  const onCopy = async (text: string, id: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Google Meu Negócio"
+        subtitle="Suas unidades, avaliações e respostas — tudo vindo do Google em um só lugar."
+      />
+
+      <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-xs text-muted-foreground">
+        A publicação de respostas direto no Google exige a Google Business
+        Profile API (OAuth com conta verificada) — ainda não configurada.
+        Enquanto isso, gere a resposta com IA aqui e copie para colar
+        manualmente no Google.
+      </div>
+
+      {locs.length === 0 ? (
+        <EmptyState
+          title="Nenhuma unidade cadastrada"
+          hint="Adicione uma unidade em Locations para ver os dados do Google Meu Negócio."
+        />
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {locs.map((l) => (
+            <div
+              key={l.id}
+              className="rounded-xl border border-border bg-card p-4"
+            >
+              <div className="font-medium text-foreground">{l.name}</div>
+              <div className="text-xs text-muted-foreground">
+                {l.city ?? "—"}
+              </div>
+              <div className="mt-3 flex items-center gap-4">
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Nota
+                  </div>
+                  <div className="font-display text-lg font-semibold tabular-nums">
+                    {l.rating !== null ? Number(l.rating).toFixed(1) : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Score
+                  </div>
+                  <div className="font-display text-lg font-semibold tabular-nums">
+                    {l.score !== null ? Number(l.score).toFixed(1) : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Reviews
+                  </div>
+                  <div className="font-display text-lg font-semibold tabular-nums">
+                    {(l.review_count ?? 0).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+              {l.google_url && (
+                <a
+                  href={l.google_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-1 text-xs text-accent hover:underline"
+                >
+                  Ver no Google <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="border-b border-border p-4 font-display text-sm font-semibold">
+          Avaliações do Google ({googleReviews.length})
+        </div>
+        {googleReviews.length === 0 ? (
+          <EmptyState
+            title="Nenhuma avaliação do Google capturada ainda"
+            hint="Capture reviews em Reviews ou calcule o score real em Overview."
+          />
+        ) : (
+          <div className="divide-y divide-border">
+            {googleReviews.map((r) => (
+              <div key={r.id} className="p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                      {(r.author ?? "?")[0]}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium">
+                        {r.author ?? "Anônimo"}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {r.posted_at
+                          ? new Date(r.posted_at).toLocaleDateString("pt-BR")
+                          : "—"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex">
+                    {Array.from({ length: 5 }).map((_, s) => (
+                      <Star
+                        key={s}
+                        className={`h-3.5 w-3.5 ${s < (r.rating ?? 0) ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30"}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {r.comment && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {r.comment}
+                  </p>
+                )}
+                {r.reply ? (
+                  <div className="mt-3 flex items-start justify-between gap-3 rounded-lg bg-muted/40 p-3">
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        Resposta:{" "}
+                      </span>
+                      {r.reply}
+                    </p>
+                    <button
+                      onClick={() => onCopy(r.reply!, r.id)}
+                      className="shrink-0 rounded-md border border-border bg-card p-1.5 text-muted-foreground hover:text-foreground"
+                      aria-label="Copiar resposta"
+                    >
+                      {copied === r.id ? (
+                        <CheckCheck className="h-3.5 w-3.5 text-emerald-500" />
+                      ) : (
+                        <Copy className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => onGenerate(r.id)}
+                    disabled={genLoading[r.id]}
+                    className="mt-3 flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90 disabled:opacity-50"
+                  >
+                    {genLoading[r.id] ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-3 w-3" />
+                    )}{" "}
+                    Gerar resposta com IA
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
