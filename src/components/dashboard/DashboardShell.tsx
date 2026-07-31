@@ -55,6 +55,13 @@ import {
   captureInstagramComments,
   disconnectFacebook,
 } from "@/lib/meta.functions";
+import {
+  getWhatsAppInfo,
+  sendReviewRequest,
+  listWhatsAppConversations,
+  listWhatsAppMessages,
+  sendWhatsAppReply,
+} from "@/lib/whatsapp.functions";
 import { UpgradeDialog } from "./UpgradeDialog";
 import {
   Dialog,
@@ -105,6 +112,7 @@ import {
   ArrowDown,
   Music2,
   Pin,
+  Send,
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { QRCodeCard } from "@/components/dashboard/QRCodeCard";
@@ -195,6 +203,7 @@ type SectionId =
   | "insights"
   | "reports"
   | "qr-code"
+  | "whatsapp"
   | "team"
   | "billing"
   | "attribution";
@@ -208,6 +217,7 @@ const NAV: { id: SectionId; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "insights", label: "AI Insights", icon: Sparkles },
   { id: "reports", label: "Reports", icon: FileBarChart },
   { id: "qr-code", label: "QR Captação", icon: QrCode },
+  { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
   { id: "team", label: "Equipe", icon: UserPlus },
   { id: "billing", label: "Billing", icon: CreditCard },
   { id: "attribution", label: "Rastreamento", icon: Activity },
@@ -455,6 +465,7 @@ export function DashboardShell() {
                 {section === "insights" && <InsightsSection />}
                 {section === "reports" && <ReportsSection />}
                 {section === "qr-code" && <QRCodeSection />}
+                {section === "whatsapp" && <WhatsAppSection />}
                 {section === "team" && <TeamSection />}
                 {section === "billing" && <BillingSection />}
                 {section === "attribution" && <AttributionSection />}
@@ -3088,6 +3099,328 @@ function QRCodeSection() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/* -------------------------------- WhatsApp ------------------------------ */
+
+type WaConversation = {
+  phone: string;
+  contactName: string | null;
+  lastMessage: string;
+  lastDirection: string;
+  lastAt: string;
+  unread: number;
+};
+
+function NewWhatsAppConversationModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const queryClient = useQueryClient();
+  const fn = useServerFn(sendReviewRequest);
+  const [form, setForm] = useState({
+    phone: "",
+    customerName: "",
+    reviewLink: "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  const submit = async () => {
+    if (!form.phone || loading) return;
+    setLoading(true);
+    try {
+      await fn({
+        data: {
+          phone: form.phone,
+          customerName: form.customerName || undefined,
+          reviewLink: form.reviewLink || undefined,
+        },
+      });
+      toast.success("Mensagem enviada");
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-conversations"] });
+      onOpenChange(false);
+      setForm({ phone: "", customerName: "", reviewLink: "" });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nova conversa</DialogTitle>
+          <DialogDescription>
+            Envie uma solicitação de avaliação por WhatsApp para o seu cliente.
+            O número deve ter enviado uma mensagem para o seu negócio ou
+            aceitado receber mensagens (opt-in).
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <input
+            placeholder="Telefone (com DDD e código do país, ex: 5511999999999)"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
+          <input
+            placeholder="Nome do cliente (opcional)"
+            value={form.customerName}
+            onChange={(e) => setForm({ ...form, customerName: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
+          <input
+            placeholder="Link de avaliação (opcional)"
+            value={form.reviewLink}
+            onChange={(e) => setForm({ ...form, reviewLink: e.target.value })}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+          />
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="rounded-md border border-border bg-card px-3 py-2 text-xs"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={submit}
+            disabled={!form.phone || loading}
+            className="flex items-center gap-2 rounded-md bg-foreground px-3 py-2 text-xs font-medium text-background disabled:opacity-50"
+          >
+            {loading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <Send className="h-3 w-3" />
+            )}{" "}
+            Enviar
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function WhatsAppConversationThread({ phone }: { phone: string }) {
+  const listFn = useServerFn(listWhatsAppMessages);
+  const replyFn = useServerFn(sendWhatsAppReply);
+  const queryClient = useQueryClient();
+  const [reply, setReply] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ["whatsapp-thread", phone],
+    queryFn: () => listFn({ data: { phone } }),
+    refetchInterval: 15_000,
+  });
+  const messages = [...(data?.messages ?? [])].reverse();
+
+  const onSend = async () => {
+    if (!reply.trim() || sending) return;
+    setSending(true);
+    try {
+      await replyFn({ data: { phone, text: reply.trim() } });
+      setReply("");
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-thread", phone] });
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-conversations"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex-1 space-y-3 overflow-y-auto p-4">
+        {messages.length === 0 ? (
+          <EmptyState title="Sem mensagens ainda" />
+        ) : (
+          messages.map((m) => {
+            const isOut = m.direction !== "inbound";
+            return (
+              <div
+                key={m.id}
+                className={`flex ${isOut ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[75%] rounded-xl px-3.5 py-2.5 text-sm ${
+                    isOut
+                      ? "bg-foreground text-background"
+                      : "border border-border bg-card text-foreground"
+                  }`}
+                >
+                  <p className="whitespace-pre-wrap leading-relaxed">
+                    {m.body_text ?? m.template_name ?? "—"}
+                  </p>
+                  <div
+                    className={`mt-1 flex items-center gap-1 text-[10px] ${
+                      isOut ? "text-background/70" : "text-muted-foreground"
+                    }`}
+                  >
+                    {new Date(m.sent_at).toLocaleString("pt-BR", {
+                      day: "2-digit",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                    {isOut && m.status && <span>· {m.status}</span>}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+      <div className="flex gap-2 border-t border-border p-3">
+        <input
+          value={reply}
+          onChange={(e) => setReply(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && onSend()}
+          placeholder="Escreva uma resposta…"
+          className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+        />
+        <button
+          onClick={onSend}
+          disabled={!reply.trim() || sending}
+          className="flex items-center justify-center rounded-lg bg-foreground px-3.5 text-background disabled:opacity-50"
+        >
+          {sending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Send className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function WhatsAppSection() {
+  const infoFn = useServerFn(getWhatsAppInfo);
+  const convFn = useServerFn(listWhatsAppConversations);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const { data: infoData, error: infoError } = useQuery({
+    queryKey: ["whatsapp-info"],
+    queryFn: () => infoFn(),
+    retry: false,
+  });
+  const { data: convData, isLoading } = useQuery({
+    queryKey: ["whatsapp-conversations"],
+    queryFn: () => convFn(),
+    refetchInterval: 20_000,
+  });
+  const conversations: WaConversation[] = convData?.conversations ?? [];
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="WhatsApp"
+        subtitle="Rastreie conversas e envie solicitações de avaliação por WhatsApp."
+        action={
+          <button
+            onClick={() => setModalOpen(true)}
+            className="flex items-center gap-1.5 rounded-md bg-foreground px-3 py-1.5 text-xs font-medium text-background transition hover:opacity-90"
+          >
+            <Plus className="h-3.5 w-3.5" /> Nova conversa
+          </button>
+        }
+      />
+      <NewWhatsAppConversationModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
+
+      {infoError ? (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-muted-foreground">
+          WhatsApp Business API ainda não configurado para esta conta. Configure
+          as variáveis de ambiente (WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID,
+          WHATSAPP_WEBHOOK_VERIFY_TOKEN) para começar a enviar e rastrear
+          mensagens.
+        </div>
+      ) : (
+        infoData?.info && (
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <MessageCircle className="h-4.5 w-4.5" />
+            </div>
+            <div>
+              <div className="text-sm font-medium text-foreground">
+                {infoData.info.verifiedName}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {infoData.info.displayPhoneNumber} · conectado
+              </div>
+            </div>
+          </div>
+        )
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="border-b border-border p-4 font-display text-sm font-semibold">
+            Conversas
+          </div>
+          {isLoading ? (
+            <div className="p-4 text-xs text-muted-foreground">Carregando…</div>
+          ) : conversations.length === 0 ? (
+            <EmptyState
+              title="Sem conversas ainda"
+              hint="Clique em Nova conversa para enviar sua primeira mensagem."
+            />
+          ) : (
+            <div className="max-h-[560px] divide-y divide-border overflow-y-auto">
+              {conversations.map((c) => (
+                <button
+                  key={c.phone}
+                  onClick={() => setSelected(c.phone)}
+                  className={`block w-full px-4 py-3 text-left transition hover:bg-muted/40 ${selected === c.phone ? "bg-muted/60" : ""}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-medium text-foreground">
+                      {c.contactName ?? c.phone}
+                    </span>
+                    {c.unread > 0 && (
+                      <span className="flex h-4 min-w-4 shrink-0 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-accent-foreground">
+                        {c.unread}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {c.lastDirection === "inbound" ? "" : "Você: "}
+                    {c.lastMessage}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground/80">
+                    {new Date(c.lastAt).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "short",
+                    })}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-border bg-card overflow-hidden min-h-[400px]">
+          {selected ? (
+            <WhatsAppConversationThread phone={selected} />
+          ) : (
+            <div className="flex h-full min-h-[400px] items-center justify-center text-sm text-muted-foreground">
+              Selecione uma conversa para ver as mensagens
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

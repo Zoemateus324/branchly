@@ -258,8 +258,8 @@ export const createReport = createServerFn({ method: "POST" })
       })),
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error, data: row } = await (supabaseAdmin.from("reports") as any)
+    const { error, data: row } = await supabaseAdmin
+      .from("reports")
       .insert({
         owner_id: context.userId,
         name: data.name,
