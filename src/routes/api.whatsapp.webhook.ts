@@ -22,11 +22,26 @@ interface WebhookStatusUpdate {
   errors?: { code: number; title: string }[];
 }
 
+interface WebhookInboundMessage {
+  from: string;
+  id: string;
+  timestamp: string;
+  type: string;
+  text?: { body: string };
+}
+
+interface WebhookContact {
+  wa_id: string;
+  profile?: { name?: string };
+}
+
 interface WebhookEntry {
   id: string;
   changes: {
     value: {
       statuses?: WebhookStatusUpdate[];
+      messages?: WebhookInboundMessage[];
+      contacts?: WebhookContact[];
     };
     field: string;
   }[];
@@ -46,9 +61,8 @@ function ok(): Response {
 async function handleStatusUpdates(
   statuses: WebhookStatusUpdate[],
 ): Promise<void> {
-  const { supabaseAdmin } = await import(
-    "@/integrations/supabase/client.server"
-  );
+  const { supabaseAdmin } =
+    await import("@/integrations/supabase/client.server");
 
   for (const s of statuses) {
     const now = new Date(Number(s.timestamp) * 1000).toISOString();
@@ -75,6 +89,66 @@ async function handleStatusUpdates(
   }
 }
 
+async function handleInboundMessages(
+  messages: WebhookInboundMessage[],
+  contacts: WebhookContact[] | undefined,
+): Promise<void> {
+  const { supabaseAdmin } =
+    await import("@/integrations/supabase/client.server");
+
+  const nameByPhone = new Map<string, string>();
+  for (const c of contacts ?? []) {
+    if (c.profile?.name) nameByPhone.set(c.wa_id, c.profile.name);
+  }
+
+  for (const m of messages) {
+    const phone = m.from;
+    const body =
+      m.type === "text" && m.text?.body
+        ? m.text.body
+        : `[mensagem recebida: ${m.type}]`;
+    const sentAt = new Date(Number(m.timestamp) * 1000).toISOString();
+
+    // Attribute this inbound message to the Branchly account that most
+    // recently messaged this phone number — there's no per-tenant WABA
+    // number in this design, so ownership can only be inferred this way.
+    const { data: prior } = await supabaseAdmin
+      .from("whatsapp_messages")
+      .select("owner_id")
+      .eq("to_phone", phone)
+      .eq("direction", "outbound")
+      .order("sent_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!prior) {
+      console.warn(
+        `[whatsapp.webhook] inbound message from unattributed phone ${phone} — skipping`,
+      );
+      continue;
+    }
+
+    const { error } = await supabaseAdmin.from("whatsapp_messages").insert({
+      owner_id: prior.owner_id,
+      to_phone: phone,
+      template_name: null,
+      body_text: body,
+      wa_message_id: m.id,
+      status: "received",
+      direction: "inbound",
+      contact_name: nameByPhone.get(phone) ?? null,
+      sent_at: sentAt,
+      metadata: { type: m.type },
+    });
+    if (error) {
+      console.error(
+        `[whatsapp.webhook] failed to store inbound message ${m.id}`,
+        error,
+      );
+    }
+  }
+}
+
 // ------------------------------------------------------------------ route --
 
 export const Route = createFileRoute("/api/whatsapp/webhook")({
@@ -88,11 +162,7 @@ export const Route = createFileRoute("/api/whatsapp/webhook")({
         const challenge = url.searchParams.get("hub.challenge");
 
         const verifyToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
-        if (
-          mode === "subscribe" &&
-          token === verifyToken &&
-          challenge
-        ) {
+        if (mode === "subscribe" && token === verifyToken && challenge) {
           return new Response(challenge, { status: 200 });
         }
         return new Response("Forbidden", { status: 403 });
@@ -125,6 +195,15 @@ export const Route = createFileRoute("/api/whatsapp/webhook")({
             if (statuses?.length) {
               await handleStatusUpdates(statuses).catch((e) =>
                 console.error("[whatsapp.webhook] handleStatusUpdates", e),
+              );
+            }
+            const messages = change.value?.messages;
+            if (messages?.length) {
+              await handleInboundMessages(
+                messages,
+                change.value?.contacts,
+              ).catch((e) =>
+                console.error("[whatsapp.webhook] handleInboundMessages", e),
               );
             }
           }
