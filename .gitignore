@@ -43,4 +43,3 @@ next-env.d.ts
 # vite / nitro build output
 /.output
 /.wrangler
-package-lock.json
