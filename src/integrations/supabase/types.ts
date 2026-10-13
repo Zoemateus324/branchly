@@ -461,6 +461,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      whatsapp_business_accounts: {
+        Row: {
+          connected_at: string;
+          display_phone_number: string | null;
+          id: string;
+          owner_id: string;
+          phone_number_id: string;
+          register_pin: string;
+          updated_at: string;
+          verified_name: string | null;
+          waba_id: string;
+        };
+        Insert: {
+          connected_at?: string;
+          display_phone_number?: string | null;
+          id?: string;
+          owner_id: string;
+          phone_number_id: string;
+          register_pin: string;
+          updated_at?: string;
+          verified_name?: string | null;
+          waba_id: string;
+        };
+        Update: {
+          connected_at?: string;
+          display_phone_number?: string | null;
+          id?: string;
+          owner_id?: string;
+          phone_number_id?: string;
+          register_pin?: string;
+          updated_at?: string;
+          verified_name?: string | null;
+          waba_id?: string;
+        };
+        Relationships: [];
+      };
       whatsapp_messages: {
         Row: {
           body_text: string | null;

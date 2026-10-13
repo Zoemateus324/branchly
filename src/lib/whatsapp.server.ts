@@ -8,16 +8,26 @@
 //        https://branchly.com.br/api/whatsapp/webhook
 //      Subscribe to the "messages" webhook field.
 //   4. Set these server environment variables:
-//        WHATSAPP_TOKEN            — permanent access token
-//        WHATSAPP_PHONE_NUMBER_ID  — from WhatsApp > Getting Started
+//        WHATSAPP_TOKEN            — permanent access token (default/test number)
+//        WHATSAPP_PHONE_NUMBER_ID  — from WhatsApp > Getting Started (default/test number)
 //        WHATSAPP_WEBHOOK_VERIFY_TOKEN — any random string you choose
+//
+// MULTI-TENANT NUMBERS (Embedded Signup — see whatsapp-signup.server.ts):
+//   Once an owner connects their own WhatsApp Business number through
+//   Embedded Signup, their phone_number_id is stored in
+//   whatsapp_business_accounts. Every function below accepts an optional
+//   `phoneNumberId` override for that case; WHATSAPP_TOKEN keeps working
+//   as the sending credential for ALL onboarded numbers, because Embedded
+//   Signup shares each client's WABA with this app's Business as a
+//   managed client asset — the System User token doesn't change per
+//   number, only the phone_number_id in the URL does.
 
-const GRAPH_VERSION = "v21.0";
+const GRAPH_VERSION = "v23.0";
 const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`;
 
-function getWhatsAppConfig() {
+function getWhatsAppConfig(phoneNumberIdOverride?: string) {
   const token = process.env.WHATSAPP_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const phoneNumberId = phoneNumberIdOverride ?? process.env.WHATSAPP_PHONE_NUMBER_ID;
   if (!token || !phoneNumberId) {
     const missing = [
       ...(!token ? ["WHATSAPP_TOKEN"] : []),
@@ -42,8 +52,9 @@ export interface WhatsAppSendResult {
 export async function sendWhatsAppText(
   toPhone: string,
   text: string,
+  phoneNumberIdOverride?: string,
 ): Promise<WhatsAppSendResult> {
-  const { token, phoneNumberId } = getWhatsAppConfig();
+  const { token, phoneNumberId } = getWhatsAppConfig(phoneNumberIdOverride);
 
   const res = await fetch(`${GRAPH_BASE}/${phoneNumberId}/messages`, {
     method: "POST",
@@ -83,8 +94,9 @@ export async function sendWhatsAppTemplate(
   templateName: string,
   languageCode: string,
   components?: object[],
+  phoneNumberIdOverride?: string,
 ): Promise<WhatsAppSendResult> {
-  const { token, phoneNumberId } = getWhatsAppConfig();
+  const { token, phoneNumberId } = getWhatsAppConfig(phoneNumberIdOverride);
 
   const res = await fetch(`${GRAPH_BASE}/${phoneNumberId}/messages`, {
     method: "POST",
@@ -117,13 +129,13 @@ export async function sendWhatsAppTemplate(
   return { messageId };
 }
 
-/** Returns info about the configured WhatsApp Business phone number. */
-export async function getPhoneNumberInfo(): Promise<{
+/** Returns info about a WhatsApp Business phone number (defaults to the env-configured one). */
+export async function getPhoneNumberInfo(phoneNumberIdOverride?: string): Promise<{
   id: string;
   displayPhoneNumber: string;
   verifiedName: string;
 }> {
-  const { token, phoneNumberId } = getWhatsAppConfig();
+  const { token, phoneNumberId } = getWhatsAppConfig(phoneNumberIdOverride);
 
   const url = new URL(`${GRAPH_BASE}/${phoneNumberId}`);
   url.searchParams.set(

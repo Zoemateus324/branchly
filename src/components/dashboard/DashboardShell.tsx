@@ -124,6 +124,7 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { QRCodeCard } from "@/components/dashboard/QRCodeCard";
+import { ConnectWhatsAppButton } from "@/components/dashboard/ConnectWhatsAppButton";
 import {
   createPixelSite,
   listPixelSites,
@@ -3563,12 +3564,14 @@ function WhatsAppSection() {
         onOpenChange={setModalOpen}
       />
 
+      <ConnectWhatsAppButton />
+
       {infoError ? (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-muted-foreground">
-          WhatsApp Business API ainda não configurado para esta conta. Configure
-          as variáveis de ambiente (WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID,
-          WHATSAPP_WEBHOOK_VERIFY_TOKEN) para começar a enviar e rastrear
-          mensagens.
+          WhatsApp Business API ainda não configurado. Conecte seu número
+          acima, ou peça para o administrador configurar as variáveis de
+          ambiente (WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID,
+          WHATSAPP_WEBHOOK_VERIFY_TOKEN) para usar um número padrão.
         </div>
       ) : (
         infoData?.info && (
@@ -3581,7 +3584,8 @@ function WhatsAppSection() {
                 {infoData.info.verifiedName}
               </div>
               <div className="text-xs text-muted-foreground">
-                {infoData.info.displayPhoneNumber} · conectado
+                {infoData.info.displayPhoneNumber} · número usado para enviar
+                mensagens
               </div>
             </div>
           </div>

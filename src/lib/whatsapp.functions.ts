@@ -7,11 +7,32 @@ import {
   getPhoneNumberInfo,
 } from "./whatsapp.server";
 
-/** Returns info about the connected WhatsApp Business number. */
+/**
+ * Looks up the phone_number_id the owner connected through Embedded
+ * Signup, if any. Every send path below passes this through so an owner
+ * with their own connected number sends from THAT number rather than the
+ * shared WHATSAPP_PHONE_NUMBER_ID default (sendWhatsAppText/Template fall
+ * back to the env default automatically when this is undefined).
+ */
+async function resolveOwnerPhoneNumberId(
+  ownerId: string,
+): Promise<string | undefined> {
+  const { supabaseAdmin } =
+    await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin
+    .from("whatsapp_business_accounts")
+    .select("phone_number_id")
+    .eq("owner_id", ownerId)
+    .maybeSingle();
+  return data?.phone_number_id ?? undefined;
+}
+
+/** Returns info about this owner's connected WhatsApp Business number (or the shared default). */
 export const getWhatsAppInfo = createServerFn({ method: "GET" })
   .middleware([requireClerkAuth])
-  .handler(async () => {
-    const info = await getPhoneNumberInfo();
+  .handler(async ({ context }) => {
+    const phoneNumberId = await resolveOwnerPhoneNumberId(context.userId);
+    const info = await getPhoneNumberInfo(phoneNumberId);
     return { info };
   });
 
@@ -39,7 +60,12 @@ export const sendReviewRequest = createServerFn({ method: "POST" })
       `👉 ${link}\n\n` +
       `Obrigado!`;
 
-    const { messageId } = await sendWhatsAppText(data.phone, text);
+    const phoneNumberId = await resolveOwnerPhoneNumberId(context.userId);
+    const { messageId } = await sendWhatsAppText(
+      data.phone,
+      text,
+      phoneNumberId,
+    );
 
     const { error } = await supabaseAdmin.from("whatsapp_messages").insert({
       owner_id: context.userId,
@@ -80,11 +106,13 @@ export const sendTemplateMessage = createServerFn({ method: "POST" })
     const { supabaseAdmin } =
       await import("@/integrations/supabase/client.server");
 
+    const phoneNumberId = await resolveOwnerPhoneNumberId(context.userId);
     const { messageId } = await sendWhatsAppTemplate(
       data.phone,
       data.templateName,
       data.languageCode,
       data.components as object[] | undefined,
+      phoneNumberId,
     );
 
     const { error } = await supabaseAdmin.from("whatsapp_messages").insert({
@@ -275,7 +303,8 @@ export const createTrackedWhatsAppLink = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } =
       await import("@/integrations/supabase/client.server");
-    const info = await getPhoneNumberInfo();
+    const phoneNumberId = await resolveOwnerPhoneNumberId(context.userId);
+    const info = await getPhoneNumberInfo(phoneNumberId);
     const code = generateTrackingCode();
     const text = `Olá! Cheguei através de ${data.label}. (cód: ${code})`;
     const digits = info.displayPhoneNumber.replace(/\D/g, "");
@@ -340,7 +369,12 @@ export const sendWhatsAppReply = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } =
       await import("@/integrations/supabase/client.server");
-    const { messageId } = await sendWhatsAppText(data.phone, data.text);
+    const phoneNumberId = await resolveOwnerPhoneNumberId(context.userId);
+    const { messageId } = await sendWhatsAppText(
+      data.phone,
+      data.text,
+      phoneNumberId,
+    );
 
     const { error } = await supabaseAdmin.from("whatsapp_messages").insert({
       owner_id: context.userId,

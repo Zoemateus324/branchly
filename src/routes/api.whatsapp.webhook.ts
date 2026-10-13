@@ -49,6 +49,11 @@ interface WebhookContact {
   profile?: { name?: string };
 }
 
+interface WebhookMetadata {
+  display_phone_number?: string;
+  phone_number_id?: string;
+}
+
 interface WebhookEntry {
   id: string;
   changes: {
@@ -56,6 +61,7 @@ interface WebhookEntry {
       statuses?: WebhookStatusUpdate[];
       messages?: WebhookInboundMessage[];
       contacts?: WebhookContact[];
+      metadata?: WebhookMetadata;
     };
     field: string;
   }[];
@@ -106,6 +112,7 @@ async function handleStatusUpdates(
 async function handleInboundMessages(
   messages: WebhookInboundMessage[],
   contacts: WebhookContact[] | undefined,
+  phoneNumberId: string | undefined,
 ): Promise<void> {
   const { supabaseAdmin } =
     await import("@/integrations/supabase/client.server");
@@ -113,6 +120,21 @@ async function handleInboundMessages(
   const nameByPhone = new Map<string, string>();
   for (const c of contacts ?? []) {
     if (c.profile?.name) nameByPhone.set(c.wa_id, c.profile.name);
+  }
+
+  // Every owner connected through WhatsApp Embedded Signup has their own
+  // phone_number_id, which Meta always includes in change.value.metadata —
+  // this resolves ownership directly and correctly for those accounts,
+  // without relying on the heuristics below (which exist only because the
+  // legacy shared/default number has no such 1:1 mapping).
+  let ownerIdByPhoneNumber: string | null = null;
+  if (phoneNumberId) {
+    const { data: account } = await supabaseAdmin
+      .from("whatsapp_business_accounts")
+      .select("owner_id")
+      .eq("phone_number_id", phoneNumberId)
+      .maybeSingle();
+    ownerIdByPhoneNumber = account?.owner_id ?? null;
   }
 
   for (const m of messages) {
@@ -123,12 +145,14 @@ async function handleInboundMessages(
         : `[mensagem recebida: ${m.type}]`;
     const sentAt = new Date(Number(m.timestamp) * 1000).toISOString();
 
-    let ownerId: string | null = null;
+    let ownerId: string | null = ownerIdByPhoneNumber;
     let leadSource: string | null = null;
 
     // 1. Tracked link: the prefilled wa.me message carries our own tracking
     // code, which resolves both the owner and the channel directly — this
     // works even for a lead's very first message, before any prior contact.
+    // Still checked even when ownerId is already known from the phone
+    // number, since it also carries the lead_source.
     const codeMatch = body.match(TRACKING_CODE_RE);
     if (codeMatch) {
       const { data: link } = await supabaseAdmin
@@ -137,7 +161,10 @@ async function handleInboundMessages(
         .eq("tracking_code", codeMatch[1].toUpperCase())
         .maybeSingle();
       if (link) {
-        ownerId = link.owner_id;
+        // Don't let a tracked link override an owner already resolved
+        // deterministically from the receiving phone_number_id above —
+        // only use it to fill in ownerId when that wasn't available.
+        if (!ownerId) ownerId = link.owner_id;
         leadSource = link.source;
       }
     }
@@ -244,6 +271,7 @@ export const Route = createFileRoute("/api/whatsapp/webhook")({
               await handleInboundMessages(
                 messages,
                 change.value?.contacts,
+                change.value?.metadata?.phone_number_id,
               ).catch((e) =>
                 console.error("[whatsapp.webhook] handleInboundMessages", e),
               );
