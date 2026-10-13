@@ -22,11 +22,40 @@ interface WebhookStatusUpdate {
   errors?: { code: number; title: string }[];
 }
 
+interface WebhookReferral {
+  source_url?: string;
+  source_type?: string;
+  source_id?: string;
+  headline?: string;
+  body?: string;
+  ctwa_clid?: string;
+}
+
+interface WebhookInboundMessage {
+  from: string;
+  id: string;
+  timestamp: string;
+  type: string;
+  text?: { body: string };
+  referral?: WebhookReferral;
+}
+
+// Matches the tracking code embedded in prefilled wa.me link text, e.g.
+// "Olá! Cheguei através de Google Ads. (cód: A1B2C3)"
+const TRACKING_CODE_RE = /\(c[oó]d:\s*([A-Z0-9]{6,10})\)/i;
+
+interface WebhookContact {
+  wa_id: string;
+  profile?: { name?: string };
+}
+
 interface WebhookEntry {
   id: string;
   changes: {
     value: {
       statuses?: WebhookStatusUpdate[];
+      messages?: WebhookInboundMessage[];
+      contacts?: WebhookContact[];
     };
     field: string;
   }[];
@@ -46,9 +75,8 @@ function ok(): Response {
 async function handleStatusUpdates(
   statuses: WebhookStatusUpdate[],
 ): Promise<void> {
-  const { supabaseAdmin } = await import(
-    "@/integrations/supabase/client.server"
-  );
+  const { supabaseAdmin } =
+    await import("@/integrations/supabase/client.server");
 
   for (const s of statuses) {
     const now = new Date(Number(s.timestamp) * 1000).toISOString();
@@ -75,6 +103,94 @@ async function handleStatusUpdates(
   }
 }
 
+async function handleInboundMessages(
+  messages: WebhookInboundMessage[],
+  contacts: WebhookContact[] | undefined,
+): Promise<void> {
+  const { supabaseAdmin } =
+    await import("@/integrations/supabase/client.server");
+
+  const nameByPhone = new Map<string, string>();
+  for (const c of contacts ?? []) {
+    if (c.profile?.name) nameByPhone.set(c.wa_id, c.profile.name);
+  }
+
+  for (const m of messages) {
+    const phone = m.from;
+    const body =
+      m.type === "text" && m.text?.body
+        ? m.text.body
+        : `[mensagem recebida: ${m.type}]`;
+    const sentAt = new Date(Number(m.timestamp) * 1000).toISOString();
+
+    let ownerId: string | null = null;
+    let leadSource: string | null = null;
+
+    // 1. Tracked link: the prefilled wa.me message carries our own tracking
+    // code, which resolves both the owner and the channel directly — this
+    // works even for a lead's very first message, before any prior contact.
+    const codeMatch = body.match(TRACKING_CODE_RE);
+    if (codeMatch) {
+      const { data: link } = await supabaseAdmin
+        .from("whatsapp_tracked_links")
+        .select("owner_id, source")
+        .eq("tracking_code", codeMatch[1].toUpperCase())
+        .maybeSingle();
+      if (link) {
+        ownerId = link.owner_id;
+        leadSource = link.source;
+      }
+    }
+
+    // 2. Meta's own referral object is attached when the lead came from a
+    // click-to-WhatsApp ad on Facebook or Instagram.
+    if (!leadSource && m.referral) leadSource = "meta";
+
+    // 3. Fall back to the Branchly account that most recently messaged this
+    // phone number — there's no per-tenant WABA number in this design, so
+    // ownership can only be inferred this way once no tracked link matches.
+    if (!ownerId) {
+      const { data: prior } = await supabaseAdmin
+        .from("whatsapp_messages")
+        .select("owner_id")
+        .eq("to_phone", phone)
+        .eq("direction", "outbound")
+        .order("sent_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (prior) ownerId = prior.owner_id;
+    }
+
+    if (!ownerId) {
+      console.warn(
+        `[whatsapp.webhook] inbound message from unattributed phone ${phone} — skipping`,
+      );
+      continue;
+    }
+
+    const { error } = await supabaseAdmin.from("whatsapp_messages").insert({
+      owner_id: ownerId,
+      to_phone: phone,
+      template_name: null,
+      body_text: body,
+      wa_message_id: m.id,
+      status: "received",
+      direction: "inbound",
+      contact_name: nameByPhone.get(phone) ?? null,
+      lead_source: leadSource ?? "direct",
+      referral_data: m.referral ?? null,
+      sent_at: sentAt,
+      metadata: { type: m.type },
+    });
+    if (error) {
+      console.error(
+        `[whatsapp.webhook] failed to store inbound message ${m.id}`,
+        error,
+      );
+    }
+  }
+}
+
 // ------------------------------------------------------------------ route --
 
 export const Route = createFileRoute("/api/whatsapp/webhook")({
@@ -88,11 +204,7 @@ export const Route = createFileRoute("/api/whatsapp/webhook")({
         const challenge = url.searchParams.get("hub.challenge");
 
         const verifyToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
-        if (
-          mode === "subscribe" &&
-          token === verifyToken &&
-          challenge
-        ) {
+        if (mode === "subscribe" && token === verifyToken && challenge) {
           return new Response(challenge, { status: 200 });
         }
         return new Response("Forbidden", { status: 403 });
@@ -125,6 +237,15 @@ export const Route = createFileRoute("/api/whatsapp/webhook")({
             if (statuses?.length) {
               await handleStatusUpdates(statuses).catch((e) =>
                 console.error("[whatsapp.webhook] handleStatusUpdates", e),
+              );
+            }
+            const messages = change.value?.messages;
+            if (messages?.length) {
+              await handleInboundMessages(
+                messages,
+                change.value?.contacts,
+              ).catch((e) =>
+                console.error("[whatsapp.webhook] handleInboundMessages", e),
               );
             }
           }
