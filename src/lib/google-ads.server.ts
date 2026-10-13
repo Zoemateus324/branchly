@@ -1,28 +1,47 @@
 // Server-only helpers for the Google Ads API.
 //
-// SETUP REQUIRED:
+// This is a multi-tenant SaaS: each Branchly customer connects their OWN
+// Google Ads account via OAuth (see google-ads-signup.server.ts /
+// ConnectGoogleAdsButton.tsx). GOOGLE_ADS_CUSTOMER_ID / an env-configured
+// refresh token are NOT used for customer data — they exist only as an
+// optional fallback for a single default/demo account (e.g. for Branchly's
+// own internal testing), and getBestCampaigns always prefers the
+// `customerId`/`refreshToken` overrides passed in by the caller, which
+// come from that specific owner's row in `google_ads_accounts`.
+//
+// SETUP REQUIRED (shared across every customer who connects — see
+// google-ads-signup.server.ts for the full walkthrough):
 //   1. Apply for a Google Ads API developer token:
 //        https://developers.google.com/google-ads/api/docs/get-started/dev-token
 //   2. Create an OAuth 2.0 Client ID (type: Web application) in Google Cloud
-//      Console, then generate a refresh token for the Ads account (via the
-//      OAuth Playground or a one-time consent flow).
+//      Console with redirect URI GOOGLE_ADS_REDIRECT_URI.
 //   3. Set these server environment variables:
 //        GOOGLE_ADS_DEVELOPER_TOKEN
 //        GOOGLE_ADS_CLIENT_ID
 //        GOOGLE_ADS_CLIENT_SECRET
+//        GOOGLE_ADS_REDIRECT_URI
+//   Optional, single-account fallback only (not used for connected
+//   customers — see note above):
 //        GOOGLE_ADS_REFRESH_TOKEN
-//        GOOGLE_ADS_CUSTOMER_ID       — the ads account to read (digits only)
-//        GOOGLE_ADS_LOGIN_CUSTOMER_ID — optional, only if under a manager account
+//        GOOGLE_ADS_CUSTOMER_ID
+//        GOOGLE_ADS_LOGIN_CUSTOMER_ID
 
 const API_VERSION = "v17";
 
-function getGoogleAdsConfig() {
+interface GoogleAdsOverrides {
+  customerId: string;
+  refreshToken: string;
+  loginCustomerId?: string | null;
+}
+
+function getGoogleAdsConfig(overrides?: GoogleAdsOverrides) {
   const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
   const clientId = process.env.GOOGLE_ADS_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET;
-  const refreshToken = process.env.GOOGLE_ADS_REFRESH_TOKEN;
-  const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID;
-  const loginCustomerId = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID;
+  const refreshToken = overrides?.refreshToken ?? process.env.GOOGLE_ADS_REFRESH_TOKEN;
+  const customerId = overrides?.customerId ?? process.env.GOOGLE_ADS_CUSTOMER_ID;
+  const loginCustomerId =
+    overrides?.loginCustomerId ?? process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID;
 
   const missing = [
     ...(!developerToken ? ["GOOGLE_ADS_DEVELOPER_TOKEN"] : []),
@@ -82,9 +101,17 @@ export interface GoogleAdsCampaign {
   ctr: number;
 }
 
-/** Fetches the best-performing campaigns (by conversions) from the last 30 days. */
-export async function getBestCampaigns(): Promise<GoogleAdsCampaign[]> {
-  const config = getGoogleAdsConfig();
+/**
+ * Fetches the best-performing campaigns (by conversions) from the last 30
+ * days for the given customer. Pass `overrides` with a specific owner's
+ * connected `customerId`/`refreshToken` (from google_ads_accounts) — the
+ * env-var fallback is for a single default/demo account only, never for
+ * customer data.
+ */
+export async function getBestCampaigns(
+  overrides?: GoogleAdsOverrides,
+): Promise<GoogleAdsCampaign[]> {
+  const config = getGoogleAdsConfig(overrides);
   const accessToken = await getAccessToken(
     config.clientId,
     config.clientSecret,

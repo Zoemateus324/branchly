@@ -127,6 +127,39 @@ export type Database = {
           },
         ];
       };
+      google_ads_accounts: {
+        Row: {
+          connected_at: string;
+          customer_id: string;
+          descriptive_name: string | null;
+          id: string;
+          login_customer_id: string | null;
+          owner_id: string;
+          refresh_token: string;
+          updated_at: string;
+        };
+        Insert: {
+          connected_at?: string;
+          customer_id: string;
+          descriptive_name?: string | null;
+          id?: string;
+          login_customer_id?: string | null;
+          owner_id: string;
+          refresh_token: string;
+          updated_at?: string;
+        };
+        Update: {
+          connected_at?: string;
+          customer_id?: string;
+          descriptive_name?: string | null;
+          id?: string;
+          login_customer_id?: string | null;
+          owner_id?: string;
+          refresh_token?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       insights: {
         Row: {
           body: string | null;

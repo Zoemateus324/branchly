@@ -67,6 +67,7 @@ import {
   deleteTrackedWhatsAppLink,
 } from "@/lib/whatsapp.functions";
 import { getTopGoogleAdsCampaigns } from "@/lib/google-ads.functions";
+import { getGoogleAdsAccount } from "@/lib/google-ads-signup.functions";
 import { UpgradeDialog } from "./UpgradeDialog";
 import {
   Dialog,
@@ -125,6 +126,7 @@ import {
 import { Logo } from "@/components/site/Logo";
 import { QRCodeCard } from "@/components/dashboard/QRCodeCard";
 import { ConnectWhatsAppButton } from "@/components/dashboard/ConnectWhatsAppButton";
+import { ConnectGoogleAdsButton } from "@/components/dashboard/ConnectGoogleAdsButton";
 import {
   createPixelSite,
   listPixelSites,
@@ -3723,12 +3725,21 @@ function formatBRL(micros: number): string {
 
 function GoogleAdsSection() {
   const fn = useServerFn(getTopGoogleAdsCampaigns);
+  const getAccountFn = useServerFn(getGoogleAdsAccount);
+  const { data: accountData } = useQuery({
+    queryKey: ["google-ads-account"],
+    queryFn: () => getAccountFn(),
+  });
+  const account = accountData?.account ?? null;
+
   const { data, error, isLoading } = useQuery({
     queryKey: ["google-ads-campaigns"],
     queryFn: () => fn(),
     retry: false,
+    enabled: !!account,
   });
   const campaigns = data?.campaigns ?? [];
+  const notConnected = !account || (error as Error)?.message === "NOT_CONNECTED";
 
   return (
     <div className="space-y-6">
@@ -3737,13 +3748,16 @@ function GoogleAdsSection() {
         subtitle="Suas melhores campanhas dos últimos 30 dias, por conversões."
       />
 
-      {error ? (
+      <ConnectGoogleAdsButton />
+
+      {notConnected ? (
         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-muted-foreground">
-          Google Ads ainda não configurado para esta conta. Configure as
-          variáveis de ambiente (GOOGLE_ADS_DEVELOPER_TOKEN,
-          GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CLIENT_SECRET,
-          GOOGLE_ADS_REFRESH_TOKEN, GOOGLE_ADS_CUSTOMER_ID) para ver suas
-          campanhas reais aqui.
+          Conecte sua conta do Google Ads acima para ver suas campanhas reais
+          aqui.
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-4 text-sm text-muted-foreground">
+          Não foi possível carregar suas campanhas: {(error as Error).message}
         </div>
       ) : isLoading ? (
         <div className="rounded-xl border border-border bg-card p-8 text-center text-xs text-muted-foreground">
