@@ -3,6 +3,7 @@ import { useState, useEffect, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/site/Header";
 import { Logo } from "@/components/site/Logo";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 export const Route = createFileRoute("/sign-in/$")({
   head: () => ({
@@ -66,10 +67,14 @@ function SignInPage() {
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4"
-        >
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-4">
+          <GoogleSignInButton label="Entrar com Google" />
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="h-px flex-1 bg-border" />
+            ou
+            <div className="h-px flex-1 bg-border" />
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-foreground" htmlFor="email">
               Email
@@ -118,7 +123,8 @@ function SignInPage() {
               Start free
             </a>
           </p>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
