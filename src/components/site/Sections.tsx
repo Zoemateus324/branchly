@@ -20,7 +20,7 @@ export function Hero() {
   const { t } = useApp();
   return (
     <section className="relative overflow-hidden border-b border-border">
-      <div className="grid-bg absolute inset-0 pointer-events-none" />
+      <div className="grid-bg absolute inset-0 -z-10 pointer-events-none" />
       <div className="absolute left-1/2 top-0 -z-10 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-accent/10 blur-3xl" />
       <div className="mx-auto max-w-7xl px-6 pt-20 pb-12 md:pt-28 md:pb-20">
         <motion.div
