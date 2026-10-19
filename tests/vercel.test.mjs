@@ -1,4 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {Readable} from 'node:stream';import {readFile} from 'node:fs/promises';import proxy from '../api/proxy.mjs';
+process.env.BRANCHLY_SUPABASE_ENABLED='0';
 function response(){return {headers:{},statusCode:200,setHeader(key,value){this.headers[key]=value;},end(body){this.body=body;}};}
 function request(url='/api/proxy?route=me',method='GET',body=''){return Object.assign(Readable.from(body?[Buffer.from(body)]:[]),{url,method,headers:{}});}
 test('all reported Vercel URLs have explicit HTML rewrites and API has its own destination',async()=>{const config=JSON.parse(await readFile(new URL('../vercel.json',import.meta.url),'utf8'));for(const path of ['/produto','/precos','/privacidade','/termos','/seguranca','/ajuda','/contato','/solucoes/climatizacao','/como-funciona','/integracoes','/entrar','/cadastro','/demo'])assert.equal(config.rewrites.find(r=>r.source===path)?.destination,'/index.html',path);assert.equal(config.outputDirectory,'public');assert.equal(config.rewrites[0].source,'/api/:path*');assert.ok(!config.rewrites.some(r=>r.source==='/:path*'&&r.destination==='/index.html'));});

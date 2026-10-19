@@ -1,6 +1,10 @@
+import handleSupabase from './supabase.mjs';
+import {supabaseEnabled} from '../src/supabase-config.mjs';
 // Keep the persistent backend separate from Vercel's ephemeral function filesystem.
 export default async function handler(request,response){
  const base=process.env.BACKEND_ORIGIN;
+ const incomingURL=new URL(request.url,'https://branchly.invalid');const routed=incomingURL.searchParams.get('route')||'';
+ if(!base&&supabaseEnabled()){if(!/^[a-zA-Z0-9/_-]+$/.test(routed)||routed.startsWith('/')){response.statusCode=400;response.setHeader('Content-Type','application/json');return response.end(JSON.stringify({error:'Rota inválida.'}));}return handleSupabase(request,response,routed);}
  response.setHeader('Cache-Control','no-store');
  if(!base){response.statusCode=503;response.setHeader('Content-Type','application/json; charset=utf-8');return response.end(JSON.stringify({error:'O acesso à conta aguarda a conexão do backend. Você já pode explorar a demonstração pública.'}));}
  let origin;try{origin=new URL(base);if(origin.protocol!=='https:'||origin.username||origin.password||origin.pathname!=='/'||origin.search||origin.hash)throw new Error();}catch{response.statusCode=503;return response.end(JSON.stringify({error:'A configuração do backend precisa de uma origem HTTPS válida.'}));}
