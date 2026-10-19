@@ -14,3 +14,25 @@ jobs:
           node-version: '24'
       - run: npm run check
       - run: npm test
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      database:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-only-password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare isolated Auth fixture
+        run: docker exec -i "${{ job.services.database.id }}" psql -U postgres -v ON_ERROR_STOP=1 < supabase/tests/bootstrap.sql
+      - name: Apply migration to PostgreSQL
+        run: docker exec -i "${{ job.services.database.id }}" psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261019_branchly.sql
+      - name: Verify migration can be applied twice
+        run: docker exec -i "${{ job.services.database.id }}" psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261019_branchly.sql
+      - name: Verify tenant isolation and role restrictions
+        run: docker exec -i "${{ job.services.database.id }}" psql -U postgres -v ON_ERROR_STOP=1 < supabase/tests/rls.sql
