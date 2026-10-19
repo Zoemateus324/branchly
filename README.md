@@ -49,6 +49,10 @@ Nenhum segredo real acompanha o projeto. As conexões dependem de configuração
 
 Leia [docs/INTEGRACOES.md](docs/INTEGRACOES.md) e [docs/DEPLOY.md](docs/DEPLOY.md). A UI distingue demonstração, configuração presente e ambiente de homologação. Configuração presente não comprova que o provedor foi homologado.
 
+## Publicação na Vercel
+
+As páginas públicas e a demonstração usam as rotas explícitas de `vercel.json`. Para login, cadastro e operações reais, configure `BACKEND_ORIGIN` na Vercel apontando para o servidor Node com volume persistente. Sem essa conexão, a API retorna uma mensagem de indisponibilidade; não existe autenticação simulada. Veja `docs/DEPLOY.md`.
+
 ## Arquitetura
 
 Node.js 24, HTTP nativo, SQLite em WAL, CSS e JavaScript sem framework. O objetivo é executar a primeira versão sem instalação de pacotes ou serviços de banco pagos. É um projeto independente: não modifica nem depende do fork do Twenty encontrado no GitHub.

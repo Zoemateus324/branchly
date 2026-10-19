@@ -12,6 +12,22 @@ npm start
 
 Configure `APP_URL` com a origem externa exata. Em produção, `NODE_ENV=production` exige HTTPS, Resend configurado e chave de criptografia. Use segredos próprios da hospedagem, sem valores em comandos, commits ou tickets.
 
+## Frontend na Vercel
+
+`vercel.json` publica `public/` e encaminha explicitamente as páginas para `index.html`, preservando arquivos JS/CSS e rotas desconhecidas como 404. Assim URLs como `/produto`, `/precos`, `/cadastro` e `/demo` abrem diretamente.
+
+As APIs são encaminhadas pela função `api/proxy.mjs` para `BACKEND_ORIGIN`, uma origem HTTPS fixa definida nas variáveis da Vercel. Essa função não usa SQLite, não guarda dados e não substitui o backend.
+
+Para a conta funcionar, hospede o servidor Node com volume persistente e configure:
+
+- Vercel: `BACKEND_ORIGIN=https://seu-backend.example.com`.
+- Backend: `APP_URL=https://branchly-wi6f.vercel.app`, ou o domínio público final, para validar Origin e gerar os links de conta.
+- Backend: segredos próprios, HTTPS, banco persistente e remetente de e-mail.
+
+Sem `BACKEND_ORIGIN`, páginas públicas e demonstração funcionam, mas APIs retornam 503 com mensagem explícita. Login/cadastro não simulam sucesso. Não use SQLite em `/tmp` da Vercel como banco de produção.
+
+A infraestrutura do proxy precisa definir limites de requisição e proteção contra abuso conforme o tráfego. O rate limit do backend enxerga o proxy; não confie em cabeçalhos de IP enviados por visitantes sem uma configuração própria e verificada.
+
 ## Docker
 
 ```bash
