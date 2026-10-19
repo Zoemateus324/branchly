@@ -1,172 +1,64 @@
-<p align="center">
-  <a href="https://www.twenty.com">
-    <img src="./packages/twenty-website/public/images/core/logo.svg" width="100px" alt="Twenty logo" />
-  </a>
-</p>
+# Branchly
 
-<h2 align="center">The #1 Open-Source CRM</h2>
+Primeira implementação independente do SaaS de acompanhamento comercial com IA. Público inicial: empresas de serviços, com exemplos de climatização. O lançamento segue cadastro direto e demonstração interativa, sem depender de entrevistas.
 
-<p align="center"><a href="https://twenty.com"><img src="./packages/twenty-website/public/images/readme/globe-icon.svg" width="12" height="12"/> Website</a> · <a href="https://docs.twenty.com"><img src="./packages/twenty-website/public/images/readme/book-icon.svg" width="12" height="12"/> Documentation</a> · <a href="https://github.com/orgs/twentyhq/projects/1"><img src="./packages/twenty-website/public/images/readme/map-icon.svg" width="12" height="12"/> Roadmap </a> · <a href="https://discord.gg/cx5n4Jzs57"><img src="./packages/twenty-website/public/images/readme/discord-icon.svg" width="12" height="12"/> Discord</a> · <a href="https://www.figma.com/file/xt8O9mFeLl46C5InWwoMrN/Twenty"><img src="./packages/twenty-website/public/images/readme/figma-icon.webp"  width="12" height="12"/>  Figma</a></p>
+## Executar
 
-<p align="center">
-  <a href="https://www.twenty.com">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="./packages/twenty-website/public/images/readme/github-cover-dark.webp" />
-      <source media="(prefers-color-scheme: light)" srcset="./packages/twenty-website/public/images/readme/github-cover-light.webp" />
-      <img src="./packages/twenty-website/public/images/readme/github-cover-light.webp" alt="Twenty banner" />
-    </picture>
-  </a>
-</p>
-
-<br />
-
-# Why Twenty
-
-Twenty gives technical teams the building blocks for a custom CRM that meets complex business needs and quickly adapts as the business evolves. Twenty is the CRM you build, ship, and version like the rest of your stack.
-
-<a href="https://twenty.com/resources/why-twenty"><img src="./packages/twenty-website/public/images/readme/star-icon.svg" width="14" height="14"/> Learn more about why we built Twenty</a>
-
-<br />
-
-# Installation
-
-### <img src="./packages/twenty-website/public/images/readme/globe-icon.svg" width="14" height="14"/> Cloud
-
-The fastest way to get started. Sign up at [twenty.com](https://twenty.com) and spin up a workspace in under a minute, with no infrastructure to manage and always up to date.
-
-### <img src="./packages/twenty-website/public/images/readme/book-icon.svg" width="14" height="14"/> Build an app
-
-Scaffold a new app with the Twenty CLI:
+Requer Node.js 24. Não há dependências de terceiros em tempo de execução.
 
 ```bash
-npx create-twenty-app my-app
+cp .env.example .env
+npm start
 ```
 
-Define objects, fields, and views as code:
-
-```ts
-import { defineObject, FieldType } from 'twenty-sdk/define';
-
-export default defineObject({
-  nameSingular: 'deal',
-  namePlural: 'deals',
-  labelSingular: 'Deal',
-  labelPlural: 'Deals',
-  fields: [
-    { name: 'name', label: 'Name', type: FieldType.TEXT },
-    { name: 'amount', label: 'Amount', type: FieldType.CURRENCY },
-    { name: 'closeDate', label: 'Close Date', type: FieldType.DATE_TIME },
-  ],
-});
-```
-
-Then ship it to your workspace:
+Abra `http://localhost:3000`. Explore `/demo` sem conta ou crie uma conta em `/cadastro`. O cadastro cria uma empresa vazia e acesso inicial de sete dias. Os dados fictícios ficam exclusivamente na demonstração.
 
 ```bash
-npx twenty app:publish --private
+npm run check
+npm test
 ```
 
-See the [app development guide](https://docs.twenty.com/developers/extend/apps/getting-started) for objects, views, agents, and logic functions.
+## Entregue
 
-Building with a coding agent? Install the official [Twenty app skills](./packages/twenty-agent-skills), which work in Claude Code, Codex, Cursor, Pi, and any other harness supported by the `skills` CLI:
+- Home, produto, preços, segurança, minutas de privacidade/termos e demonstração pública interativa.
+- Animações explicativas com pausa, transições e preferência por movimento reduzido.
+- Cadastro, login, sessão de sete dias, confirmação de e-mail e recuperação de senha.
+- Empresas isoladas no servidor, responsável e membros, convites de equipe com até três pessoas.
+- Cadastro/edição/exclusão de orçamentos, cinco situações, contexto, consentimento e próximo contato.
+- Tarefas, diretório de contatos derivados das propostas, relatórios e histórico operacional.
+- CSV com importação atômica, exportação e neutralização de fórmulas de planilha.
+- IA: adaptador da Responses API da OpenAI com limite diário por empresa e revisão humana.
+- WhatsApp oficial: configuração criptografada por empresa, webhook assinado e envio de texto na janela de 24 horas.
+- E-mail Resend: confirmação, recuperação, convites e mensagens comerciais explicitamente aprovadas.
+- Efí: autorização OAuth, link avulso do piloto, link de assinatura mensal, consulta de notificações, reconciliação, cancelamento da recorrência e controle de acesso pelo período pago.
+- n8n: apenas um webhook de teste autenticado. Não há fluxos automáticos de acompanhamento nesta versão.
+- Contagens de abertura da demonstração/cadastro e eventos internos de ativação/pagamento, sem identificar visitantes anônimos.
 
-```bash
-npx skills add https://github.com/twentyhq/twenty/tree/agent-skills --list
-```
+## Estado real das integrações
 
-The `agent-skills` branch is created by the first successful publish from `main`. Until then, use the [local build instructions](./packages/twenty-agent-skills#local-development). [`SKILLS.md`](./SKILLS.md) explains the other skill families in this repository and who they are for.
+Nenhum segredo real acompanha o projeto. As conexões dependem de configuração e homologação. Os testes usam respostas simuladas dos provedores e não enviam mensagens nem criam cobranças reais.
 
-### <img src="./packages/twenty-website/public/images/readme/rocket-icon.svg" width="14" height="14"/> Self-hosting
+Leia [docs/INTEGRACOES.md](docs/INTEGRACOES.md) e [docs/DEPLOY.md](docs/DEPLOY.md). A UI distingue demonstração, configuração presente e ambiente de homologação. Configuração presente não comprova que o provedor foi homologado.
 
-Run Twenty on your own infrastructure with [Docker Compose](https://docs.twenty.com/developers/self-host/capabilities/docker-compose), or contribute locally via the [local setup guide](https://docs.twenty.com/developers/contribute/capabilities/local-setup).
+## Arquitetura
 
-<br />
-<br />
+Node.js 24, HTTP nativo, SQLite em WAL, CSS e JavaScript sem framework. O objetivo é executar a primeira versão sem instalação de pacotes ou serviços de banco pagos. É um projeto independente: não modifica nem depende do fork do Twenty encontrado no GitHub.
 
-# Everything you need
+O processo da aplicação e o banco precisam de disco persistente. Não funciona como simples upload estático nem em funções serverless com disco efêmero. Para escalar horizontalmente será necessário migrar os dados e coordenação para uma infraestrutura compartilhada; os limites atuais são de uma instância.
 
-Twenty gives you the building blocks of a modern CRM (objects, views, workflows, and agents) and lets you extend them as code. Here's a tour of what's in the box.
+## Limites antes do lançamento comercial
 
-Want to go deeper? Read the <a href="https://docs.twenty.com/user-guide/introduction"><img src="./packages/twenty-website/public/images/readme/planner-icon.svg" width="14" height="14"/> User Guide</a> for product walkthroughs, or the <a href="https://docs.twenty.com"><img src="./packages/twenty-website/public/images/readme/book-icon.svg" width="14" height="14"/> Documentation</a> for developer reference.
+- Hospedagem, domínio HTTPS, novos segredos e homologação dos provedores ainda não configurados.
+- Minutas legais exigem identificação do operador, contato de privacidade, suporte e condições comerciais finais.
+- Revisão visual em navegador e testes móveis ainda pendentes; este ambiente não disponibilizou controle de navegador compatível.
+- Não há GA4, Google Ads, Meta Ads, OAuth de redes sociais, integração Twenty/Supabase, templates de WhatsApp, calendário, MFA ou fluxos autônomos. Esses recursos não são simulados como ativos.
+- Não há verificação independente de segurança ou teste de carga. Não presumir prontidão de produção apenas pelos testes automatizados.
+- Gestão de exclusão completa de conta, remoção de membros, reembolsos e reconciliação de cobranças órfãs requerem operação administrativa nesta versão.
+- Limites: 2.000 propostas/empresa, 100 linhas por importação, 1 MB por requisição, três usuários/empresa, 20 sugestões IA/dia por padrão.
+- Transações aceitas pelo WhatsApp/Resend são registradas como aceitas, não como entrega confirmada. O recebimento de novas mensagens WhatsApp é usado para a janela de atendimento; ainda não há inbox de conversas.
 
-<table align="center">
-  <tr>
-    <td width="50%">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="./packages/twenty-website/public/images/readme/v2-build-apps-dark.webp" />
-        <source media="(prefers-color-scheme: light)" srcset="./packages/twenty-website/public/images/readme/v2-build-apps-light.webp" />
-        <img src="./packages/twenty-website/public/images/readme/v2-build-apps-light.webp" alt="Create your apps" />
-      </picture>
-      <p align="center"><a href="https://docs.twenty.com/developers/extend/apps/getting-started"><img src="./packages/twenty-website/public/images/readme/code-icon.svg" width="16" height="16"/> Learn more about apps in doc</a></p>
-    </td>
-    <td width="50%">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="./packages/twenty-website/public/images/readme/v2-version-control-dark.webp" />
-        <source media="(prefers-color-scheme: light)" srcset="./packages/twenty-website/public/images/readme/v2-version-control-light.webp" />
-        <img src="./packages/twenty-website/public/images/readme/v2-version-control-light.webp" alt="Stay on top with version control" />
-      </picture>
-      <p align="center"><a href="https://docs.twenty.com/developers/extend/apps/publishing"><img src="./packages/twenty-website/public/images/readme/monitor-icon.svg" width="16" height="16"/> Learn more about version control in doc</a></p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="./packages/twenty-website/public/images/readme/v2-all-tools-dark.webp" />
-        <source media="(prefers-color-scheme: light)" srcset="./packages/twenty-website/public/images/readme/v2-all-tools-light.webp" />
-        <img src="./packages/twenty-website/public/images/readme/v2-all-tools-light.webp" alt="All the tools you need to build anything" />
-      </picture>
-      <p align="center"><a href="https://docs.twenty.com/developers/extend/apps/building"><img src="./packages/twenty-website/public/images/readme/rocket-icon.svg" width="16" height="16"/> Learn more about primitives in doc</a></p>
-    </td>
-    <td width="50%">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="./packages/twenty-website/public/images/readme/v2-tools-dark.webp" />
-        <source media="(prefers-color-scheme: light)" srcset="./packages/twenty-website/public/images/readme/v2-tools-light.webp" />
-        <img src="./packages/twenty-website/public/images/readme/v2-tools-light.webp" alt="Customize your layouts" />
-      </picture>
-      <p align="center"><a href="https://docs.twenty.com/user-guide/layout/overview"><img src="./packages/twenty-website/public/images/readme/planner-icon.svg" width="16" height="16"/> Learn more about layouts in doc</a></p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="./packages/twenty-website/public/images/readme/v2-ai-agents-dark.webp" />
-        <source media="(prefers-color-scheme: light)" srcset="./packages/twenty-website/public/images/readme/v2-ai-agents-light.webp" />
-        <img src="./packages/twenty-website/public/images/readme/v2-ai-agents-light.webp" alt="AI agents and chats" />
-      </picture>
-      <p align="center"><a href="https://docs.twenty.com/user-guide/ai/overview"><img src="./packages/twenty-website/public/images/readme/message-icon.svg" width="16" height="16"/> Learn more about AI in doc</a></p>
-    </td>
-    <td width="50%">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="./packages/twenty-website/public/images/readme/v2-crm-tools-dark.webp" />
-        <source media="(prefers-color-scheme: light)" srcset="./packages/twenty-website/public/images/readme/v2-crm-tools-light.webp" />
-        <img src="./packages/twenty-website/public/images/readme/v2-crm-tools-light.webp" alt="Plus all the tools of a good CRM" />
-      </picture>
-      <p align="center"><a href="https://docs.twenty.com/user-guide/introduction"><img src="./packages/twenty-website/public/images/readme/star-icon.svg" width="16" height="16"/> Learn more about CRM features in doc</a></p>
-    </td>
-  </tr>
-</table>
+## GitHub
 
-<br />
+O novo projeto foi preparado separadamente porque o repositório `Zoemateus324/branchly` encontrado é público e contém o Twenty. A escolha feita para este trabalho foi um repositório novo e privado. Nenhum arquivo desse repositório existente foi alterado. Após criar o repositório privado vazio e fornecer seu link, o código poderá ser sincronizado.
 
-# Stack
-
-- <a href="https://www.typescriptlang.org/"><img src="./packages/twenty-website/public/images/readme/stack-typescript.svg" width="14" height="14"/> TypeScript</a>
-- <a href="https://nx.dev/"><img src="./packages/twenty-website/public/images/readme/stack-nx.svg" width="14" height="14"/> Nx</a>
-- <a href="https://nestjs.com/"><img src="./packages/twenty-website/public/images/readme/stack-nestjs.svg" width="14" height="14"/> NestJS</a>, with <a href="https://bullmq.io/">BullMQ</a>, <a href="https://www.postgresql.org/"><img src="./packages/twenty-website/public/images/readme/stack-postgresql.svg" width="14" height="14"/> PostgreSQL</a>, <a href="https://redis.io/"><img src="./packages/twenty-website/public/images/readme/stack-redis.svg" width="14" height="14"/> Redis</a>
-- <a href="https://reactjs.org/"><img src="./packages/twenty-website/public/images/readme/stack-react.svg" width="14" height="14"/> React</a>, with <a href="https://jotai.org/">Jotai</a>, <a href="https://linaria.dev/">Linaria</a> and <a href="https://lingui.dev/">Lingui</a>
-
-# Thanks
-
-<p align="center">
-  <a href="https://greptile.com"><img src="./packages/twenty-website/public/images/readme/greptile.webp" height="28" alt="Greptile" /></a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://sentry.io/"><img src="./packages/twenty-website/public/images/readme/sentry.webp" height="28" alt="Sentry" /></a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://crowdin.com/"><img src="./packages/twenty-website/public/images/readme/crowdin.webp" height="28" alt="Crowdin" /></a>
-</p>
-
-Thanks to these amazing services that we use and recommend for code review (Greptile), catching bugs (Sentry) and translating (Crowdin).
-
-# Join the Community
-
-<p><a href="https://github.com/twentyhq/twenty"><img src="./packages/twenty-website/public/images/readme/star-icon.svg" width="12" height="12"/> Star the repo</a> · <a href="https://discord.gg/cx5n4Jzs57"><img src="./packages/twenty-website/public/images/readme/discord-icon.svg" width="12" height="12"/> Discord</a> · <a href="https://github.com/twentyhq/twenty/discussions"><img src="./packages/twenty-website/public/images/readme/message-icon.svg" width="12" height="12"/> Feature requests</a> · <a href="https://github.com/orgs/twentyhq/projects/1/views/35"><img src="./packages/twenty-website/public/images/readme/rocket-icon.svg" width="12" height="12"/> Releases</a> · <a href="https://twitter.com/twentycrm"><img src="./packages/twenty-website/public/images/readme/x-icon.svg" width="12" height="12"/> X</a> · <a href="https://www.linkedin.com/company/twenty/"><img src="./packages/twenty-website/public/images/readme/linkedin-icon.svg" width="12" height="12"/> LinkedIn</a> · <a href="https://twenty.crowdin.com/twenty"><img src="./packages/twenty-website/public/images/readme/language-icon.svg" width="12" height="12"/> Crowdin</a> · <a href="https://github.com/twentyhq/twenty/contribute"><img src="./packages/twenty-website/public/images/readme/code-icon.svg" width="12" height="12"/> Contribute</a></p>
+Não publique `.env`, banco de dados, backups, tokens ou credenciais. O ZIP de entrega exclui esses itens.
