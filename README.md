@@ -1,6 +1,6 @@
 # Branchly
 
-Primeira implementação independente do SaaS de acompanhamento comercial com IA. Público inicial: empresas de serviços, com exemplos de climatização. O lançamento segue cadastro direto e demonstração interativa, sem depender de entrevistas.
+Implementação independente do SaaS de acompanhamento comercial com IA. Público inicial: empresas de serviços, com exemplos de climatização. O lançamento segue cadastro direto e demonstração interativa, sem depender de entrevistas.
 
 ## Executar
 
@@ -17,6 +17,15 @@ Abra `http://localhost:3000`. Explore `/demo` sem conta ou crie uma conta em `/c
 npm run check
 npm test
 ```
+
+## Atualização 0.2.0
+
+- Ícones com dimensões intrínsecas de 20 px, limites por contexto de 16–28 px e ausência de SVGs com tamanho padrão de 300 × 150.
+- Menu público mobile acessível e navegação da área privada com rolagem controlada.
+- Páginas públicas: como funciona, integrações, climatização, central de ajuda com busca e caminhos de contato.
+- Páginas privadas: primeiros passos, perfil, segurança, histórico, ajuda, detalhes de orçamento e cliente.
+- Perfil com atualização real do nome e troca de senha com encerramento das outras sessões.
+- 31 testes automatizados passaram. Inspeção visual em navegador permanece pendente.
 
 ## Entregue
 
@@ -40,6 +49,10 @@ Nenhum segredo real acompanha o projeto. As conexões dependem de configuração
 
 Leia [docs/INTEGRACOES.md](docs/INTEGRACOES.md) e [docs/DEPLOY.md](docs/DEPLOY.md). A UI distingue demonstração, configuração presente e ambiente de homologação. Configuração presente não comprova que o provedor foi homologado.
 
+## Publicação na Vercel
+
+As páginas públicas e a demonstração usam as rotas explícitas de `vercel.json`. Para login, cadastro e operações reais, configure `BACKEND_ORIGIN` na Vercel apontando para o servidor Node com volume persistente. Sem essa conexão, a API retorna uma mensagem de indisponibilidade; não existe autenticação simulada. Veja `docs/DEPLOY.md`.
+
 ## Arquitetura
 
 Node.js 24, HTTP nativo, SQLite em WAL, CSS e JavaScript sem framework. O objetivo é executar a primeira versão sem instalação de pacotes ou serviços de banco pagos. É um projeto independente: não modifica nem depende do fork do Twenty encontrado no GitHub.
@@ -59,6 +72,6 @@ O processo da aplicação e o banco precisam de disco persistente. Não funciona
 
 ## GitHub
 
-O novo projeto foi preparado separadamente porque o repositório `Zoemateus324/branchly` encontrado é público e contém o Twenty. A escolha feita para este trabalho foi um repositório novo e privado. Nenhum arquivo desse repositório existente foi alterado. Após criar o repositório privado vazio e fornecer seu link, o código poderá ser sincronizado.
+Código preparado para `Zoemateus324/branchly`. A atualização 0.2.0 é enviada em `codex/complete-pages-fix-icons`, com revisão por pull request antes de integrar na `main`.
 
-Não publique `.env`, banco de dados, backups, tokens ou credenciais. O ZIP de entrega exclui esses itens.
+Não publique `.env`, banco de dados, backups, tokens ou credenciais. O pacote e o envio ao GitHub excluem esses itens. A configuração da implantação continua exigindo segredos próprios no servidor.

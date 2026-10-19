@@ -12,6 +12,22 @@ npm start
 
 Configure `APP_URL` com a origem externa exata. Em produção, `NODE_ENV=production` exige HTTPS, Resend configurado e chave de criptografia. Use segredos próprios da hospedagem, sem valores em comandos, commits ou tickets.
 
+## Frontend na Vercel
+
+`vercel.json` publica `public/` e encaminha explicitamente as páginas para `index.html`, preservando arquivos JS/CSS e rotas desconhecidas como 404. Assim URLs como `/produto`, `/precos`, `/cadastro` e `/demo` abrem diretamente.
+
+As APIs são encaminhadas pela função `api/proxy.mjs` para `BACKEND_ORIGIN`, uma origem HTTPS fixa definida nas variáveis da Vercel. Essa função não usa SQLite, não guarda dados e não substitui o backend.
+
+Para a conta funcionar, hospede o servidor Node com volume persistente e configure:
+
+- Vercel: `BACKEND_ORIGIN=https://seu-backend.example.com`.
+- Backend: `APP_URL=https://branchly-wi6f.vercel.app`, ou o domínio público final, para validar Origin e gerar os links de conta.
+- Backend: segredos próprios, HTTPS, banco persistente e remetente de e-mail.
+
+Sem `BACKEND_ORIGIN`, páginas públicas e demonstração funcionam, mas APIs retornam 503 com mensagem explícita. Login/cadastro não simulam sucesso. Não use SQLite em `/tmp` da Vercel como banco de produção.
+
+A infraestrutura do proxy precisa definir limites de requisição e proteção contra abuso conforme o tráfego. O rate limit do backend enxerga o proxy; não confie em cabeçalhos de IP enviados por visitantes sem uma configuração própria e verificada.
+
 ## Docker
 
 ```bash
@@ -35,7 +51,7 @@ A aplicação remove sessões/tokens/convites expirados a cada hora. Propostas, 
 
 ## Validação realizada
 
-28 testes automatizados passaram na entrega inicial, com banco SQLite em memória e HTTP local. Provedores externos foram simulados. Não houve cobrança real nem uso de credenciais de produção. Verificação de sintaxe dos módulos concluída.
+31 testes automatizados passaram na atualização 0.2.0, com banco SQLite em memória e HTTP local. Provedores externos foram simulados. Não houve cobrança real nem uso de credenciais de produção. Verificação de sintaxe dos módulos concluída.
 
 Não foi possível realizar QA visual em navegador neste ambiente por ausência do controle de navegador compatível. A responsividade e o movimento reduzido estão implementados em CSS e precisam de inspeção em desktop/mobile antes da publicação.
 
@@ -53,7 +69,7 @@ Use contas com primeira proposta, uso semanal e pagamentos confirmados como sina
 
 ## Pendências objetivas
 
-1. Repositório privado novo informado pelo usuário para sincronização.
+1. Revisar e integrar o pull request de atualização no repositório `Zoemateus324/branchly`.
 2. Credenciais Efí substituídas, remetente de e-mail, modelo/chave de IA e configuração Meta.
 3. Hospedagem com volume, domínio, TLS, backup e alertas.
 4. QA visual, homologação real e revisão independente das regras de acesso/pagamento.

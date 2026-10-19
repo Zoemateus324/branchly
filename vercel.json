@@ -1,0 +1,111 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": null,
+  "outputDirectory": "public",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/proxy?route=:path*"
+    },
+    {
+      "source": "/produto",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/precos",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacidade",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/termos",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/seguranca",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ajuda",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/contato",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/solucoes/climatizacao",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/como-funciona",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/integracoes",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/entrar",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cadastro",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/demo",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/recuperar-senha",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/redefinir-senha",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/confirmar-email",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/convite",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/app",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/:path*",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ]
+}
