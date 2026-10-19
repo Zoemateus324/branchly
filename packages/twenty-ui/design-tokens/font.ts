@@ -26,5 +26,5 @@ export const FONT_TOKENS = {
     medium: token('500', { unit: 'number' }),
     semiBold: token('600', { unit: 'number' }),
   },
-  family: token('Inter, sans-serif'),
+  family: token('"IBM Plex Sans", sans-serif'),
 };
